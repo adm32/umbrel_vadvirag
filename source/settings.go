@@ -177,6 +177,7 @@ func (a *App) handleSetup(w http.ResponseWriter, r *http.Request) {
 	cfg := a.conf()
 	if imp != nil {
 		imp.Port = cfg.Port
+		imp.Dijak = cfg.Dijak // költözéskor az új, beépített szállítási díjak érvényesek
 		cfg = *imp
 	}
 	cfg.Jelszo = in.Password

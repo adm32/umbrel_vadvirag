@@ -1,0 +1,21 @@
+
+services:
+  app_proxy:
+    environment:
+      # <app-id>_<szolgáltatás neve>_1
+      APP_HOST: vadvirag-rendelesek_web_1
+      APP_PORT: 8080
+      # Saját jelszava van, és a Wix webhooknak bejelentkezés nélkül kell elérnie.
+      PROXY_AUTH_ADD: "false"
+
+  web:
+    build:
+      context: ${APP_DATA_DIR}
+    restart: on-failure
+    stop_grace_period: 5s
+    environment:
+      DATA_DIR: /data
+      PORT: "8080"
+      TZ: Europe/Budapest
+    volumes:
+      - ${APP_DATA_DIR}/data:/data

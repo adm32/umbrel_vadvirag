@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="hu"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rendelések">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Rendelések</title>
+<style>
+:root{
+  --bg:#f2f2f7;--card:#ffffff;--card2:#f2f2f7;--fill:rgba(118,118,128,.12);--fill2:rgba(118,118,128,.08);
+  --label:#000;--label2:rgba(60,60,67,.6);--label3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.18);
+  --red:#ff3b30;--green:#34c759;--blue:#007aff;--orange:#ff9500;--purple:#af52de;--teal:#30b0c7;
+  --bar:rgba(242,242,247,.78);--shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--fill:rgba(118,118,128,.24);--fill2:rgba(118,118,128,.16);
+  --label:#fff;--label2:rgba(235,235,245,.6);--label3:rgba(235,235,245,.3);--sep:rgba(84,84,88,.6);
+  --red:#ff453a;--green:#30d158;--blue:#0a84ff;--orange:#ff9f0a;--purple:#bf5af2;--teal:#40c8e0;
+  --bar:rgba(0,0,0,.72);--shadow:none;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--label);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI Variable","Segoe UI",system-ui,sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;min-height:100vh}
+button{font:inherit;letter-spacing:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+a{color:var(--blue);text-decoration:none}
+
+/* ---- navigációs sáv ---- */
+.nav{position:sticky;top:0;z-index:10;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid transparent;transition:border-color .2s;padding-top:env(safe-area-inset-top)}
+.nav.scrolled{border-bottom-color:var(--sep)}
+.navrow{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 20px 0;min-height:44px}
+.navrow .sp{flex:1}
+.ibtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--fill2);color:var(--blue);transition:transform .15s,background .15s}
+.ibtn:active{transform:scale(.92);background:var(--fill)}
+.ibtn svg{width:19px;height:19px}
+.ttl{max-width:1240px;margin:0 auto;padding:2px 20px 10px}
+.ttl h1{margin:0;font-size:34px;line-height:41px;font-weight:700;letter-spacing:.012em}
+.ttl .sub{color:var(--label2);font-size:15px;margin-top:2px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:1px}
+
+/* ---- szegmentált vezérlő ---- */
+.segwrap{max-width:1240px;margin:0 auto;padding:0 20px 12px}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;position:relative;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1;min-width:max-content;padding:7px 14px;font-size:14px;font-weight:500;border-radius:7px;position:relative;z-index:1;white-space:nowrap;color:var(--label);transition:color .2s}
+.seg .knob{position:absolute;top:2px;bottom:2px;border-radius:7px;background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);transition:left .32s cubic-bezier(.3,.7,.2,1),width .32s cubic-bezier(.3,.7,.2,1);z-index:0}
+@media (prefers-color-scheme:dark){.seg .knob{background:#636366}}
+.seg .n{display:inline-block;min-width:20px;height:20px;line-height:20px;padding:0 6px;border-radius:10px;font-size:12px;font-weight:600;margin-left:6px;background:var(--fill);color:var(--label2);font-variant-numeric:tabular-nums}
+.seg .n.hot{background:var(--red);color:#fff}
+
+/* ---- lista ---- */
+main{max-width:1240px;margin:0 auto;padding:8px 20px 120px}
+#list{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));align-items:start}
+@media (max-width:600px){.seg button{padding:7px 6px;font-size:13px;min-width:0}.seg .n{margin-left:4px;min-width:18px;height:18px;line-height:18px;padding:0 5px;font-size:11px}.fab{width:58px;height:58px;padding:0;justify-content:center;border-radius:50%}.fab .ft{display:none}.fab svg{width:26px;height:26px}main{padding:4px 12px 120px}#list{grid-template-columns:1fr;gap:12px}.navrow,.ttl,.segwrap{padding-left:16px;padding-right:16px}}
+
+.card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;animation:in .35s cubic-bezier(.2,.9,.3,1) both;position:relative}
+@keyframes in{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+.card.new::before{content:"";position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 2px var(--orange);pointer-events:none;animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--orange) 35%,transparent)}}
+.card.done,.card.rejected{opacity:.72}
+.ch{padding:16px 18px 0;display:flex;align-items:flex-start;gap:12px}
+.av{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:600;font-size:17px;color:#fff}
+.who{flex:1;min-width:0}
+.who .nm{font-size:19px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .meta{font-size:13px;color:var(--label2);margin-top:3px;font-variant-numeric:tabular-nums}
+.pill{flex:none;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill.new{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
+.pill.preparing{background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue)}
+.pill.done{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+.pill.rejected{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+
+/* csoportosított sorok (iOS beállítás-stílus) */
+.grp{margin:14px 18px 0;background:var(--card2);border-radius:12px;overflow:hidden}
+.grp .r{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:15px;position:relative;min-height:44px}
+.grp .r+.r::before{content:"";position:absolute;top:0;left:52px;right:0;height:.5px;background:var(--sep)}
+.ic{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;flex:none;color:#fff}
+.ic svg{width:16px;height:16px}
+.r .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.r .v small{display:block;color:var(--label2);font-size:13px}
+.r .acc{color:var(--label2);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.r .acc.warn{color:var(--orange)}
+.items{margin:14px 18px 0;font-size:17px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.items .lbl,.sec-lbl{display:block;font-size:13px;color:var(--label2);text-transform:uppercase;letter-spacing:.02em;margin-bottom:4px;font-weight:500}
+.note{margin:10px 18px 0;font-size:15px;color:var(--label2)}
+.mail{margin:12px 18px 0;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--label2)}
+.mail.ok{color:var(--green)}.mail.bad{color:var(--red)}
+.mail .lnk{color:var(--blue);font-weight:500}
+.acts{display:flex;gap:10px;padding:16px 18px 18px}
+.btn{flex:1;height:50px;border-radius:14px;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .12s,filter .12s}
+.btn:active{transform:scale(.97);filter:brightness(.92)}
+.btn.fill-green{background:var(--green);color:#fff}
+.btn.fill-blue{background:var(--blue);color:#fff}
+.btn.tint-red{background:color-mix(in srgb,var(--red) 13%,transparent);color:var(--red)}
+.btn.tint{background:var(--fill2);color:var(--blue)}
+.btn.sq{flex:none;width:50px}
+.btn svg{width:20px;height:20px}
+
+.empty{grid-column:1/-1;text-align:center;color:var(--label2);padding:90px 20px}
+.empty svg{width:56px;height:56px;color:var(--label3);margin-bottom:10px}
+.empty b{display:block;color:var(--label);font-size:20px;margin-bottom:4px}
+
+/* lebegő gomb */
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:9;height:54px;padding:0 22px 0 18px;border-radius:27px;background:var(--blue);color:#fff;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px color-mix(in srgb,var(--blue) 40%,transparent);transition:transform .15s}
+.fab:active{transform:scale(.95)}
+.fab svg{width:22px;height:22px}
+
+/* ---- lapok (sheet) ---- */
+dialog{border:0;padding:0;background:transparent;max-width:none;max-height:none;width:100%;height:100%;margin:0;color:var(--label)}
+dialog::backdrop{background:rgba(0,0,0,.32);backdrop-filter:blur(2px)}
+dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
+@keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.dwrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
+.sheet{background:var(--bg);border-radius:22px;width:min(100%,460px);max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+@media (max-width:600px){.dwrap{align-items:flex-end;padding:0}.sheet{width:100%;border-radius:22px 22px 0 0;max-height:92vh;padding-bottom:env(safe-area-inset-bottom)}}
+.shd{display:flex;align-items:center;padding:16px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:1}
+.shd h2{flex:1;text-align:center;margin:0;font-size:17px;font-weight:600}
+.shd .tb{min-width:72px;color:var(--blue);font-size:17px;padding:6px 0}
+.shd .tb.r{text-align:right;font-weight:600}
+.shd .tb:disabled{color:var(--label3)}
+.sbody{padding:4px 16px 22px}
+.hint{color:var(--label2);font-size:13px;padding:8px 16px 0;line-height:1.4}
+.flabel{font-size:13px;color:var(--label2);text-transform:uppercase;padding:18px 16px 7px;letter-spacing:.02em}
+.list{background:var(--card);border-radius:12px;overflow:hidden}
+.list .row{display:flex;align-items:center;min-height:46px;padding:0 16px;position:relative;font-size:17px}
+.list .row+.row::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+.list .row input,.list .row textarea,.list .row select{flex:1;border:0;background:transparent;color:var(--label);font:inherit;padding:12px 0;outline:none;min-width:0;resize:none;-webkit-appearance:none;appearance:none}
+.list .row textarea{min-height:96px;line-height:1.4}
+.list .row .k{width:110px;flex:none;color:var(--label)}
+.list .opt{cursor:pointer;gap:12px}
+.list .opt .tx{flex:1;padding:12px 0}
+.list .opt .ck{color:var(--blue);opacity:0;font-weight:700}
+.list .opt.on .ck{opacity:1}
+.etas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.eta{background:var(--card);border-radius:14px;padding:16px 0 14px;text-align:center;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;transition:transform .12s,background .2s,color .2s;box-shadow:inset 0 0 0 0 var(--blue)}
+.eta small{display:block;font-size:12px;font-weight:500;color:var(--label2);margin-top:2px}
+.eta.on{background:var(--blue);color:#fff}.eta.on small{color:rgba(255,255,255,.8)}
+.eta:active{transform:scale(.95)}
+.segsm{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:0}
+.segsm button{flex:1;padding:8px;border-radius:7px;font-size:15px;font-weight:500}
+.segsm button.on{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12)}
+.bigbtn{margin-top:20px;width:100%;height:52px;border-radius:14px;font-size:17px;font-weight:600;color:#fff;transition:transform .12s,filter .12s}
+.bigbtn:active{transform:scale(.98);filter:brightness(.92)}
+.bigbtn.green{background:var(--green)}.bigbtn.red{background:var(--red)}.bigbtn.blue{background:var(--blue)}
+
+#toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));z-index:30;transform:translate(-50%,-140%);opacity:0;visibility:hidden;background:var(--card);color:var(--label);padding:12px 20px 12px 16px;border-radius:999px;font-size:15px;font-weight:500;box-shadow:0 10px 40px rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;transition:transform .45s cubic-bezier(.2,1.2,.3,1)}
+#toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}
+#toast{transition:transform .45s cubic-bezier(.2,1.2,.3,1),opacity .25s,visibility .25s}
+#toast svg{width:20px;height:20px;color:var(--green)}
+.offline{background:color-mix(in srgb,var(--red) 12%,transparent);color:var(--red);border-radius:12px;padding:10px 14px;font-size:15px;margin-bottom:12px}
+.banner{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:16px 18px;display:flex;gap:14px;align-items:center;margin-bottom:16px;animation:in .35s both}
+.banner .bi{width:44px;height:44px;border-radius:12px;background:var(--red);color:#fff;display:grid;place-items:center;flex:none}
+.banner .bi svg{width:24px;height:24px}
+.banner .bt{flex:1;min-width:0;font-size:15px;color:var(--label2)}
+.banner .bt b{display:block;color:var(--label);font-size:17px;margin-bottom:2px}
+.banner .bb{flex:none;background:var(--blue);color:#fff;font-weight:600;font-size:15px;height:36px;padding:0 16px;border-radius:18px}
+.banner .bx{flex:none;width:30px;height:30px;border-radius:50%;background:var(--fill2);color:var(--label2);display:grid;place-items:center}
+.banner .bx svg{width:14px;height:14px}
+@media (max-width:600px){.banner{flex-wrap:wrap}.banner .bb{order:3;width:100%;height:44px;border-radius:12px}}
+.ibtn .bdg{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--bg)}
+.ibtn{position:relative}
+.stat{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:14px 16px}
+.stat .si{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:#fff;flex:none}
+.stat .si svg{width:20px;height:20px}
+.stat .st{flex:1;font-size:15px;color:var(--label2)}.stat .st b{display:block;color:var(--label);font-size:17px}
+.steps{margin:0;padding:0 0 0 20px;color:var(--label2);font-size:15px;line-height:1.55}
+.bigbtn.ghost{background:var(--card);color:var(--blue)}.bigbtn.ghost.red{color:var(--red)}
+.urlrow{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.urlrow code{flex:1;min-width:0;font:13px/1.4 ui-monospace,"SF Mono",Menlo,Consolas,monospace;word-break:break-all;color:var(--label)}
+.copy{flex:none;height:32px;padding:0 14px;border-radius:16px;background:var(--fill2);color:var(--blue);font-weight:600;font-size:14px}
+.sver{text-align:center;color:var(--label3);font-size:13px;margin-top:22px}
+.bigbtn:disabled{opacity:.5}
+@media print{body *{visibility:hidden}}
+</style></head><body>
+
+<div class="nav" id="nav">
+  <div class="navrow">
+    <span class="sp"></span>
+    <button class="ibtn" id="ntf" onclick="openNotif()" title="Értesítések"></button>
+    <button class="ibtn" id="snd" onclick="toggleSound()" title="Hang"></button>
+    <button class="ibtn" onclick="openSettings()" title="Beállítások" style="color:var(--label2)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.9 2.6l.4 2.3a7.6 7.6 0 0 1 1.9 1.1l2.2-.8a1 1 0 0 1 1.2.4l1.9 3.3a1 1 0 0 1-.2 1.3l-1.8 1.5a7.7 7.7 0 0 1 0 2.2l1.8 1.5a1 1 0 0 1 .2 1.3l-1.9 3.3a1 1 0 0 1-1.2.4l-2.2-.8a7.6 7.6 0 0 1-1.9 1.1l-.4 2.3a1 1 0 0 1-1 .8h-3.8a1 1 0 0 1-1-.8l-.4-2.3a7.6 7.6 0 0 1-1.9-1.1l-2.2.8a1 1 0 0 1-1.2-.4l-1.9-3.3a1 1 0 0 1 .2-1.3l1.8-1.5a7.7 7.7 0 0 1 0-2.2L2.1 9.9a1 1 0 0 1-.2-1.3l1.9-3.3A1 1 0 0 1 5 4.9l2.2.8a7.6 7.6 0 0 1 1.9-1.1l.4-2.3a1 1 0 0 1 1-.8h2.4a1 1 0 0 1 1 .8ZM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg></button>
+    <button class="ibtn" onclick="location.href='/logout'" title="Kilépés"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></button>
+  </div>
+  <div class="ttl"><h1 id="title">Rendelések</h1><div class="sub" id="bar"></div></div>
+  <div class="segwrap"><div class="seg" id="tabs"></div></div>
+</div>
+
+<main><div id="nbanner"></div><div id="list"></div></main>
+
+<button class="fab" onclick="openManual()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="ft">Telefonos rendelés</span></button>
+<div id="toast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7Z"/></svg><span></span></div>
+
+<dialog id="dAccept"><div class="dwrap" onclick="if(event.target===this)dAccept.close()"><div class="sheet">
+  <div class="shd"><button class="tb" onclick="dAccept.close()">Mégse</button><h2>Készítjük</h2><span class="tb"></span></div>
+  <div class="sbody">
+    <div class="flabel" style="padding-top:6px">Mennyi idő múlva lesz kész?</div>
+    <div class="etas" id="etaChips"></div>
+    <div class="hint" id="acceptHint"></div>
+    <button class="bigbtn green" onclick="doAccept()">Elfogadás és értesítés</button>
+  </div>
+</div></div></dialog>
+
+<dialog id="dReject"><div class="dwrap" onclick="if(event.target===this)dReject.close()"><div class="sheet">
+  <div class="shd"><button class="tb" onclick="dReject.close()">Mégse</button><h2>Elutasítás</h2><span class="tb"></span></div>
+  <div class="sbody">
+    <div class="flabel" style="padding-top:6px">Indok</div>
+    <div class="list" id="reasonList"></div>
+    <div class="flabel">Saját szöveg (opcionális)</div>
+    <div class="list"><div class="row"><textarea id="reasonText" rows="2" placeholder="pl. ma már nem tudunk több rendelést felvenni" style="min-height:70px"></textarea></div></div>
+    <div class="hint" id="rejectHint"></div>
+    <button class="bigbtn red" onclick="doReject()">Elutasítás és értesítés</button>
+  </div>
+</div></div></dialog>
+
+<dialog id="dManual"><div class="dwrap" onclick="if(event.target===this)dManual.close()"><div class="sheet">
+  <div class="shd"><button class="tb" onclick="dManual.close()">Mégse</button><h2>Új rendelés</h2><button class="tb r" onclick="saveManual()">Mentés</button></div>
+  <div class="sbody">
+    <div class="flabel" style="padding-top:6px">Vendég</div>
+    <div class="list">
+      <div class="row"><span class="k">Név</span><input id="mName" placeholder="kötelező" autocomplete="off"></div>
+      <div class="row"><span class="k">Telefon</span><input id="mPhone" inputmode="tel" placeholder="+36…" autocomplete="off"></div>
+      <div class="row"><span class="k">E-mail</span><input id="mEmail" type="email" placeholder="a visszajelzéshez" autocomplete="off"></div>
+    </div>
+    <div class="flabel">Átvétel</div>
+    <div class="segsm" id="mModeSeg"><button data-v="Személyes átvétel" class="on">Személyes átvétel</button><button data-v="Kiszállítás">Kiszállítás</button></div>
+    <input type="hidden" id="mMode" value="Személyes átvétel">
+    <div class="list" id="mAddr" style="margin-top:12px;display:none">
+      <div class="row"><span class="k">Település</span><input id="mCity" list="cityList" autocomplete="off"></div>
+      <div class="row"><span class="k">Cím</span><input id="mStreet" placeholder="utca, házszám" autocomplete="off"></div>
+    </div>
+    <datalist id="cityList"></datalist>
+    <div class="flabel">Rendelés</div>
+    <div class="list"><div class="row"><textarea id="mItems" placeholder="pl. 2× Pizza Vadvirág 32 cm, 1× Hasábburgonya"></textarea></div></div>
+    <button class="bigbtn blue" onclick="saveManual()">Rendelés rögzítése</button>
+  </div>
+</div></div></dialog>
+
+<dialog id="dSet"><div class="dwrap" onclick="if(event.target===this)dSet.close()"><div class="sheet">
+  <div class="shd"><span class="tb"></span><h2>Beállítások</h2><button class="tb r" onclick="dSet.close()">Kész</button></div>
+  <div class="sbody" id="setBody"><div class="hint">Betöltés…</div></div>
+</div></div></dialog>
+
+<dialog id="dNotif"><div class="dwrap" onclick="if(event.target===this)dNotif.close()"><div class="sheet">
+  <div class="shd"><span class="tb"></span><h2>Értesítések</h2><button class="tb r" onclick="dNotif.close()">Kész</button></div>
+  <div class="sbody" id="notifBody"></div>
+</div></div></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+let orders=[],info={},tab='active',curId=null,eta=0,lastNew=-1,soundOn=localStorage.getItem('snd')!=='0',ctx=null,flash=null,lastSig='';
+const ST={new:'Új',preparing:'Készítjük',done:'Kész',rejected:'Elutasítva'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const huf=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+function fmtTime(t){const d=new Date(t);return d.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}
+function fmtDay(t){const d=new Date(t),n=new Date();return d.toDateString()===n.toDateString()?'Ma':d.toLocaleDateString('hu-HU',{month:'short',day:'numeric'})}
+function ago(t){const m=Math.max(0,Math.round((Date.now()-new Date(t))/60000));return m<1?'most':m<60?m+' perce':Math.floor(m/60)+' ó '+(m%60)+' p'}
+function toast(m){const t=$('toast');t.querySelector('span').textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400)}
+const I={
+  phone:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1Z"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm9 7.2L4.4 7H3.9v.6L12 13.6l8.1-6V7h-.5Z"/></svg>',
+  car:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11a2 2 0 0 1 2 2v4a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1v-4a2 2 0 0 1 2-2Zm2.1 0h9.8l-1.1-3.4a.9.9 0 0 0-.8-.6H9a.9.9 0 0 0-.8.6ZM7 15.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm10 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>',
+  bag:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 8V7a5 5 0 0 1 10 0v1h3l-1 13H5L4 8Zm2 0h6V7a3 3 0 0 0-6 0Z"/></svg>',
+  card:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm-1 4v2h20V9Z"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-1 8v7h2v-7Zm0-4v2h2V6Z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  print:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v4H7Zm-2 5h14a3 3 0 0 1 3 3v6h-4v4H6v-4H2v-6a3 3 0 0 1 3-3Zm3 8v3h8v-3Z"/></svg>',
+  undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg>',
+  belloff:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66a6.9 6.9 0 0 0-2.7 1.3L19 16.7ZM3.3 2.3 2 3.6l3.4 3.4A7 7 0 0 0 5 11v5l-2 2v1h14.4l2.9 2.9 1.3-1.3Z"/></svg>',
+  spk:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4Zm12.5-1.8a6 6 0 0 1 0 9.6l-1.2-1.6a4 4 0 0 0 0-6.4Zm2.4-3.2a10 10 0 0 1 0 16l-1.2-1.6a8 8 0 0 0 0-12.8Z"/></svg>',
+  spkoff:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4Zm11.3.3 1.4-1.4 2.3 2.3 2.3-2.3 1.4 1.4-2.3 2.3 2.3 2.3-1.4 1.4-2.3-2.3-2.3 2.3-1.4-1.4 2.3-2.3Z"/></svg>',
+  tray:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 13l2.5-8h13L21 13v6H3Z"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg>'
+};
+const AVC=['#ff9500','#34c759','#007aff','#af52de','#ff2d55','#5ac8fa','#ff3b30','#5856d6'];
+function avatar(name){const n=(name||'?').trim();const ini=n.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;return `<div class="av" style="background:${AVC[h%AVC.length]}">${esc(ini)}</div>`}
+
+async function api(path,body){
+  const r=await fetch(path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+  if(r.status===401){location.href='/';throw 0}
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||'hiba');
+  return d;
+}
+let offline=false;
+async function load(){
+  try{const d=await api('/api/orders');orders=d.orders;info=d.info;offline=false;render();checkNew()}
+  catch(e){offline=true;render()}
+}
+function counts(){const c={new:0,preparing:0,done:0,rejected:0};orders.forEach(o=>c[o.status]++);return c}
+function render(){
+  const c=counts();
+  $('title').textContent=info.restaurant||'Rendelések';
+  $('snd').innerHTML=soundOn?I.spk:I.spkoff;$('ntf').innerHTML=I.bell+(N.on?'':'<span class="bdg"></span>');$('ntf').style.color=N.on?'var(--blue)':'var(--label2)';renderBanner();$('snd').style.color=soundOn?'var(--blue)':'var(--label2)';
+  const T=[['active','Aktív',c.new+c.preparing],['new','Új',c.new],['preparing','Készül',c.preparing],['closed','Lezárt',c.done+c.rejected],['all','Mind',orders.length]];
+  $('tabs').innerHTML='<span class="knob" id="knob"></span>'+T.map(([k,l,n])=>`<button data-k="${k}" onclick="setTab('${k}')">${l}${n?`<span class="n ${(k==='new'||k==='active')&&c.new?'hot':''}">${n}</span>`:''}</button>`).join('');
+  moveKnob(false);
+  const bar=[];
+  bar.push(`<span><span class="dot" style="background:${offline?'var(--red)':'var(--green)'}"></span>${offline?'Nincs kapcsolat':'Kapcsolódva'}</span>`);
+  bar.push(info.smtp?'<span>E-mail küldés bekapcsolva</span>':'<span style="color:var(--orange)">E-mail küldés nincs beállítva</span>');
+  if(info.wix?.enabled)bar.push(info.wix.error?`<span style="color:var(--red)">Wix hiba</span>`:'<span>Wix: kapcsolódva</span>');
+  $('bar').innerHTML=bar.join('<span style="color:var(--label3)">·</span>');
+  const f={active:o=>o.status==='new'||o.status==='preparing',new:o=>o.status==='new',preparing:o=>o.status==='preparing',closed:o=>o.status==='done'||o.status==='rejected',all:()=>true}[tab];
+  let list=orders.filter(f);
+  if(tab==='active'||tab==='new'||tab==='preparing')list.sort((a,b)=>(a.status==='new'?0:1)-(b.status==='new'?0:1)||new Date(a.created)-new Date(b.created));
+  else list.sort((a,b)=>new Date(b.created)-new Date(a.created));
+  const sig=tab+JSON.stringify(list)+offline;
+  if(sig===lastSig){return}lastSig=sig;
+  const emptyTxt={active:['Nincs aktív rendelés','Az új rendelések automatikusan itt jelennek meg.'],new:['Nincs új rendelés','Minden rendelés feldolgozva.'],preparing:['Nincs készülő rendelés',''],closed:['Még nincs lezárt rendelés',''],all:['Még nincs rendelés','']}[tab];
+  $('list').innerHTML=(offline?'<div class="offline" style="grid-column:1/-1">Nincs kapcsolat a programmal. Fut a gépen?</div>':'')+(list.length?list.map(card).join(''):`<div class="empty">${I.tray}<b>${emptyTxt[0]}</b>${emptyTxt[1]}</div>`);
+  if(!$('cityList').children.length&&info.cities)$('cityList').innerHTML=info.cities.map(c=>`<option value="${esc(c)}">`).join('');
+}
+function moveKnob(anim){const b=document.querySelector(`#tabs button[data-k="${tab}"]`),k=$('knob');if(!b||!k)return;if(!anim)k.style.transition='none';k.style.left=b.offsetLeft+'px';k.style.width=b.offsetWidth+'px';if(!anim){k.offsetWidth;k.style.transition=''}}
+function setTab(t){const old=document.querySelector(`#tabs button[data-k="${tab}"]`);tab=t;lastSig='';const k=$('knob');if(old&&k){k.style.left=old.offsetLeft+'px';k.style.width=old.offsetWidth+'px'}render();requestAnimationFrame(()=>moveKnob(true))}
+addEventListener('resize',()=>moveKnob(false));
+addEventListener('scroll',()=>$('nav').classList.toggle('scrolled',scrollY>4),{passive:true});
+
+function row(icon,color,val,acc,accCls=''){return `<div class="r"><span class="ic" style="background:${color}">${icon}</span><span class="v">${val}</span>${acc?`<span class="acc ${accCls}">${acc}</span>`:''}</div>`}
+function card(o){
+  const deliv=o.mode==='Kiszállítás';
+  const rows=[];
+  if(o.phone)rows.push(row(I.phone,'var(--green)',`<a href="tel:${esc(o.phone.replace(/[^+\d]/g,''))}">${esc(o.phone)}</a>`,''));
+  rows.push(row(I.mail,'var(--blue)',o.email?`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`:'<span style="color:var(--red)">Nincs e-mail cím</span>',''));
+  if(deliv){
+    const fee=o.delivery_fee>0?huf(o.delivery_fee)+' Ft':o.delivery_fee<0?'egyeztetni':'';
+    rows.push(row(I.car,'var(--purple)',`Kiszállítás<small>${esc([o.city,o.street].filter(Boolean).join(', '))||'nincs cím'}</small>`,fee,o.delivery_fee<0?'warn':''));
+  }else rows.push(row(I.bag,'var(--teal)','Személyes átvétel',''));
+  let extras=o.extra?Object.entries(o.extra):[];
+  const pay=extras.find(([k])=>/fizet|pay/i.test(k));
+  if(pay){rows.push(row(I.card,'var(--orange)','Fizetés',esc(pay[1])));extras=extras.filter(e=>e!==pay)}
+  extras.forEach(([k,v])=>rows.push(row(I.info,'#8e8e93',`${esc(v)}<small>${esc(k)}</small>`,'')));
+  let mail='';
+  if(o.status==='preparing'||o.status==='rejected'){
+    const st=o.email_state;
+    if(!o.email)mail=`<div class="mail bad">Nincs e-mail cím, telefonon jelezz vissza.</div>`;
+    else if(st==='sent')mail=`<div class="mail ok">✓ Értesítve e-mailben · ${fmtTime(o.email_at)}</div>`;
+    else if(st==='manual')mail=`<div class="mail ok">✓ Kézzel értesítve</div>`;
+    else if(st==='sending')mail='<div class="mail">E-mail küldése…</div>';
+    else if(st==='failed')mail=`<div class="mail bad">Az e-mail nem ment el. <button class="lnk" onclick="resend(${o.id})">Újraküldés</button>${mailto(o)}</div>`;
+    else mail=`<div class="mail bad">${esc(o.email_err||'Nincs elküldve')}. ${mailto(o)}</div>`;
+  }
+  let acts='';
+  if(o.status==='new')acts=`<button class="btn fill-green" onclick="askAccept(${o.id})">${I.check}Készítjük</button><button class="btn tint-red" onclick="askReject(${o.id})">${I.x}Elutasít</button>`;
+  else if(o.status==='preparing')acts=`<button class="btn fill-blue" onclick="act(${o.id},'done')">${I.check}Kész, átadva</button><button class="btn tint sq" title="Vissza újnak" onclick="act(${o.id},'reopen')">${I.undo}</button>`;
+  else acts=`<button class="btn tint" onclick="act(${o.id},'reopen')">${I.undo}Visszavonás</button>`;
+  const status=o.status==='preparing'&&o.eta?`Készül · ${o.eta} perc`:ST[o.status];
+  return `<div class="card ${o.status}">
+  <div class="ch">${avatar(o.name)}<div class="who"><div class="nm">${esc(o.name)||'Névtelen'}</div><div class="meta">#${o.id} · ${fmtDay(o.created)} ${fmtTime(o.created)} · ${ago(o.created)}${o.source==='manual'?' · telefonos':''}</div></div><span class="pill ${o.status}">${esc(status)}</span></div>
+  <div class="items"><span class="lbl">Rendelés</span>${esc(o.items)}</div>
+  ${o.note?`<div class="note">${esc(o.note)}</div>`:''}
+  <div class="grp">${rows.join('')}</div>
+  ${o.status==='rejected'&&o.reason?`<div class="note">Elutasítás oka: ${esc(o.reason)}</div>`:''}
+  ${mail}
+  <div class="acts">${acts}<button class="btn tint sq" title="Nyomtatás" onclick="printOrder(${o.id})">${I.print}</button></div>
+  </div>`;
+}
+function mailto(o){
+  if(!o.mail)return'';
+  return ` <a class="lnk" href="mailto:${encodeURIComponent(o.mail.to)}?subject=${encodeURIComponent(o.mail.subject)}&body=${encodeURIComponent(o.mail.body)}" onclick="api('/api/orders/${o.id}/mailed',{})">Megnyitás levelezőben</a>`;
+}
+async function act(id,what){try{await api(`/api/orders/${id}/${what}`,{});toast(what==='done'?'Lezárva':what==='reopen'?'Visszaállítva':'Kész');load()}catch(e){toast(e.message)}}
+async function resend(id){await act(id,'resend');toast('Újraküldés…')}
+
+function askAccept(id){
+  curId=id;const opts=info.eta||[30];eta=opts[Math.min(2,opts.length-1)];
+  const o=orders.find(x=>x.id===id);
+  $('etaChips').innerHTML=opts.map(m=>`<button class="eta ${m===eta?'on':''}" data-m="${m}" onclick="pickEta(${m})">${m}<small>perc</small></button>`).join('');
+  $('acceptHint').textContent=o.email?`A vendég e-mailt kap ide: ${o.email}`+(info.smtp?'':' (az automatikus küldés nincs beállítva, utána megnyithatod a levelezőben)'):'Nincs e-mail cím a rendelésen, telefonon jelezz vissza.';
+  dAccept.showModal();
+}
+function pickEta(m){eta=m;document.querySelectorAll('#etaChips .eta').forEach(b=>b.classList.toggle('on',+b.dataset.m===m))}
+async function doAccept(){dAccept.close();try{await api(`/api/orders/${curId}/accept`,{eta});toast('Rendelés elfogadva');load()}catch(e){toast(e.message)}}
+let reasonSel='';
+function askReject(id){
+  curId=id;const o=orders.find(x=>x.id===id);const rs=info.reasons||[];reasonSel=rs[0]||'';
+  $('reasonList').innerHTML=rs.map((r,i)=>`<div class="row opt ${i===0?'on':''}" onclick="pickReason(this)" data-v="${esc(r)}"><span class="tx">${esc(r)}</span><span class="ck">✓</span></div>`).join('');
+  $('reasonText').value='';
+  $('rejectHint').textContent=o.email?`A vendég e-mailt kap ide: ${o.email}`+(info.smtp?'':' (az automatikus küldés nincs beállítva)'):'Nincs e-mail cím a rendelésen, telefonon jelezz vissza.';
+  dReject.showModal();
+}
+function pickReason(el){reasonSel=el.dataset.v;document.querySelectorAll('#reasonList .opt').forEach(x=>x.classList.toggle('on',x===el))}
+async function doReject(){
+  const custom=$('reasonText').value.trim();const reason=custom||reasonSel;
+  dReject.close();
+  try{await api(`/api/orders/${curId}/reject`,{reason});toast('Rendelés elutasítva');load()}catch(e){toast(e.message)}
+}
+document.querySelectorAll('#mModeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.v));
+function setMode(v){$('mMode').value=v;document.querySelectorAll('#mModeSeg button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));$('mAddr').style.display=v==='Kiszállítás'?'block':'none'}
+function openManual(){['mName','mPhone','mEmail','mCity','mStreet','mItems'].forEach(i=>$(i).value='');setMode('Személyes átvétel');dManual.showModal();setTimeout(()=>$('mName').focus(),50)}
+async function saveManual(){
+  try{await api('/api/orders',{name:$('mName').value,phone:$('mPhone').value,email:$('mEmail').value,mode:$('mMode').value,city:$('mCity').value,street:$('mStreet').value,items:$('mItems').value});dManual.close();toast('Rendelés rögzítve');load()}catch(e){toast(e.message)}
+}
+function printOrder(id){
+  const o=orders.find(x=>x.id===id);const w=window.open('','_blank','width=420,height=640');
+  const ex=o.extra?Object.entries(o.extra).map(([k,v])=>esc(k)+': '+esc(v)).join('<br>'):'';
+  w.document.write(`<html><meta charset="utf-8"><title>Rendelés #${o.id}</title><body style="font:16px/1.4 -apple-system,system-ui,sans-serif;max-width:300px"><h2 style="margin:0 0 4px">#${o.id} · ${esc(info.restaurant)}</h2><div>${fmtDay(o.created)} ${fmtTime(o.created)}</div><hr><b>${esc(o.name)}</b><br>${esc(o.phone)}<br>${o.mode==='Kiszállítás'?'<b>KISZÁLLÍTÁS</b><br>'+esc([o.city,o.street].filter(Boolean).join(', '))+(o.delivery_fee>0?'<br>Díj: '+huf(o.delivery_fee)+' Ft':''):'<b>SZEMÉLYES ÁTVÉTEL</b>'}${ex?'<br>'+ex:''}<hr><div style="white-space:pre-wrap;font-size:18px">${esc(o.items)}</div>${o.note?'<hr>'+esc(o.note):''}${o.eta?'<hr>Elkészülés: kb. '+o.eta+' perc':''}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+
+// ---- új rendelés jelzés
+function beep(){
+  if(!soundOn)return;
+  try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.18,0.36].forEach((t,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=[880,1175,1568][i];o.connect(g);g.connect(ctx.destination);g.gain.setValueAtTime(.0001,ctx.currentTime+t);g.gain.exponentialRampToValueAtTime(.22,ctx.currentTime+t+.02);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+t+.35);o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+.4)})}catch(e){}
+}
+function toggleSound(){soundOn=!soundOn;localStorage.setItem('snd',soundOn?'1':'0');if(soundOn){ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();beep()}toast(soundOn?'Hangjelzés bekapcsolva':'Hangjelzés kikapcsolva');render()}
+function checkNew(){
+  const n=counts().new;
+  if(lastNew>=0&&n>lastNew){beep();toast('Új rendelés érkezett')}
+  lastNew=n;
+  clearInterval(flash);
+  if(n>0){let on=false;flash=setInterval(()=>{document.title=(on=!on)?`(${n}) Új rendelés!`:'Rendelések'},1000)}else document.title='Rendelések';
+}
+document.addEventListener('click',()=>{if(soundOn&&!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}},{once:true});
+setInterval(()=>{lastSig='';render()},60000);
+// ---- eszköz-értesítések (Web Push)
+const N={on:false,sub:null,devices:0,state:'unknown'};
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function devName(){const u=navigator.userAgent;const os=/Android/.test(u)?'Android':isIOS?'iPhone/iPad':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':'Eszköz';const br=/Edg\//.test(u)?'Edge':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'böngésző';return os+' · '+br}
+function b64u(s){const p='='.repeat((4-s.length%4)%4);const r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))}
+async function notifInit(){
+  if(!window.isSecureContext){N.state='insecure';return}
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){N.state=isIOS&&!standalone?'ios-install':'unsupported';return}
+  try{
+    const reg=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+    N.sub=await reg.pushManager.getSubscription();
+    const k=await api('/api/push/key');N.devices=k.devices;
+    if(N.sub&&Notification.permission==='granted'){N.on=true;N.state='on';api('/api/push/subscribe',{...N.sub.toJSON(),device:devName()}).catch(()=>{})}
+    else N.state=Notification.permission==='denied'?'denied':'off';
+  }catch(e){N.state='error';console.log(e)}
+}
+async function notifEnable(){
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){N.state=perm==='denied'?'denied':'off';renderNotif();render();return}
+    const reg=await navigator.serviceWorker.ready;
+    const {key}=await api('/api/push/key');
+    N.sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(key)});
+    const r=await api('/api/push/subscribe',{...N.sub.toJSON(),device:devName()});
+    N.on=true;N.state='on';N.devices=r.devices;toast('Értesítések bekapcsolva');
+  }catch(e){toast('Nem sikerült: '+(e.message||e));N.state='error'}
+  renderNotif();lastSig='';render();
+}
+async function notifDisable(){
+  try{if(N.sub){const ep=N.sub.endpoint;await N.sub.unsubscribe();const r=await api('/api/push/unsubscribe',{endpoint:ep});N.devices=r.devices}}catch(e){}
+  N.sub=null;N.on=false;N.state='off';toast('Értesítések kikapcsolva');renderNotif();lastSig='';render();
+}
+async function notifTest(){try{const r=await api('/api/push/test',{});toast(r.sent?`Teszt elküldve ${r.sent} eszközre`:'Nincs bekapcsolt eszköz')}catch(e){toast(e.message)}}
+function openNotif(){renderNotif();dNotif.showModal()}
+function renderNotif(){
+  const st={on:['var(--green)',I.check,'Bekapcsolva ezen az eszközön','Új rendelésnél értesítést kapsz, akkor is, ha a böngésző a háttérben van.'],
+    off:['#8e8e93',I.bell,'Kikapcsolva ezen az eszközön','Kapcsold be, hogy minden új rendelésről azonnal értesítést kapj.'],
+    denied:['var(--red)',I.belloff,'Le vannak tiltva','A böngésző tiltja az értesítéseket ennél a webhelynél.'],
+    insecure:['var(--orange)',I.info,'Ezen a címen nem elérhető','A böngészők csak biztonságos (https) címen engedik az értesítéseket.'],
+    'ios-install':['var(--orange)',I.info,'Előbb add a Főképernyőhöz','iPhone-on csak a Főképernyőre tett alkalmazás kaphat értesítést.'],
+    unsupported:['var(--orange)',I.info,'Ez a böngésző nem támogatja','Használj Chrome-ot (Android, Windows, Mac).'],
+    error:['var(--red)',I.info,'Hiba történt','Frissítsd az oldalt, és próbáld újra.'],unknown:['#8e8e93',I.bell,'Ellenőrzés…','']}[N.state]||[];
+  let h=`<div class="stat"><span class="si" style="background:${st[0]}">${st[1]}</span><span class="st"><b>${st[2]}</b>${st[3]}</span></div>`;
+  h+=`<div class="hint">Bekapcsolt eszközök összesen: <b>${N.devices}</b></div>`;
+  if(N.state==='on')h+=`<button class="bigbtn blue" onclick="notifTest()">Teszt értesítés küldése</button><button class="bigbtn ghost red" style="margin-top:10px" onclick="notifDisable()">Kikapcsolás ezen az eszközön</button>`;
+  else if(N.state==='off'||N.state==='error')h+=`<button class="bigbtn blue" onclick="notifEnable()">Értesítések bekapcsolása</button>`;
+  else if(N.state==='denied')h+=`<div class="flabel">Így engedélyezheted</div><div class="list" style="padding:12px 16px"><ol class="steps"><li>Koppints a címsor bal oldalán lévő ikonra (lakat / beállítások).</li><li>Webhely-beállítások → Értesítések → <b>Engedélyezés</b>.</li><li>Frissítsd az oldalt.</li></ol></div>`;
+  else if(N.state==='insecure')h+=`<div class="flabel">Mit tegyél?</div><div class="list" style="padding:12px 16px"><ol class="steps"><li>Nyisd meg a programot a <b>https://…ts.net</b> címen (Tailscale Funnel). A helyi <b>http://</b> címeken a böngésző nem engedi az értesítéseket.</li><li>Lépj be, majd itt kapcsold be az értesítéseket.</li></ol></div>`;
+  else if(N.state==='ios-install')h+=`<div class="flabel">Lépések</div><div class="list" style="padding:12px 16px"><ol class="steps"><li>Safariban koppints a <b>Megosztás</b> gombra.</li><li>Válaszd: <b>Főképernyőhöz adás</b>.</li><li>Nyisd meg a „Rendelések” ikont a főképernyőről, és itt kapcsold be az értesítéseket.</li></ol></div>`;
+  $('notifBody').innerHTML=h;
+}
+function renderBanner(){
+  let dismissed=false;try{dismissed=localStorage.getItem('nb')==='1'}catch(e){}
+  const show=!N.on&&!dismissed&&['off','insecure','ios-install','denied'].includes(N.state);
+  if(!show){$('nbanner').innerHTML='';return}
+  const txt={off:['Értesítések ezen az eszközön','Kapj azonnali értesítést minden új rendelésről.','Bekapcsolás','notifEnable()'],
+    insecure:['Értesítések nem elérhetők ezen a címen','Nyisd meg a programot a https:// (Tailscale) címen.','Részletek','openNotif()'],
+    'ios-install':['Értesítések iPhone-on','Add a programot a Főképernyőhöz, és onnan nyisd meg.','Hogyan?','openNotif()'],
+    denied:['Az értesítések le vannak tiltva','Engedélyezd őket a böngésző webhely-beállításaiban.','Hogyan?','openNotif()']}[N.state];
+  $('nbanner').innerHTML=`<div class="banner"><span class="bi">${I.bell}</span><span class="bt"><b>${txt[0]}</b>${txt[1]}</span><button class="bb" onclick="${txt[3]}">${txt[2]}</button><button class="bx" title="Bezárás" onclick="try{localStorage.setItem('nb','1')}catch(e){};renderBanner()">${I.x}</button></div>`;
+}
+// ---- beállítások
+let S=null;
+async function openSettings(){dSet.showModal();try{S=await api('/api/settings');renderSettings()}catch(e){$('setBody').innerHTML=`<div class="hint">${esc(e.message||'Nem sikerült betölteni')}</div>`}}
+function renderSettings(){
+  const hook=location.origin+S.webhook_path,https=location.protocol==='https:',em=S.email||{};
+  let h=`<div class="flabel" style="padding-top:6px">Wix – rendelések fogadása</div>
+  <div class="list"><div class="urlrow"><code id="hookUrl">${esc(hook)}</code><button class="copy" onclick="copyHook()">Másolás</button></div></div>
+  <div class="hint">${https?'Ezt a címet írd be a Wix automatizálásba (<b>Send HTTP request</b> → URL).':'Ez a helyi cím, a Wix ezt nem éri el. Nyisd meg a programot a nyilvános <b>https://…ts.net</b> címen (Tailscale Funnel) – ott itt a Wix-be beírandó cím jelenik meg.'}</div>
+  <div class="flabel">E-mail visszaigazolás a vendégnek</div>
+  <div class="list">
+    <div class="row"><span class="k">Gmail cím</span><input id="seAddr" type="email" autocomplete="off" placeholder="pl. vadvirag@gmail.com" value="${esc(em.address||'')}"></div>
+    <div class="row"><span class="k">Alk. jelszó</span><input id="sePass" type="password" autocomplete="new-password" placeholder="${em.has_password?'•••• megadva – csak cseréhez':'16 betűs alkalmazásjelszó'}"></div>
+  </div>
+  <div class="hint">${em.enabled?'<span style="color:var(--green)">●</span> Bekapcsolva.'+(em.server&&em.server!=='smtp.gmail.com'?' ('+esc(em.server)+')':'')+' ':'<span style="color:var(--orange)">●</span> Nincs beállítva – a vendégek nem kapnak automatikus e-mailt.'} Alkalmazásjelszó: Google-fiók → Biztonság → Kétlépcsős azonosítás → <b>Alkalmazásjelszavak</b>.</div>
+  <button class="bigbtn blue" onclick="saveEmail(this)">E-mail mentése</button>
+  ${em.enabled?'<button class="bigbtn ghost" style="margin-top:10px" onclick="testEmail(this)">Próbalevél küldése magamnak</button>':''}
+  <div class="flabel">Belépési jelszó</div>
+  <div class="list">
+    <div class="row"><span class="k">Jelenlegi</span><input id="spCur" type="password" autocomplete="current-password"></div>
+    <div class="row"><span class="k">Új jelszó</span><input id="spNew" type="password" autocomplete="new-password" placeholder="legalább 4 karakter"></div>
+  </div>
+  <div class="hint">Csere után a többi eszközön újra be kell lépni.</div>
+  <button class="bigbtn ghost" onclick="savePass(this)">Jelszó módosítása</button>
+  <div class="flabel">Mentés és költözés</div>
+  <a class="bigbtn ghost" style="display:grid;place-items:center;text-decoration:none;margin-top:0" href="/api/backup" download>Biztonsági mentés letöltése</a>
+  <input id="impFile" type="file" accept=".json,application/json" multiple hidden onchange="doImport(this)">
+  <button class="bigbtn ghost" style="margin-top:10px" onclick="$('impFile').click()">Visszaállítás fájlból…</button>
+  <div class="hint">Mentésfájl, vagy a régi gép <b>beallitasok.json</b> / <b>rendelesek.json</b> fájlja. A visszaállítás felülírja a mostani adatokat, a belépési jelszó marad.</div>
+  <div class="sver">Rendeléskezelő ${esc(S.version)}${S.container?' · Umbrel':''}</div>`;
+  $('setBody').innerHTML=h;
+}
+async function copyHook(){const t=$('hookUrl').textContent;try{await navigator.clipboard.writeText(t);toast('Cím kimásolva')}catch(e){const r=document.createRange();r.selectNodeContents($('hookUrl'));getSelection().removeAllRanges();getSelection().addRange(r);toast('Jelöld ki és másold')}}
+async function busy(btn,fn){btn.disabled=true;try{await fn()}catch(e){toast(e.message||'Hiba')}finally{btn.disabled=false}}
+function saveEmail(btn){busy(btn,async()=>{const addr=$('seAddr').value.trim();const r=await api('/api/settings/email',addr?{address:addr,password:$('sePass').value}:{off:true});toast(r.warning||(addr?'E-mail beállítva':'E-mail küldés kikapcsolva'));S=await api('/api/settings');renderSettings();lastSig='';load()})}
+function testEmail(btn){busy(btn,async()=>{toast('Küldés…');const r=await api('/api/settings/test-email',{});toast('Próbalevél elküldve: '+r.to)})}
+function savePass(btn){busy(btn,async()=>{await api('/api/settings/password',{current:$('spCur').value,new:$('spNew').value});$('spCur').value=$('spNew').value='';toast('Jelszó módosítva')})}
+async function doImport(inp){
+  const fs=[...inp.files];inp.value='';if(!fs.length)return;
+  if(!confirm('Biztosan visszaállítod? A mostani rendelések és beállítások helyére a kiválasztott fájlok kerülnek.'))return;
+  try{const files=[];for(const f of fs)files.push({name:f.name,content:await f.text()});
+    await api('/api/import',{files});dSet.close();toast('Visszaállítva, újraindulás…');
+    await new Promise(r=>setTimeout(r,1500));for(let i=0;i<40;i++){try{const r=await fetch('/healthz',{cache:'no-store'});if(r.ok)break}catch(e){}await new Promise(r=>setTimeout(r,500))}
+    location.reload();
+  }catch(e){toast(e.message||'Hiba')}
+}
+notifInit().then(()=>{render();renderNotif()});
+load();setInterval(load,4000);
+</script></body></html>

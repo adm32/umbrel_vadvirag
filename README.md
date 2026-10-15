@@ -1,0 +1,64 @@
+# Vadvirág – Umbrel app store
+
+This repository is an Umbrel community app store with one app, **Vadvirág Rendelések**. It is the restaurant's order program, the same one that used to run on the main PC.
+
+```
+umbrel-app-store.yml          store id "vadvirag"
+vadvirag-rendelesek/          the app (Umbrel copies this folder onto the mini PC)
+  umbrel-app.yml              name, icon, port 4747
+  docker-compose.yml          how Umbrel runs it
+  Dockerfile                  minimal image, built on the Umbrel itself and needs no internet to start
+  bin/                        the compiled program (x86-64 and ARM)
+  docker-compose.manual.yml   only for the manual install (B)
+source/                       Go source + build.sh for future versions
+```
+
+## A) Install from the Umbrel App Store (recommended)
+
+1. **Put this folder on GitHub.** The repository must be **public**, because Umbrel can only download public stores. Create a new repository called `umbrel-vadvirag`, open it, choose *uploading an existing file*, and drag in **everything from this folder** (the files and the `vadvirag-rendelesek` and `source` folders). Then click *Commit changes*.
+   *The repository contains no passwords or keys. All of those stay on the mini PC.*
+2. **Add the store in Umbrel:** go to App Store, then the **⋯** menu (top right), then **Community App Stores**. Paste `https://github.com/<your-user>/umbrel-vadvirag`, click **Add**, then **Open**.
+3. **Install** "Vadvirág Rendelések". The first install takes about a minute.
+4. **First setup.** Do this from a computer in the restaurant, on the same network as the mini PC.
+   - Open the app from the Umbrel home screen (or go to `http://umbrel.local:4747`).
+   - Set a **new password**.
+   - Under *Költözés a régi gépről*, select the old `beallitasok.json` and `rendelesek.json` from the folder of the old program. This brings over the Gmail settings, the webhook key and all previous orders.
+5. **Make it reachable from the internet (Tailscale Funnel)**, so Wix can deliver orders and phones get notifications.
+   - Go to Umbrel **Settings → Advanced settings → Terminal**, choose the **Tailscale** app, and run:
+     ```
+     tailscale funnel --bg 4747
+     ```
+   - The command prints the public address, e.g. `https://umbrel.taileff9a4.ts.net/`.
+   - If it prints a link instead, open it, allow Funnel for this device, and run the command again.
+6. **Point Wix at the new address.**
+   - Open the app at that `https://…ts.net` address and click **⚙ Beállítások**, then **Másolás**. This copies the webhook address.
+   - In Wix, go to Automations → "Rendeles a programba" → *Send HTTP request*, replace the URL with the copied one, and save the automation.
+   - Send a test order from the website.
+7. **Phones and the till PC:**
+   - Open the `https://…ts.net` address and log in.
+   - Tap the bell to turn notifications on again. They are tied to the address, so this has to be redone on every device.
+   - On iPhone: Share → Add to Home Screen.
+8. **Old PC:** close the old program. Optionally run `tailscale funnel reset` in a command prompt there.
+
+Leave the app's "Umbrel login" setting **off**. The app has its own password, and Wix must be able to reach it without logging in.
+
+## B) Manual install (without GitHub)
+
+1. Upload the `vadvirag-rendelesek` folder to the mini PC using Umbrel's **Files** app.
+2. Open **Settings → Advanced settings → Terminal → umbrelOS** and run:
+   ```
+   cd ~/umbrel/home/<folder you uploaded to>/vadvirag-rendelesek
+   sudo docker compose -f docker-compose.manual.yml up -d --build
+   ```
+   The app then runs on `http://umbrel.local:4747`, but it won't appear on the Umbrel home screen.
+3. Continue from step 4 above.
+
+## Backups and updates
+
+- **⚙ Beállítások → Biztonsági mentés letöltése** saves the settings and all orders in one file. **Visszaállítás fájlból** restores them.
+- To release a new version:
+  1. Run `source/build.sh`.
+  2. Raise `version:` in `vadvirag-rendelesek/umbrel-app.yml`.
+  3. Upload the changed files to GitHub.
+
+  Umbrel will then offer the update.

@@ -1,0 +1,15 @@
+# Csak a kézi telepítéshez (ha NEM az Umbrel App Store-ból telepíted):
+#   sudo docker compose -f docker-compose.manual.yml up -d --build
+services:
+  web:
+    build: .
+    container_name: vadvirag-rendelesek
+    restart: unless-stopped
+    ports:
+      - "4747:8080"
+    environment:
+      DATA_DIR: /data
+      PORT: "8080"
+      TZ: Europe/Budapest
+    volumes:
+      - ./data:/data

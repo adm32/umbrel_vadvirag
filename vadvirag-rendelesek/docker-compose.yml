@@ -11,6 +11,8 @@ services:
   web:
     build:
       context: ${APP_DATA_DIR}
+    # Minden indításkor újraépül, így frissítés után tényleg az új program fut.
+    pull_policy: build
     restart: on-failure
     stop_grace_period: 5s
     environment:

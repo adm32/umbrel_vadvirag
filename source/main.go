@@ -184,6 +184,9 @@ type Order struct {
 	EmailState  string            `json:"email_state,omitempty"` // sending|sent|failed|none
 	EmailErr    string            `json:"email_err,omitempty"`
 	EmailAt     time.Time         `json:"email_at,omitempty"`
+	Total       int               `json:"total,omitempty"`   // weboldali rendelésnél: végösszeg (szállítással, ha ismert)
+	Payment     string            `json:"payment,omitempty"` // Készpénz | Kártya
+	Token       string            `json:"token,omitempty"`   // a vendég ezzel követi a rendelése állapotát
 }
 
 const modePickup = "Személyes átvétel"
@@ -1271,7 +1274,11 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("GET /api/backup", a.requireAuth(a.handleBackup))
 	mux.HandleFunc("POST /api/import", a.requireAuth(a.handleImport))
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
-	for _, f := range []string{"sw.js", "manifest.json", "icon-192.png", "icon-512.png", "apple-touch-icon.png"} {
+	mux.HandleFunc("GET /rendeles", a.servePublicPage)
+	mux.HandleFunc("GET /api/public/menu", a.handlePublicMenu)
+	mux.HandleFunc("POST /api/public/order", a.handlePublicOrder)
+	mux.HandleFunc("GET /api/public/order/{token}", a.handlePublicStatus)
+	for _, f := range []string{"sw.js", "manifest.json", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "logo.png"} {
 		f := f
 		mux.HandleFunc("GET /"+f, func(w http.ResponseWriter, r *http.Request) {
 			data, err := webFS.ReadFile("web/" + f)

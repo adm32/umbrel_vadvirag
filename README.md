@@ -62,3 +62,12 @@ Leave the app's "Umbrel login" setting **off**. The app has its own password, an
   3. Upload the changed files to GitHub.
 
   Umbrel will then offer the update.
+
+## Online rendelőoldal (v2.1)
+
+A program nyilvános rendelőoldala: `https://<a-funnel-címed>/rendeles`
+(pl. `https://umbrel.taileff9a4.ts.net/rendeles`). A vendég kattintással rakja össze a
+rendelést, a szerver a saját étlapjából számolja az árat, a rendelés bekerül a programba,
+és a vendég élőben látja az állapotát. A weboldalon egy gombbal vagy beágyazott kerettel
+(Wix: „Beágyazás → Weboldal beágyazása") lehet rá mutatni.
+Az étlap a `source/menu.json` fájlban van; módosítás után `source/build.sh`, verzió növelése.

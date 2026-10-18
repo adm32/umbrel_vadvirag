@@ -348,7 +348,7 @@ function card(o){
   else acts=`<button class="btn tint" onclick="act(${o.id},'reopen')">${I.undo}Visszavonás</button>`;
   const status=o.status==='preparing'&&o.eta?`Készül · ${o.eta} perc`:ST[o.status];
   return `<div class="card ${o.status}">
-  <div class="ch">${avatar(o.name)}<div class="who"><div class="nm">${esc(o.name)||'Névtelen'}</div><div class="meta">#${o.id} · ${fmtDay(o.created)} ${fmtTime(o.created)} · ${ago(o.created)}${o.source==='manual'?' · telefonos':''}</div></div><span class="pill ${o.status}">${esc(status)}</span></div>
+  <div class="ch">${avatar(o.name)}<div class="who"><div class="nm">${esc(o.name)||'Névtelen'}</div><div class="meta">#${o.id} · ${fmtDay(o.created)} ${fmtTime(o.created)} · ${ago(o.created)}${o.source==='manual'?' · telefonos':o.source==='web'?' · weboldal':''}</div></div><span class="pill ${o.status}">${esc(status)}</span></div>
   <div class="items"><span class="lbl">Rendelés</span>${esc(o.items)}</div>
   ${o.note?`<div class="note">${esc(o.note)}</div>`:''}
   <div class="grp">${rows.join('')}</div>

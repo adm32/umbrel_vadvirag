@@ -34,5 +34,5 @@ button:active{transform:scale(.98);filter:brightness(.92)}
 <button>Belépés</button>
 <div class="err" id="e">Hibás jelszó. Próbáld újra.</div>
 </form>
-<script>if(location.search.includes('hiba')){document.getElementById('e').style.display='block';document.querySelector('.field').classList.add('shake')}</script>
+<script>if(location.search.includes('hiba')){const e=document.getElementById('e');if(location.search.includes('hiba=2'))e.textContent='Túl sok hibás próbálkozás. Próbáld újra 15 perc múlva.';e.style.display='block';document.querySelector('.field').classList.add('shake')}</script>
 </body></html>

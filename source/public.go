@@ -87,6 +87,8 @@ func (a *App) handlePublicMenu(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"restaurant": c.EtteremNeve,
 		"phone":      c.EtteremTelefon,
+		"open":       !c.OnlineSzunetel,
+		"notice":     c.OnlineUzenet,
 		"sections":   menuSections,
 		"fees":       fees,
 	})
@@ -137,6 +139,14 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 	var in publicOrderReq
 	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&in); err != nil {
 		publicErr(w, 400, "Hibás kérés.")
+		return
+	}
+	if c := a.conf(); c.OnlineSzunetel {
+		msg := "Az online rendelés most szünetel."
+		if c.OnlineUzenet != "" {
+			msg += " " + c.OnlineUzenet
+		}
+		publicErr(w, 503, msg+" Telefonon szívesen felvesszük: "+c.EtteremTelefon)
 		return
 	}
 	if in.Website != "" { // robot
@@ -293,10 +303,80 @@ func (a *App) handlePublicStatus(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 200, map[string]any{
 				"id": o.ID, "status": o.Status, "eta": o.ETA, "reason": o.Reason,
 				"status_at": o.StatusAt, "created": o.Created, "mode": o.Mode,
-				"total": o.Total, "delivery_fee": o.DeliveryFee, "items": o.Items,
+				"total": o.Total, "delivery_fee": o.DeliveryFee, "items": o.Items, "payment": o.Payment,
 			})
 			return
 		}
 	}
 	publicErr(w, 404, "nincs ilyen rendelés")
+}
+
+// ---------------------------------------------------------------- szüneteltetés
+
+// POST /api/settings/online – online rendelés fogadásának be/kikapcsolása.
+func (a *App) handleSettingsOnline(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Paused bool   `json:"paused"`
+		Note   string `json:"note"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&in); err != nil {
+		publicErr(w, 400, "hibás kérés")
+		return
+	}
+	in.Note = clip(in.Note, 200)
+	if err := a.updateConf(func(c *Config) { c.OnlineSzunetel, c.OnlineUzenet = in.Paused, in.Note }); err != nil {
+		publicErr(w, 500, "nem sikerült menteni")
+		return
+	}
+	log.Printf("Online rendelés: szünetel=%v", in.Paused)
+	writeJSON(w, 200, map[string]any{"ok": true, "paused": in.Paused})
+}
+
+// ---------------------------------------------------------------- biztonság
+
+// Az internet felől (Funnel) érkező belépési próbálkozások korlátozása:
+// 15 percen belül 8 hibás jelszó után 15 percre lezár. Otthonról (helyi hálózat,
+// Tailscale) a belépés ettől függetlenül működik.
+var (
+	lockMu    sync.Mutex
+	lockFails []time.Time
+	lockUntil time.Time
+)
+
+func loginLocked() bool {
+	lockMu.Lock()
+	defer lockMu.Unlock()
+	return time.Now().Before(lockUntil)
+}
+
+func loginFailed() {
+	lockMu.Lock()
+	defer lockMu.Unlock()
+	now := time.Now()
+	keep := lockFails[:0]
+	for _, t := range lockFails {
+		if now.Sub(t) < 15*time.Minute {
+			keep = append(keep, t)
+		}
+	}
+	lockFails = append(keep, now)
+	if len(lockFails) >= 8 {
+		lockUntil = now.Add(15 * time.Minute)
+		lockFails = nil
+		log.Printf("Figyelem: túl sok hibás belépés az internet felől – a távoli belépés 15 percre zárolva.")
+	}
+}
+
+// Alap biztonsági fejlécek. A rendelőoldal beágyazható (pl. a Wix oldalba), a kezelőfelület nem.
+func secHeaders(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hd := w.Header()
+		hd.Set("X-Content-Type-Options", "nosniff")
+		hd.Set("Referrer-Policy", "same-origin")
+		p := r.URL.Path
+		if p != "/rendeles" && !strings.HasPrefix(p, "/api/public/") && p != "/logo.png" {
+			hd.Set("X-Frame-Options", "DENY")
+		}
+		h.ServeHTTP(w, r)
+	})
 }

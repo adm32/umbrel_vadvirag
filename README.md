@@ -71,3 +71,9 @@ rendelést, a szerver a saját étlapjából számolja az árat, a rendelés bek
 és a vendég élőben látja az állapotát. A weboldalon egy gombbal vagy beágyazott kerettel
 (Wix: „Beágyazás → Weboldal beágyazása") lehet rá mutatni.
 Az étlap a `source/menu.json` fájlban van; módosítás után `source/build.sh`, verzió növelése.
+
+## Frissítés (v2.2-től)
+
+Az Umbrel frissítéskor csak a `docker-compose.yml`, `umbrel-app.yml` és `hooks/` fájlokat
+másolja át. A `hooks/pre-start` szkript ezért minden indítás előtt átmásolja a friss
+programfájlokat (`bin/`, `Dockerfile`) az áruház példányából, így elég a Frissítés gomb.

@@ -173,6 +173,10 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .copy{flex:none;height:32px;padding:0 14px;border-radius:16px;background:var(--fill2);color:var(--blue);font-weight:600;font-size:14px}
 .sver{text-align:center;color:var(--label3);font-size:13px;margin-top:22px}
 .bigbtn:disabled{opacity:.5}
+.olbtn{font:inherit;font-size:inherit;color:var(--green);background:none;border:0;padding:0;cursor:pointer;font-weight:600}.olbtn.off{color:var(--red)}
+.pausebar{display:flex;gap:14px;align-items:center;background:color-mix(in srgb,var(--red) 12%,var(--card));border:1.5px solid var(--red);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:15px;color:var(--label2)}
+.pausebar b{display:block;color:var(--red);font-size:17px;margin-bottom:2px}.pausebar div{flex:1}
+.pausebar button{flex:none;background:var(--green);color:#fff;font-weight:700;border:0;border-radius:12px;height:42px;padding:0 16px;font-size:15px}
 @media print{body *{visibility:hidden}}
 </style></head><body>
 
@@ -302,15 +306,17 @@ function render(){
   bar.push(`<span><span class="dot" style="background:${offline?'var(--red)':'var(--green)'}"></span>${offline?'Nincs kapcsolat':'Kapcsolódva'}</span>`);
   bar.push(info.smtp?'<span>E-mail küldés bekapcsolva</span>':'<span style="color:var(--orange)">E-mail küldés nincs beállítva</span>');
   if(info.wix?.enabled)bar.push(info.wix.error?`<span style="color:var(--red)">Wix hiba</span>`:'<span>Wix: kapcsolódva</span>');
+  bar.push(info.online_paused?'<button class="olbtn off" onclick="toggleOnline()">● Online rendelés szünetel</button>':'<button class="olbtn" onclick="toggleOnline()">● Online rendelés: fogadjuk</button>');
   $('bar').innerHTML=bar.join('<span style="color:var(--label3)">·</span>');
   const f={active:o=>o.status==='new'||o.status==='preparing',new:o=>o.status==='new',preparing:o=>o.status==='preparing',closed:o=>o.status==='done'||o.status==='rejected',all:()=>true}[tab];
   let list=orders.filter(f);
   if(tab==='active'||tab==='new'||tab==='preparing')list.sort((a,b)=>(a.status==='new'?0:1)-(b.status==='new'?0:1)||new Date(a.created)-new Date(b.created));
   else list.sort((a,b)=>new Date(b.created)-new Date(a.created));
-  const sig=tab+JSON.stringify(list)+offline;
+  const sig=tab+JSON.stringify(list)+offline+info.online_paused+info.online_note;
   if(sig===lastSig){return}lastSig=sig;
   const emptyTxt={active:['Nincs aktív rendelés','Az új rendelések automatikusan itt jelennek meg.'],new:['Nincs új rendelés','Minden rendelés feldolgozva.'],preparing:['Nincs készülő rendelés',''],closed:['Még nincs lezárt rendelés',''],all:['Még nincs rendelés','']}[tab];
-  $('list').innerHTML=(offline?'<div class="offline" style="grid-column:1/-1">Nincs kapcsolat a programmal. Fut a gépen?</div>':'')+(list.length?list.map(card).join(''):`<div class="empty">${I.tray}<b>${emptyTxt[0]}</b>${emptyTxt[1]}</div>`);
+  const pz=info.online_paused?`<div class="pausebar" style="grid-column:1/-1"><div><b>Az online rendelés szünetel</b>A vendégek a weboldalon ezt látják, és nem tudnak rendelni${info.online_note?` („${esc(info.online_note)}”)`:''}.</div><button onclick="toggleOnline()">Újraindítás</button></div>`:'';
+  $('list').innerHTML=pz+(offline?'<div class="offline" style="grid-column:1/-1">Nincs kapcsolat a programmal. Fut a gépen?</div>':'')+(list.length?list.map(card).join(''):`<div class="empty">${I.tray}<b>${emptyTxt[0]}</b>${emptyTxt[1]}</div>`);
   if(!$('cityList').children.length&&info.cities)$('cityList').innerHTML=info.cities.map(c=>`<option value="${esc(c)}">`).join('');
 }
 function moveKnob(anim){const b=document.querySelector(`#tabs button[data-k="${tab}"]`),k=$('knob');if(!b||!k)return;if(!anim)k.style.transition='none';k.style.left=b.offsetLeft+'px';k.style.width=b.offsetWidth+'px';if(!anim){k.offsetWidth;k.style.transition=''}}
@@ -513,6 +519,12 @@ async function copyHook(){const t=$('hookUrl').textContent;try{await navigator.c
 async function busy(btn,fn){btn.disabled=true;try{await fn()}catch(e){toast(e.message||'Hiba')}finally{btn.disabled=false}}
 function saveEmail(btn){busy(btn,async()=>{const addr=$('seAddr').value.trim();const r=await api('/api/settings/email',addr?{address:addr,password:$('sePass').value}:{off:true});toast(r.warning||(addr?'E-mail beállítva':'E-mail küldés kikapcsolva'));S=await api('/api/settings');renderSettings();lastSig='';load()})}
 function testEmail(btn){busy(btn,async()=>{toast('Küldés…');const r=await api('/api/settings/test-email',{});toast('Próbalevél elküldve: '+r.to)})}
+async function toggleOnline(){
+  if(info.online_paused){try{await api('/api/settings/online',{paused:false});toast('Az online rendelés újra fogadja a rendeléseket');lastSig='';load()}catch(e){alert(e.message)}return}
+  const note=prompt('Szünetelteted az online rendelést? A vendégek a weboldalon ezt látják.\n\nRövid üzenet nekik (nem kötelező), pl. „Ma 20 óráig nem tudunk többet vállalni.”','');
+  if(note===null)return;
+  try{await api('/api/settings/online',{paused:true,note});toast('Az online rendelés szünetel');lastSig='';load()}catch(e){alert(e.message)}
+}
 function savePass(btn){busy(btn,async()=>{await api('/api/settings/password',{current:$('spCur').value,new:$('spNew').value});$('spCur').value=$('spNew').value='';toast('Jelszó módosítva')})}
 async function doImport(inp){
   const fs=[...inp.files];inp.value='';if(!fs.length)return;

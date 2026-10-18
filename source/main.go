@@ -67,6 +67,9 @@ type Config struct {
 	Dijak          map[string]int `json:"szallitasi_dijak"`
 	IdoOpciok      []int          `json:"elkeszulesi_percek"`
 	Okok           []string       `json:"elutasitas_okai"`
+	// Online rendelés szüneteltetése (pl. zárva vagy túl sok a munka) – a vendég ezt látja.
+	OnlineSzunetel bool   `json:"online_szunetel,omitempty"`
+	OnlineUzenet   string `json:"online_uzenet,omitempty"`
 }
 
 func randStr(n int, alphabet string) string {
@@ -1016,14 +1019,16 @@ func (a *App) handleList(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"orders": views,
 		"info": map[string]any{
-			"restaurant": a.conf().EtteremNeve,
-			"lan":        a.lan(),
-			"smtp":       a.smtpEnabled(),
-			"wix":        wix,
-			"eta":        a.conf().IdoOpciok,
-			"reasons":    a.conf().Okok,
-			"cities":     a.cityNames(),
-			"now":        time.Now(),
+			"restaurant":    a.conf().EtteremNeve,
+			"lan":           a.lan(),
+			"smtp":          a.smtpEnabled(),
+			"wix":           wix,
+			"eta":           a.conf().IdoOpciok,
+			"reasons":       a.conf().Okok,
+			"cities":        a.cityNames(),
+			"now":           time.Now(),
+			"online_paused": a.conf().OnlineSzunetel,
+			"online_note":   a.conf().OnlineUzenet,
 		},
 	})
 }
@@ -1236,10 +1241,19 @@ func (a *App) serveIndex(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleLogin(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
+	remote := viaFunnel(r)
+	if remote && loginLocked() {
+		time.Sleep(1500 * time.Millisecond)
+		http.Redirect(w, r, "/?hiba=2", http.StatusSeeOther)
+		return
+	}
 	if !a.needsSetup() && subtle.ConstantTimeCompare([]byte(r.FormValue("jelszo")), []byte(a.conf().Jelszo)) == 1 {
 		a.setSession(w, a.token())
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
+	}
+	if remote {
+		loginFailed()
 	}
 	time.Sleep(1500 * time.Millisecond)
 	http.Redirect(w, r, "/?hiba=1", http.StatusSeeOther)
@@ -1271,6 +1285,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("POST /api/settings/email", a.requireAuth(a.handleSettingsEmail))
 	mux.HandleFunc("POST /api/settings/test-email", a.requireAuth(a.handleTestEmail))
 	mux.HandleFunc("POST /api/settings/password", a.requireAuth(a.handleSettingsPassword))
+	mux.HandleFunc("POST /api/settings/online", a.requireAuth(a.handleSettingsOnline))
 	mux.HandleFunc("GET /api/backup", a.requireAuth(a.handleBackup))
 	mux.HandleFunc("POST /api/import", a.requireAuth(a.handleImport))
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
@@ -1295,7 +1310,7 @@ func (a *App) routes() http.Handler {
 			w.Write(data)
 		})
 	}
-	return mux
+	return secHeaders(mux)
 }
 
 func openBrowser(url string) {

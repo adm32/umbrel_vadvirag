@@ -33,7 +33,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.0.0"
+const version = "1.0.1"
 
 var (
 	site    fs.FS
@@ -217,19 +217,23 @@ var (
 	menuCache []byte
 	menuAt    time.Time
 	client    = &http.Client{Timeout: 4 * time.Second}
+	menuRetry time.Time
 )
 
 func handleMenu(w http.ResponseWriter, r *http.Request) {
 	menuMu.Lock()
 	defer menuMu.Unlock()
-	if menuCache == nil || time.Since(menuAt) > 30*time.Second {
+	// Ha a rendeléskezelő nem elérhető, 15 mp-ig nem próbáljuk újra, hogy a
+	// látogatók ne várjanak egymás után a lejáró kérésekre.
+	if (menuCache == nil || time.Since(menuAt) > 30*time.Second) && time.Now().After(menuRetry) {
 		if b, err := fetchMenu(); err == nil {
 			menuCache, menuAt = b, time.Now()
 		} else {
-			log.Printf("étlap: a rendeléskezelő nem elérhető (%v) – a beépített étlap látszik", err)
+			log.Printf("étlap: a rendeléskezelő nem elérhető (%v) – a tárolt / beépített étlap látszik", err)
+			menuRetry = time.Now().Add(15 * time.Second)
 			go findUpstream()
 			if menuCache == nil || time.Since(menuAt) > 10*time.Minute {
-				menuCache, menuAt = fallbackMenu, time.Now().Add(-25*time.Second) // pár mp múlva újra próbálja
+				menuCache, menuAt = fallbackMenu, time.Now().Add(-30*time.Second)
 			}
 		}
 	}

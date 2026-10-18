@@ -22,13 +22,10 @@ function pickLang() {
   if (LANGS.includes(p)) return p;
   const q = new URLSearchParams(location.search).get('lang');
   if (LANGS.includes(q)) return q;
-  const s = store.get('vv_lang'); if (LANGS.includes(s)) return s;
-  for (const l of navigator.languages || [navigator.language]) { const b = String(l).slice(0, 2).toLowerCase(); if (LANGS.includes(b)) return b; }
-  return 'hu';
+  return 'hu'; // alapból mindig magyar; angol/német csak a /en, /de címen vagy a nyelvváltóval
 }
 function setLang(l, push) {
   lang = LANGS.includes(l) ? l : 'hu';
-  store.set('vv_lang', lang);
   document.documentElement.lang = lang;
   document.title = T('title');
   document.querySelector('meta[name=description]').setAttribute('content', T('desc'));
@@ -203,11 +200,11 @@ document.addEventListener('click', e => {
 
 /* ---------------------------------------------------------------- allergének */
 function renderAlg(hl) { $('algList').innerHTML = T('alg').map((a, i) => `<li class="${hl && hl.includes(String(i + 1)) ? 'hl' : ''}">${esc(a)}</li>`).join(''); }
-$('algBtn').addEventListener('click', () => { renderAlg(); $('alg').showModal(); });
+$('algBtn').addEventListener('click', () => { renderAlg(); openModal($('alg')); });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-alg]'); if (!b) return;
   const all = [...b.parentElement.querySelectorAll('[data-alg]')].map(x => x.dataset.alg);
-  renderAlg(all); $('alg').showModal();
+  renderAlg(all); openModal($('alg'));
 });
 
 /* ---------------------------------------------------------------- modális ablakok */
@@ -314,6 +311,7 @@ $$('#strip img').forEach(im => im.addEventListener('click', () => {
 const form = $('form');
 function setKind(k) {
   kind = k;
+  if (!$('whenRow')) return;          // az űrlap már el lett küldve
   $$('[data-kind]', form).forEach(b => b.setAttribute('aria-checked', String(b.dataset.kind === k)));
   $('whenRow').hidden = k === 'egyeb';
   $('msgLabel').textContent = T(k === 'asztal' ? 'fMsgTable' : k === 'rendezveny' ? 'fMsgEvent' : 'fMsgOther');
@@ -330,7 +328,11 @@ form.addEventListener('submit', async e => {
   $('formErr').textContent = '';
   if (!v.name.trim()) return bad('name', 'errName');
   if (v.phone.replace(/\D/g, '').length < 6 && !/@/.test(v.email)) return bad('phone', 'errContact');
+  if (v.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email.trim())) return bad('email', 'errEmail');
   if (kind !== 'egyeb' && !v.date) return bad('date', 'errDate');
+  if (kind !== 'egyeb' && v.date < form.elements.date.min) return bad('date', 'errPast');
+  if (kind !== 'egyeb' && v.time && (v.time < '11:00' || v.time > '21:30')) return bad('time', 'errTime');
+  if (kind !== 'egyeb' && v.guests && !(+v.guests >= 1 && +v.guests <= 500)) return bad('guests', 'errGuests');
   if (kind === 'egyeb' && !v.text.trim()) return bad('text', 'errText');
   const btn = $('sendBtn'); btn.disabled = true; btn.textContent = T('sending');
   try {
@@ -338,7 +340,7 @@ form.addEventListener('submit', async e => {
     if (kind !== 'egyeb') Object.assign(body, { date: v.date, time: v.time, guests: parseInt(v.guests, 10) || 0 });
     const r = await fetch('/api/public/message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(d.error || T('errNet'));
+    if (!r.ok) throw new Error((lang === 'hu' && d.error) || T('errNet'));
     form.classList.add('sent');
     form.dataset.html = form.innerHTML;
     form.innerHTML = `<div class="sent-ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h3>${esc(T('sentTitle'))}</h3><p class="form-note">${esc(T('sentText'))}</p><button type="button" class="btn btn-ghost" id="again">${esc(T('sentAgain'))}</button>`;
@@ -414,7 +416,7 @@ function miniBurst(x, y, n) {
 }
 if (!reduced) {
   resize();
-  const n = innerWidth < 760 ? 9 : 16;
+  const n = innerWidth < 760 ? 6 : 11;
   for (let i = 0; i < n; i++) petals.push(petal(Math.random() * W, Math.random() * H));
   addEventListener('resize', resize);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(hero);

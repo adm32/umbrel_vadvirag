@@ -177,6 +177,24 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .pausebar{display:flex;gap:14px;align-items:center;background:color-mix(in srgb,var(--red) 12%,var(--card));border:1.5px solid var(--red);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:15px;color:var(--label2)}
 .pausebar b{display:block;color:var(--red);font-size:17px;margin-bottom:2px}.pausebar div{flex:1}
 .pausebar button{flex:none;background:var(--green);color:#fff;font-weight:700;border:0;border-radius:12px;height:42px;padding:0 16px;font-size:15px}
+.rf-count{font-size:15px;color:var(--label2);padding:8px 16px 0}.rf-count b{color:var(--label)}
+.rf-step{display:flex;align-items:center;gap:6px}.rf-step button{width:34px;height:34px;border-radius:50%;background:var(--fill2);color:var(--blue);font-size:20px;font-weight:600;line-height:1}.rf-step b{min-width:26px;text-align:center;font-size:17px}
+.rf-help{margin:0;padding:6px 16px 0 34px;color:var(--label2);font-size:13px;line-height:1.5}
+.rf-stage{position:relative;margin:6px 0 0;background:var(--card);border-radius:20px;padding:26px 16px 22px;text-align:center;overflow:hidden;box-shadow:var(--shadow)}
+.rf-k{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--label2)}
+.rf-wheel{height:64px;display:grid;place-items:center;font-size:28px;font-weight:700;margin-top:10px;color:var(--label);font-variant-numeric:tabular-nums}
+.rf-wheel.spin{color:var(--label3);filter:blur(.4px)}
+.rf-win{animation:rfpop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes rfpop{from{transform:scale(.5);opacity:0}}
+.rf-crown{width:64px;height:64px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;background:color-mix(in srgb,var(--purple) 16%,transparent);color:var(--purple)}
+.rf-crown svg{width:34px;height:34px}
+.rf-name{font-size:32px;font-weight:800;letter-spacing:-.01em;margin-top:6px;color:var(--label);word-break:break-word}
+.rf-sub{font-size:15px;color:var(--label2);margin-top:8px}
+.rf-res{margin-top:16px;font-size:15px;color:var(--label2)}.rf-res b{color:var(--label)}
+.rf-conf{position:absolute;inset:0;pointer-events:none}
+.rf-conf i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:rffall 2.4s cubic-bezier(.2,.6,.4,1) forwards}
+@keyframes rffall{to{transform:translate(var(--dx),420px) rotate(var(--r));opacity:0}}
+.rf-hist .row{font-size:15px}.rf-hist .tx{flex:1;padding:10px 0;min-width:0}.rf-hist small{display:block;color:var(--label2);font-size:13px}
 @media print{body *{visibility:hidden}}
 </style></head><body>
 
@@ -185,6 +203,7 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
     <span class="sp"></span>
     <button class="ibtn" id="ntf" onclick="openNotif()" title="Értesítések"></button>
     <button class="ibtn" id="snd" onclick="toggleSound()" title="Hang"></button>
+    <button class="ibtn" onclick="openRaffle()" title="Nyereményjáték sorsolás" style="color:var(--purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></button>
     <button class="ibtn" onclick="openSettings()" title="Beállítások" style="color:var(--label2)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.9 2.6l.4 2.3a7.6 7.6 0 0 1 1.9 1.1l2.2-.8a1 1 0 0 1 1.2.4l1.9 3.3a1 1 0 0 1-.2 1.3l-1.8 1.5a7.7 7.7 0 0 1 0 2.2l1.8 1.5a1 1 0 0 1 .2 1.3l-1.9 3.3a1 1 0 0 1-1.2.4l-2.2-.8a7.6 7.6 0 0 1-1.9 1.1l-.4 2.3a1 1 0 0 1-1 .8h-3.8a1 1 0 0 1-1-.8l-.4-2.3a7.6 7.6 0 0 1-1.9-1.1l-2.2.8a1 1 0 0 1-1.2-.4l-1.9-3.3a1 1 0 0 1 .2-1.3l1.8-1.5a7.7 7.7 0 0 1 0-2.2L2.1 9.9a1 1 0 0 1-.2-1.3l1.9-3.3A1 1 0 0 1 5 4.9l2.2.8a7.6 7.6 0 0 1 1.9-1.1l.4-2.3a1 1 0 0 1 1-.8h2.4a1 1 0 0 1 1 .8ZM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg></button>
     <button class="ibtn" onclick="location.href='/logout'" title="Kilépés"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></button>
   </div>
@@ -245,6 +264,11 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 <dialog id="dSet"><div class="dwrap" onclick="if(event.target===this)dSet.close()"><div class="sheet">
   <div class="shd"><span class="tb"></span><h2>Beállítások</h2><button class="tb r" onclick="dSet.close()">Kész</button></div>
   <div class="sbody" id="setBody"><div class="hint">Betöltés…</div></div>
+</div></div></dialog>
+
+<dialog id="dRaffle"><div class="dwrap" onclick="if(event.target===this)dRaffle.close()"><div class="sheet">
+  <div class="shd"><span class="tb"></span><h2>Sorsolás</h2><button class="tb r" onclick="dRaffle.close()">Kész</button></div>
+  <div class="sbody" id="rfBody"></div>
 </div></div></dialog>
 
 <dialog id="dNotif"><div class="dwrap" onclick="if(event.target===this)dNotif.close()"><div class="sheet">
@@ -524,6 +548,63 @@ async function toggleOnline(){
   const note=prompt('Szünetelteted az online rendelést? A vendégek a weboldalon ezt látják.\n\nRövid üzenet nekik (nem kötelező), pl. „Ma 20 óráig nem tudunk többet vállalni.”','');
   if(note===null)return;
   try{await api('/api/settings/online',{paused:true,note});toast('Az online rendelés szünetel');lastSig='';load()}catch(e){alert(e.message)}
+}
+// ---- Nyereményjáték sorsolás
+let RF={title:'',link:'',names:'',winners:1,reserves:1,clean:[],hist:[]},rfT=0;
+const I_GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';
+async function openRaffle(){dRaffle.showModal();rfForm();try{RF.hist=await api('/api/raffle');rfForm()}catch(e){}}
+function rfForm(){
+  const n=RF.clean.length;
+  $('rfBody').innerHTML=`<div class="hint" style="padding-top:2px">Húzz nyertest a Facebook-poszt megosztói közül. A sorsolás véletlenszerű, és minden sorsolás mentésre kerül.</div>
+  <div class="flabel">Nyereményjáték</div>
+  <div class="list">
+    <div class="row"><span class="k">Neve</span><input id="rfTitle" placeholder="pl. Karácsonyi pizza nyeremény" value="${esc(RF.title)}" oninput="RF.title=this.value"></div>
+    <div class="row"><span class="k">Poszt linkje</span><input id="rfLink" inputmode="url" placeholder="https://www.facebook.com/…" value="${esc(RF.link)}" oninput="RF.link=this.value"></div>
+  </div>
+  <div class="flabel">Résztvevők (megosztók)</div>
+  <div class="list"><div class="row"><textarea id="rfNames" style="min-height:150px" placeholder="Másold ide a megosztók nevét, soronként egyet." oninput="RF.names=this.value;rfCount()">${esc(RF.names)}</textarea></div></div>
+  <div class="rf-count" id="rfCount">${rfCountTxt()}</div>
+  <ol class="rf-help"><li>Nyisd meg a posztot a Facebookon, és kattints a „… megosztás” feliratra.</li><li>Jelöld ki és másold ki a neveket, majd illeszd be ide. Az ismétlődéseket és a gombfeliratokat a program kiszűri.</li><li>A privát megosztásokat a Facebook senkinek nem mutatja meg, így azok nem kerülhetnek be.</li></ol>
+  <div class="list" style="margin-top:16px">
+    <div class="row"><span class="tx" style="flex:1">Nyertesek</span><span class="rf-step"><button onclick="rfStep('winners',-1)">−</button><b>${RF.winners}</b><button onclick="rfStep('winners',1)">+</button></span></div>
+    <div class="row"><span class="tx" style="flex:1">Pótnyertes <small style="color:var(--label2);font-size:13px">ha a nyertes nem jelentkezik</small></span><span class="rf-step"><button onclick="rfStep('reserves',-1)">−</button><b>${RF.reserves}</b><button onclick="rfStep('reserves',1)">+</button></span></div>
+  </div>
+  <div class="hint" id="rfErr" style="color:var(--red)"></div>
+  <button class="bigbtn blue" style="background:var(--purple)" onclick="rfDraw(this)">Sorsolás indítása</button>
+  ${RF.hist.length?`<div class="flabel">Korábbi sorsolások</div><div class="list rf-hist">${RF.hist.slice(0,10).map(h=>`<div class="row"><span class="tx"><b>${esc(h.winners.join(', '))}</b><small>${esc(h.title||'Sorsolás')} · ${fmtDay(h.at)} ${fmtTime(h.at)} · ${h.count} résztvevő${h.reserves&&h.reserves.length?' · pót: '+esc(h.reserves.join(', ')):''}</small></span>${h.link?`<a href="${esc(h.link)}" target="_blank" rel="noopener" style="font-size:14px">Poszt</a>`:''}</div>`).join('')}</div>`:''}`;
+}
+function rfCountTxt(){const n=RF.clean.length;if(!RF.names.trim())return 'Még nincs résztvevő.';return `<b>${n}</b> résztvevő${n?'':' – nem találtunk nevet'}`}
+function rfCount(){clearTimeout(rfT);rfT=setTimeout(async()=>{try{const d=await api('/api/raffle/preview',{names:RF.names});RF.clean=d.names||[];$('rfCount').innerHTML=rfCountTxt()}catch(e){}},350)}
+function rfStep(k,d){const min=k==='winners'?1:0;RF[k]=Math.max(min,Math.min(10,RF[k]+d));const st=$('rfNames').scrollTop;rfForm();$('rfNames').scrollTop=st}
+async function rfDraw(btn){
+  const err=m=>{$('rfErr').textContent=m};
+  if(!/^https?:\/\/\S+\.\S+/.test(RF.link.trim()))return err('Illeszd be a Facebook-poszt linkjét.');
+  btn.disabled=true;let d;
+  try{d=await api('/api/raffle',{title:RF.title,link:RF.link.trim(),names:RF.names,winners:RF.winners,reserves:RF.reserves})}catch(e){btn.disabled=false;return err(e.message)}
+  // pörgetés
+  $('rfBody').innerHTML=`<div class="rf-stage"><div class="rf-k">${esc(d.title||'Sorsolás')} · ${d.count} résztvevő</div><div class="rf-wheel spin" id="rfWheel"></div><div class="rf-sub">Sorsolás folyamatban…</div></div>`;
+  const pool=d.names,wh=$('rfWheel');let delay=45,t0=performance.now();
+  await new Promise(res=>{const tick=()=>{wh.textContent=pool[Math.floor(Math.random()*pool.length)];const el=performance.now()-t0;if(el>3200){res();return}delay=el<1800?45:delay*1.18;setTimeout(tick,delay)};tick()});
+  rfResult(d);RF.hist.unshift(d);
+}
+function rfCopy(b){const ta=$('rfAnn');const done=()=>{b.textContent='Kimásolva ✓';setTimeout(()=>b.textContent='Bejelentés másolása',2000)};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(ta.value).then(done);else{ta.select();document.execCommand('copy');done()}}
+function rfResult(d){
+  const W=d.winners,multi=W.length>1;
+  const ann=`🎉 ${d.title?d.title+' – ':''}${multi?'A nyertesek':'A nyertes'}: ${W.join(', ')}! Gratulálunk! ${multi?'Kérjük, írjatok':'Kérjük, írj'} nekünk üzenetet a nyeremény átvételéhez. 🌸 Vadvirág Étterem`;
+  const cols=['#ff3b30','#ff9500','#ffcc00','#34c759','#007aff','#af52de'];
+  const conf=Array.from({length:60},()=>`<i style="left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*cols.length)]};--dx:${(Math.random()*120-60)|0}px;--r:${(Math.random()*720-360)|0}deg;animation-delay:${(Math.random()*.5).toFixed(2)}s"></i>`).join('');
+  $('rfBody').innerHTML=`<div class="rf-stage"><div class="rf-conf">${conf}</div>
+    <div class="rf-win"><div class="rf-crown">${I_GIFT}</div><div class="rf-k">${multi?'A nyertesek':'A nyertes'}</div>
+    ${W.map(w=>`<div class="rf-name">${esc(w)}</div>`).join('')}
+    <div class="rf-sub">Gratulálunk! 🎉</div>
+    ${d.reserves&&d.reserves.length?`<div class="rf-res">Pótnyertes: <b>${esc(d.reserves.join(', '))}</b></div>`:''}</div></div>
+  <div class="hint" style="text-align:center">${esc(d.title||'Sorsolás')} · ${fmtDay(d.at)} ${fmtTime(d.at)} · ${d.count} résztvevő közül · #${d.id}</div>
+  <div class="flabel">Bejelentés szövege</div>
+  <div class="list"><div class="row"><textarea id="rfAnn" style="min-height:90px">${esc(ann)}</textarea></div></div>
+  <button class="bigbtn blue" onclick="rfCopy(this)">Bejelentés másolása</button>
+  ${d.link?`<a class="bigbtn ghost" style="display:grid;place-items:center;margin-top:10px" href="${esc(d.link)}" target="_blank" rel="noopener">Poszt megnyitása</a>`:''}
+  <button class="bigbtn ghost" style="margin-top:10px" onclick="rfForm()">Vissza</button>`;
 }
 function savePass(btn){busy(btn,async()=>{await api('/api/settings/password',{current:$('spCur').value,new:$('spNew').value});$('spCur').value=$('spNew').value='';toast('Jelszó módosítva')})}
 async function doImport(inp){

@@ -275,11 +275,11 @@ function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toStrin
 let active=null;
 function renderNotices(){let h='';
   if(!isOpen)h+=`<div class="notice off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><div><b>Az online rendelés most szünetel.</b>${M&&M.notice?esc(M.notice)+' ':''}Az étlapot megnézheted, rendelni most telefonon tudsz: <a href="${telHref()}" style="color:inherit;font-weight:700">${esc(phone)}</a></div></div>`;
-  if(active)h+=`<div class="notice act" onclick="showStatus('${active.tok}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="tx">Folyamatban lévő rendelésed: <b>#${active.id}</b><small>${{new:'Visszaigazolásra vár',preparing:'Elfogadtuk, készül'}[active.status]||''}</small></span><span class="go">Megnézem ›</span></div>`;
+  if(active)h+=`<div class="notice act" onclick="showStatus('${active.tok}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="tx">Legutóbbi rendelésed: <b>#${active.id}</b><small>${{new:'Visszaigazolásra vár',preparing:'Elfogadva',done:'Elfogadva'}[active.status]||''}</small></span><span class="go">Megnézem ›</span></div>`;
   $('notices').innerHTML=h}
 async function checkActive(){const tok=store.get('vv_last',null);if(!tok)return;
   try{const r=await fetch('/api/public/order/'+tok,{cache:'no-store'});if(!r.ok){store.set('vv_last',null);return}const o=await r.json();
-    if((o.status==='new'||o.status==='preparing')&&Date.now()-new Date(o.created)<8*3600e3){active={tok,id:o.id,status:o.status};renderNotices()}}catch(e){}}
+    if((o.status==='new'||o.status==='preparing'||o.status==='done')&&Date.now()-new Date(o.created)<3*3600e3){active={tok,id:o.id,status:o.status};renderNotices()}}catch(e){}}
 function itemHTML(it){
   const al=it.alg?`<div class="al">Allergének: ${esc(it.alg)}</div>`:'';
   if(it.variants){
@@ -378,12 +378,13 @@ let poll=0,stTok=null,lastO=null;
 function showStatus(tok,fresh){stTok=tok;$('toast').classList.remove('show');$('status').classList.add('open');document.body.style.overflow='hidden';$('cartbar').classList.remove('show');
   if(!location.hash.includes('r='))history.replaceState(history.state,'',location.pathname+'#r='+tok);
   $('stBody').innerHTML=`<div class="ic wait">${SVG.clock}</div><h3>${fresh?'Rendelés elküldve':'Rendelésed betöltése'}</h3><p class="dots">Kapcsolódás</p>`;
-  clearInterval(poll);let fails=0;const tick=async()=>{try{const r=await fetch('/api/public/order/'+tok,{cache:'no-store'});if(r.status===404){clearInterval(poll);store.set('vv_last',null);backToMenu();return}const o=await r.json();fails=0;lastO=o;renderStatus(o);if(o.status==='done'||o.status==='rejected'){clearInterval(poll);active=null;renderNotices()}}catch(e){if(++fails===3&&lastO)renderStatus(lastO,true)}};
+  clearInterval(poll);let fails=0,slow=false;const tick=async()=>{try{const r=await fetch('/api/public/order/'+tok,{cache:'no-store'});if(r.status===404){clearInterval(poll);store.set('vv_last',null);backToMenu();return}const o=await r.json();fails=0;lastO=o;renderStatus(o);if(o.status==='rejected'){clearInterval(poll);active=null;renderNotices()}else if(o.status!=='new'&&!slow){slow=true;clearInterval(poll);poll=setInterval(tick,30000)}}catch(e){if(++fails===3&&lastO)renderStatus(lastO,true)}};
   tick();poll=setInterval(tick,5000)}
 function hhmm(d){return d.toLocaleTimeString('hu-HU',{hour:'2-digit',minute:'2-digit'})}
-function track(o){const deliv=o.mode==='Kiszállítás';const steps=['Elküldve','Elfogadva',deliv?'Úton / kész':'Átvehető'];
-  const lvl={new:1,preparing:2,done:3,rejected:1}[o.status]||1;
-  return `<div class="track">${steps.map((t,i)=>{const n=i+1;const bad=o.status==='rejected'&&n===2;const cls=bad?'s bad on':n<=lvl?'s on'+(n===lvl&&o.status!=='done'?' cur':''):'s';return `<div class="${cls}"><i>${bad?SVG.x:n<=lvl?SVG.check:''}</i>${bad?'Elutasítva':t}</div>`}).join('')}</div>`}
+// A vendég csak két lépést lát: elküldte, és elfogadtuk vagy elutasítottuk.
+function track(o){const steps=['Elküldve','Elfogadva'];
+  const acc=o.status==='preparing'||o.status==='done',lvl=acc?2:1;
+  return `<div class="track">${steps.map((t,i)=>{const n=i+1;const bad=o.status==='rejected'&&n===2;const cls=bad?'s bad on':n<=lvl?'s on'+(n===lvl&&!acc?' cur':''):'s';return `<div class="${cls}"><i>${bad?SVG.x:n<=lvl?SVG.check:''}</i>${bad?'Elutasítva':t}</div>`}).join('')}</div>`}
 function renderStatus(o,stale){
   const call=`<a class="btn2" href="${telHref()}">${SVG.phone}${esc(phone)}</a>`;
   const deliv=o.mode==='Kiszállítás';let h='';
@@ -391,14 +392,13 @@ function renderStatus(o,stale){
   if(o.status==='new'){
     h=`<div class="ic wait">${SVG.clock}</div><h3>Megkaptuk a rendelésed!</h3><p>Rendelésszám: <b>#${o.id}</b> · elküldve ${hhmm(sent)}-kor</p>${track(o)}<p class="dots">Visszaigazolásra vár</p><p style="font-size:14px;margin-top:10px">Ezt az oldalt nyitva hagyhatod – itt azonnal látod, ha elfogadtuk. Később is visszatérhetsz ide.</p>`;
     if(mins>=10)h+=`<div class="nudge">Már ${mins} perce várakozik. Lehet, hogy most nagy a forgalom – hívj minket nyugodtan, és megnézzük!</div>`;
-  }else if(o.status==='preparing'){const t=new Date(new Date(o.status_at).getTime()+(o.eta||0)*60000);
-    h=`<div class="ic ok">${SVG.check}</div><h3>Elfogadtuk, már készül!</h3><p>Rendelésszám: <b>#${o.id}</b></p>${track(o)}${o.eta?`<div class="big">kb. ${hhmm(t)}</div><p>${deliv?'körül érkezik hozzád a futár':'körül veheted át az étteremben'} (kb. ${o.eta} perc)</p>`:''}<p style="font-size:14px;margin-top:10px">Fizetés ${deliv?'a futárnál':'az étteremben'}, ${o.payment?esc(o.payment.toLowerCase())+'.':'készpénzzel vagy kártyával.'}</p>`}
-  else if(o.status==='done')h=`<div class="ic ok">${SVG.heart}</div><h3>Jó étvágyat kívánunk!</h3><p>Rendelésszám: <b>#${o.id}</b></p>${track(o)}<p>Köszönjük, hogy a Vadvirágot választottad.</p>`;
+  }else if(o.status==='preparing'||o.status==='done'){const t=new Date(new Date(o.status_at).getTime()+(o.eta||0)*60000);
+    h=`<div class="ic ok">${SVG.check}</div><h3>Elfogadtuk a rendelésed!</h3><p>Rendelésszám: <b>#${o.id}</b></p>${track(o)}${o.eta?`<div class="big">kb. ${hhmm(t)}</div><p>${deliv?'körül érkezik hozzád a futár':'körül veheted át az étteremben'} (kb. ${o.eta} perc)</p>`:''}<p style="font-size:14px;margin-top:10px">Fizetés ${deliv?'a futárnál':'az étteremben'}, ${o.payment?esc(o.payment.toLowerCase())+'.':'készpénzzel vagy kártyával.'}</p>`}
   else h=`<div class="ic no">${SVG.x}</div><h3>Sajnos most nem tudjuk teljesíteni</h3><p>Rendelésszám: <b>#${o.id}</b></p>${track(o)}${o.reason?`<p><b>${esc(o.reason)}</b></p>`:''}<p>Elnézést kérünk! Nem kell fizetned semmit. Hívj minket, és megoldjuk:</p>`;
   if(stale)h+=`<div class="nudge">Most nem érjük el a rendszert, az állapot pár perce frissült utoljára. Próbálkozunk tovább…</div>`;
   const fee=o.delivery_fee>0?`\nSzállítás – ${huf(o.delivery_fee)} Ft`:deliv&&o.delivery_fee<0?'\nSzállítás – telefonon egyeztetjük':'';
   const sum=`${o.items}${fee}\n\nVégösszeg: ${huf(o.total)} Ft${deliv&&o.delivery_fee<0?' + szállítás':''}`;
-  $('stBody').innerHTML=h+`<div class="box recap">${esc(sum)}</div>${call}<br><button class="btn2" style="color:var(--ink2)" onclick="backToMenu()">${o.status==='new'||o.status==='preparing'?'Vissza az étlapra':'Új rendelés'}</button>`;
+  $('stBody').innerHTML=h+`<div class="box recap">${esc(sum)}</div>${call}<br><button class="btn2" style="color:var(--ink2)" onclick="backToMenu()">${o.status==='rejected'?'Új rendelés':'Vissza az étlapra'}</button>`;
 }
 function backToMenu(){clearInterval(poll);$('status').classList.remove('open');document.body.style.overflow='';history.replaceState(null,'',location.pathname);updateCart();active=null;renderNotices();checkActive()}
 load();

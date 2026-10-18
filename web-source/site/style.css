@@ -111,7 +111,7 @@ h3{font:600 22px/1.25 var(--serif)}
 .facts svg{width:22px;height:22px;color:var(--red)}
 
 /* étlap */
-.menu{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:84px 0 72px;position:relative;overflow:hidden}
+.menu{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:84px 0 72px;position:relative}
 .menu::before{content:"";position:absolute;top:28px;right:max(20px,calc(50% - 560px));width:90px;height:180px;background:url(/img/pipacs.webp) center/contain no-repeat;opacity:.9;transform:rotate(8deg)}
 .menu-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:4px;gap:2px}
@@ -176,7 +176,7 @@ span.var{padding-right:12px}
 .burger-band figcaption{position:absolute;left:0;right:0;bottom:0;padding:28px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;background:linear-gradient(transparent,#140c08cc);color:#fff;font:italic 600 clamp(20px,2.4vw,28px)/1.25 var(--serif)}
 
 /* rendezvények */
-.events{background:var(--wood);color:var(--cream);padding:96px 0;position:relative;overflow:hidden}
+.events{background:var(--wood);color:var(--cream);padding:96px 0;position:relative}
 .events::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 15% 0%,#f2b25c22,transparent 70%),radial-gradient(500px 300px at 90% 100%,#c4140a22,transparent 70%);pointer-events:none}
 .events-in{position:relative;display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
 .events h2{color:#fff}
@@ -191,7 +191,7 @@ span.var{padding-right:12px}
 .strip img:nth-child(even){margin-top:36px}
 
 /* kiszállítás */
-.delivery{padding-top:96px;padding-bottom:40px;position:relative;overflow-x:clip}
+.delivery{padding-top:96px;padding-bottom:40px}
 .del-box{max-width:720px}
 .del-result{min-height:8px}
 .del-card{margin-top:14px;padding:18px 20px;border-radius:var(--r);background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:16px;flex-wrap:wrap;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
@@ -222,7 +222,7 @@ span.var{padding-right:12px}
 .g-tall{grid-row:span 2}
 
 /* kapcsolat */
-.contact{background:var(--card);border-top:1px solid var(--line);padding:96px 0;position:relative;overflow:hidden}
+.contact{background:var(--card);border-top:1px solid var(--line);padding:96px 0;position:relative}
 .contact-in{display:grid;grid-template-columns:.85fr 1.15fr;gap:56px;align-items:start}
 .big-phone{display:inline-flex;align-items:center;gap:12px;margin-top:22px;font:600 clamp(26px,3vw,32px) var(--serif);color:var(--red);text-decoration:none}
 .big-phone svg{width:26px;height:26px}
@@ -334,7 +334,7 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
   .hero-cta .btn{flex:1;min-width:150px}
   .hero-art{max-width:400px;width:84vw;aspect-ratio:5/6}
   .hero-hint{left:0;right:0;text-align:center;bottom:10px}
-  .about{grid-template-columns:1fr;gap:40px;padding-top:48px;padding-bottom:72px}
+  .about{grid-template-columns:minmax(0,1fr);gap:40px;padding-top:48px;padding-bottom:72px}
   .about-pics{max-width:440px;width:100%;margin:0 auto}
   .menu{padding:64px 0 56px}
   .menu::before{width:56px;height:112px;top:18px;right:14px}
@@ -346,40 +346,42 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
   .burger-band figcaption .btn{font:600 15px var(--sans)}
 .burger-band figcaption{padding:20px}
   .events{padding:72px 0}
-  .events-in{grid-template-columns:1fr;gap:36px}
+  .events-in{grid-template-columns:minmax(0,1fr);gap:36px}
   .strip{margin-right:-20px;margin-left:-20px;padding-left:20px}
   .delivery{padding-top:72px}
   .gal{grid-template-columns:repeat(2,1fr);grid-auto-rows:160px;gap:10px}
   .contact{padding:72px 0 110px}
-  .contact-in{grid-template-columns:1fr;gap:40px}
+  .contact-in{grid-template-columns:minmax(0,1fr);gap:40px}
   .form{padding:22px 18px}
   .foot{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
   .foot-in{flex-direction:column;align-items:flex-start}
-  .dock{position:fixed;left:0;right:0;bottom:0;z-index:35;display:grid;grid-template-columns:1fr 1.6fr;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#f4efe4eb;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+  .dock{position:fixed;left:0;right:0;bottom:0;z-index:35;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#f4efe4eb;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
   .dock.show{transform:none}
   .dock .btn{height:50px}
   .toast{bottom:92px}
   .lb-nav{display:none}
 }
 @media (max-width:520px){
-  .wrap{padding:0 16px}
+  .wrap{padding-left:16px;padding-right:16px}
+  .strip{margin-right:-16px;margin-left:-16px;padding-left:16px}
   .row2,.row3{grid-template-columns:1fr 1fr}
   .row3 .f:first-child{grid-column:1/-1}
   .alg-list{columns:1}
-  .seg-full button{font-size:14px}
+  .seg-full button{font-size:14px;min-width:0;padding-left:4px;padding-right:4px}
   .mi .nm::after{display:none}
 }
+@media (max-width:360px){.dock .btn{padding-left:10px;padding-right:10px;font-size:15px;gap:6px}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
   .hero-art img{animation:none}
 }
 
-/* vadvirág-csokrok az étlapról (vonalrajz) */
-.flora{position:absolute;pointer-events:none;user-select:none;z-index:0;opacity:.55;width:clamp(150px,17vw,250px);height:auto}
-.menu>.wrap,.contact>.wrap,.delivery>*:not(.flora){position:relative;z-index:1}
-.fl-tl{left:-40px;top:-30px;transform:rotate(160deg)}
-.fl-br{right:-46px;bottom:-40px;transform:rotate(-15deg)}
-.fl-r{right:-60px;top:40px;transform:rotate(-118deg);opacity:.45}
-.fl-tr{right:-44px;top:-36px;transform:rotate(-165deg)}
-.fl-bl{left:-48px;bottom:-44px;transform:rotate(15deg)}
-@media (max-width:760px){.flora{width:130px;opacity:.38}.fl-r{display:none}}
+/* vadvirág-csokrok az étlapról (vonalrajz): csak a széles képernyők üres oldalsávjában,
+   alulról „nőnek” felfelé, így soha nem takarnak szöveget vagy gombot */
+.flora{display:none;position:absolute;bottom:0;z-index:0;pointer-events:none;user-select:none;opacity:.6;height:auto;
+  width:min(170px,calc((100vw - 1100px) / 2 - 28px))}
+.flora.fl-l{left:14px}
+.flora.fl-r{right:14px;transform:scaleX(-1)}
+@media (min-width:1340px){.flora{display:block}}
+.flora-inline{display:block;width:80px;height:auto;margin:22px 0 -12px;opacity:.65;pointer-events:none}
+@media (min-width:1340px){.flora-inline{display:none}}

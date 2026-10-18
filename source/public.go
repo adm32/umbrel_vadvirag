@@ -300,9 +300,20 @@ func (a *App) handlePublicStatus(w http.ResponseWriter, r *http.Request) {
 	for i := len(a.st.Orders) - 1; i >= 0; i-- {
 		o := a.st.Orders[i]
 		if o.Token == tok {
+			// A vendég csak azt látja, hogy várakozik, elfogadtuk vagy elutasítottuk.
+			// A „Kész / átadva” állapot belső ügy, kifelé „elfogadva” marad.
+			st, at, eta := o.Status, o.StatusAt, o.ETA
+			if st == StDone {
+				st = StPreparing
+				if o.AcceptedAt.IsZero() { // régi rendelés: nem tudjuk, mikor fogadtuk el
+					eta = 0
+				} else {
+					at = o.AcceptedAt
+				}
+			}
 			writeJSON(w, 200, map[string]any{
-				"id": o.ID, "status": o.Status, "eta": o.ETA, "reason": o.Reason,
-				"status_at": o.StatusAt, "created": o.Created, "mode": o.Mode,
+				"id": o.ID, "status": st, "eta": eta, "reason": o.Reason,
+				"status_at": at, "created": o.Created, "mode": o.Mode,
 				"total": o.Total, "delivery_fee": o.DeliveryFee, "items": o.Items, "payment": o.Payment,
 			})
 			return

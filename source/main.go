@@ -184,6 +184,7 @@ type Order struct {
 	ETA         int               `json:"eta,omitempty"`
 	Reason      string            `json:"reason,omitempty"`
 	StatusAt    time.Time         `json:"status_at"`
+	AcceptedAt  time.Time         `json:"accepted_at,omitempty"` // mikor fogadtuk el (a vendég ehhez képest látja a várható időt)
 	EmailState  string            `json:"email_state,omitempty"` // sending|sent|failed|none
 	EmailErr    string            `json:"email_err,omitempty"`
 	EmailAt     time.Time         `json:"email_at,omitempty"`
@@ -1069,6 +1070,7 @@ func (a *App) handleAccept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	o.Status, o.ETA, o.Reason, o.StatusAt = StPreparing, in.ETA, "", time.Now()
+	o.AcceptedAt = o.StatusAt
 	o.EmailState = ""
 	a.st.saveLocked()
 	a.st.mu.Unlock()
@@ -1110,6 +1112,7 @@ func (a *App) handleSimple(status string) http.HandlerFunc {
 		o.Status, o.StatusAt = status, time.Now()
 		if status == StNew {
 			o.ETA, o.Reason, o.EmailState, o.EmailErr = 0, "", "", ""
+			o.AcceptedAt = time.Time{}
 		}
 		a.st.saveLocked()
 		writeJSON(w, 200, map[string]bool{"ok": true})

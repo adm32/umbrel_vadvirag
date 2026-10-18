@@ -1029,6 +1029,7 @@ func (a *App) handleList(w http.ResponseWriter, r *http.Request) {
 			"now":           time.Now(),
 			"online_paused": a.conf().OnlineSzunetel,
 			"online_note":   a.conf().OnlineUzenet,
+			"messages":      a.unreadMessages(),
 		},
 	})
 }
@@ -1296,6 +1297,9 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("GET /api/public/menu", a.handlePublicMenu)
 	mux.HandleFunc("POST /api/public/order", a.handlePublicOrder)
 	mux.HandleFunc("GET /api/public/order/{token}", a.handlePublicStatus)
+	mux.HandleFunc("POST /api/public/message", a.handlePublicMessage)
+	mux.HandleFunc("GET /api/messages", a.requireAuth(a.handleMessages))
+	mux.HandleFunc("POST /api/messages/{id}/done", a.requireAuth(a.handleMessageDone))
 	for _, f := range []string{"sw.js", "manifest.json", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "logo.png"} {
 		f := f
 		mux.HandleFunc("GET /"+f, func(w http.ResponseWriter, r *http.Request) {

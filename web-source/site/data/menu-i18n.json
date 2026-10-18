@@ -1,0 +1,1166 @@
+{
+"sections": {
+"pizzak": {
+"en": "Pizzas",
+"de": "Pizzen"
+},
+"burger-boxok": {
+"en": "Burger boxes",
+"de": "Burger-Boxen"
+},
+"levesek": {
+"en": "Soups",
+"de": "Suppen"
+},
+"szarnyasbol-keszult-etelek": {
+"en": "Poultry dishes",
+"de": "Geflügelgerichte"
+},
+"serteshusbol-keszult-etelek": {
+"en": "Pork dishes",
+"de": "Schweinefleischgerichte"
+},
+"marhahusbol-keszult-etelek": {
+"en": "Beef dishes",
+"de": "Rindfleischgerichte"
+},
+"halak": {
+"en": "Fish",
+"de": "Fisch"
+},
+"tesztak-es-vega-etelek": {
+"en": "Pasta & vegetarian",
+"de": "Pasta & vegetarisch"
+},
+"talak": {
+"en": "Platters",
+"de": "Platten"
+},
+"salatak": {
+"en": "Salads",
+"de": "Salate"
+},
+"koretek": {
+"en": "Side dishes",
+"de": "Beilagen"
+},
+"savanyusagok": {
+"en": "Pickles & side salads",
+"de": "Eingelegtes & Beilagensalate"
+},
+"szoszok-es-martogatosok": {
+"en": "Sauces & dips",
+"de": "Soßen & Dips"
+},
+"desszertek": {
+"en": "Desserts",
+"de": "Desserts"
+},
+"burger-extrak-es-udito": {
+"en": "Burger extras & drinks",
+"de": "Burger-Extras & Getränke"
+}
+},
+"items": {
+"pizzak-pizza-margherita": {
+"en": [
+"Pizza Margherita",
+"tomato base, cheese"
+],
+"de": [
+"Pizza Margherita",
+"Tomatenbasis, Käse"
+]
+},
+"pizzak-pizza-prosciutto": {
+"en": [
+"Pizza Prosciutto",
+"tomato base, ham, cheese"
+],
+"de": [
+"Pizza Prosciutto",
+"Tomatenbasis, Schinken, Käse"
+]
+},
+"pizzak-pizza-salami": {
+"en": [
+"Pizza Salami",
+"tomato base, salami, cheese"
+],
+"de": [
+"Pizza Salami",
+"Tomatenbasis, Salami, Käse"
+]
+},
+"pizzak-pizza-mais": {
+"en": [
+"Pizza Mais",
+"tomato base, ham, sweetcorn, cheese"
+],
+"de": [
+"Pizza Mais",
+"Tomatenbasis, Schinken, Mais, Käse"
+]
+},
+"pizzak-pizza-funghi": {
+"en": [
+"Pizza Funghi",
+"tomato base, ham, mushrooms, cheese"
+],
+"de": [
+"Pizza Funghi",
+"Tomatenbasis, Schinken, Pilze, Käse"
+]
+},
+"pizzak-pizza-songoku": {
+"en": [
+"Pizza Songoku",
+"tomato base, ham, mushrooms, sweetcorn, cheese"
+],
+"de": [
+"Pizza Songoku",
+"Tomatenbasis, Schinken, Pilze, Mais, Käse"
+]
+},
+"pizzak-pizza-hawaii": {
+"en": [
+"Pizza Hawaii",
+"tomato base, ham, pineapple, sweetcorn, cheese"
+],
+"de": [
+"Pizza Hawaii",
+"Tomatenbasis, Schinken, Ananas, Mais, Käse"
+]
+},
+"pizzak-pizza-ungherese": {
+"en": [
+"Pizza Ungherese",
+"tomato base, ham, salami, bacon, pepperoncini, red onion, cheese"
+],
+"de": [
+"Pizza Ungherese",
+"Tomatenbasis, Schinken, Salami, Speck, Pfefferoni, rote Zwiebel, Käse"
+]
+},
+"pizzak-pizza-udvarnok": {
+"en": [
+"Pizza Udvarnok",
+"tomato base, ham, salami, sweetcorn, red onion, cheese"
+],
+"de": [
+"Pizza Udvarnok",
+"Tomatenbasis, Schinken, Salami, Mais, rote Zwiebel, Käse"
+]
+},
+"pizzak-pizza-vadvirag": {
+"en": [
+"Pizza Vadvirág",
+"sour cream base, salami, chicken breast strips, bacon, broccoli, pepperoncini, cheese"
+],
+"de": [
+"Pizza Vadvirág",
+"Sauerrahmbasis, Salami, Hähnchenbruststreifen, Speck, Brokkoli, Pfefferoni, Käse"
+]
+},
+"pizzak-pizza-con-tonno": {
+"en": [
+"Pizza Con Tonno",
+"tomato base, tuna, olives, red onion, cheese"
+],
+"de": [
+"Pizza Con Tonno",
+"Tomatenbasis, Thunfisch, Oliven, rote Zwiebel, Käse"
+]
+},
+"pizzak-pizza-maffia": {
+"en": [
+"Pizza Maffia",
+"tomato base, ham, bacon, roast pork neck, chilli, red onion, cheese"
+],
+"de": [
+"Pizza Maffia",
+"Tomatenbasis, Schinken, Speck, Schweinenackenbraten, Chili, rote Zwiebel, Käse"
+]
+},
+"pizzak-husimado-pizza": {
+"en": [
+"Meat lover's pizza",
+"tomato base, ham, smoked pork knuckle, roast pork neck, onion, cheese"
+],
+"de": [
+"Pizza für Fleischliebhaber",
+"Tomatenbasis, Schinken, geräucherte Stelze, Schweinenackenbraten, Zwiebel, Käse"
+]
+},
+"pizzak-pizza-prosciutto-di-primavera": {
+"en": [
+"Pizza Prosciutto di Primavera",
+"sour cream or tomato base, ham, cheese, cherry tomatoes, herb olive oil, crisp iceberg lettuce"
+],
+"de": [
+"Pizza Prosciutto di Primavera",
+"Sauerrahm- oder Tomatenbasis, Schinken, Käse, Kirschtomaten, Kräuter-Olivenöl, knackiger Eisbergsalat"
+]
+},
+"pizzak-pizza-bolognese": {
+"en": [
+"Pizza Bolognese",
+"tomato base, Bolognese meat ragù, cheese"
+],
+"de": [
+"Pizza Bolognese",
+"Tomatenbasis, Bolognese-Fleischragout, Käse"
+]
+},
+"pizzak-negysajtos-pizza": {
+"en": [
+"Four-cheese pizza",
+"tomato base, cheddar, trappista, camembert, feta"
+],
+"de": [
+"Vier-Käse-Pizza",
+"Tomatenbasis, Cheddar, Trappista, Camembert, Feta"
+]
+},
+"pizzak-kivansag-pizza": {
+"en": [
+"Pizza of your choice",
+"tomato or sour cream base, any 4 toppings"
+],
+"de": [
+"Wunschpizza",
+"Tomaten- oder Sauerrahmbasis, 4 Beläge nach Wahl"
+]
+},
+"pizzak-pizza-koszoru-sonkas": {
+"en": [
+"Pizza wreath – ham",
+"tomato base, ham, cheese, sweetcorn · with a small salad and a dip of your choice"
+],
+"de": [
+"Pizzakranz – Schinken",
+"Tomatenbasis, Schinken, Käse, Mais · mit kleinem Salat und Dip nach Wahl"
+]
+},
+"pizzak-pizza-koszoru-csirkes": {
+"en": [
+"Pizza wreath – chicken",
+"tomato base, grilled chicken breast, red onion, smoked cheese · with a small salad and a dip of your choice"
+],
+"de": [
+"Pizzakranz – Hähnchen",
+"Tomatenbasis, gegrillte Hähnchenbrust, rote Zwiebel, Räucherkäse · mit kleinem Salat und Dip nach Wahl"
+]
+},
+"pizzak-pizza-koszoru-csulkos": {
+"en": [
+"Pizza wreath – pork knuckle",
+"sour cream & horseradish base, smoked pork knuckle, red onion, cheese · with a small salad and a dip of your choice"
+],
+"de": [
+"Pizzakranz – Stelze",
+"Sauerrahm-Meerrettich-Basis, geräucherte Stelze, rote Zwiebel, Käse · mit kleinem Salat und Dip nach Wahl"
+]
+},
+"burger-smash-burger": {
+"en": [
+"Smash Burger",
+"100% homemade beef patty, house burger sauce, dill pickles, cheddar, fried onions, mixed lettuce, tomato, bun"
+],
+"de": [
+"Smash Burger",
+"100 % hausgemachtes Rindfleischpatty, hausgemachte Burgersoße, Dillgurken, Cheddar, Röstzwiebeln, Salatmix, Tomate, Brötchen"
+]
+},
+"burger-konyhafonok-kedvence-burger": {
+"en": [
+"Head chef's favourite burger",
+"2 homemade 100% beef patties (~250 g), cheddar, barbecue sauce, crispy bacon, fried onions, mixed lettuce, bun"
+],
+"de": [
+"Lieblingsburger des Küchenchefs",
+"2 hausgemachte 100 % Rindfleischpattys (~250 g), Cheddar, Barbecuesoße, knuspriger Speck, Röstzwiebeln, Salatmix, Brötchen"
+]
+},
+"burger-camemburger": {
+"en": [
+"CamemBurger",
+"100% homemade beef patty, grilled camembert, house burger sauce, jalapeños, mixed lettuce, tomato, bun"
+],
+"de": [
+"CamemBurger",
+"100 % hausgemachtes Rindfleischpatty, gegrillter Camembert, hausgemachte Burgersoße, Jalapeños, Salatmix, Tomate, Brötchen"
+]
+},
+"burger-inyenc-marhaburger": {
+"en": [
+"“Gourmet” beef burger",
+"100% homemade beef patty, house burger sauce, cheddar, red onion jam, mixed lettuce, tomato, bun"
+],
+"de": [
+"„Gourmet“-Rindfleischburger",
+"100 % hausgemachtes Rindfleischpatty, hausgemachte Burgersoße, Cheddar, Zwiebelmarmelade, Salatmix, Tomate, Brötchen"
+]
+},
+"burger-vadvirag-burger": {
+"en": [
+"Vadvirág Burger",
+"crispy breaded sesame chicken breast, house burger sauce, crispy bacon, coleslaw, mixed lettuce, bun"
+],
+"de": [
+"Vadvirág Burger",
+"knusprig panierte Sesam-Hähnchenbrust, hausgemachte Burgersoße, knuspriger Speck, Krautsalat, Salatmix, Brötchen"
+]
+},
+"burger-vega-burger": {
+"en": [
+"Veggie Burger",
+"breaded camembert, cranberry & red onion jam, mixed lettuce, tomato, bun"
+],
+"de": [
+"Veggie-Burger",
+"panierter Camembert, Preiselbeer-Zwiebel-Marmelade, Salatmix, Tomate, Brötchen"
+]
+},
+"levese-csontleves-zoldseggel-finommetelttel": {
+"en": [
+"Beef broth with vegetables and fine noodles",
+""
+],
+"de": [
+"Rindsuppe mit Gemüse und feinen Nudeln",
+""
+]
+},
+"levese-csontleves-zoldseggel-majgomboccal": {
+"en": [
+"Beef broth with vegetables and liver dumplings",
+""
+],
+"de": [
+"Rindsuppe mit Gemüse und Leberknödeln",
+""
+]
+},
+"levese-fokhagymakremleves-krutonnal": {
+"en": [
+"Cream of garlic soup with croutons",
+""
+],
+"de": [
+"Knoblauchcremesuppe mit Croûtons",
+""
+]
+},
+"levese-brokkolikremleves-krutonnal": {
+"en": [
+"Cream of broccoli soup with croutons",
+""
+],
+"de": [
+"Brokkolicremesuppe mit Croûtons",
+""
+]
+},
+"levese-gulyasleves-csipetkevel": {
+"en": [
+"Goulash soup with pinched noodles",
+""
+],
+"de": [
+"Gulaschsuppe mit Zupfnockerln",
+""
+]
+},
+"levese-halaszle-harcsafilevel": {
+"en": [
+"Hungarian fisherman's soup with catfish fillet",
+""
+],
+"de": [
+"Ungarische Fischersuppe mit Welsfilet",
+""
+]
+},
+"szarny-vadvirag-specialitas": {
+"en": [
+"“Vadvirág” speciality",
+"breaded chicken breast stuffed with bacon, red onion and cheese"
+],
+"de": [
+"„Vadvirág“-Spezialität",
+"panierte Hähnchenbrust, gefüllt mit Speck, roter Zwiebel und Käse"
+]
+},
+"szarny-rantott-csirkemellfile-camembert-tel-afon": {
+"en": [
+"Breaded chicken breast stuffed with camembert and cranberry jam",
+""
+],
+"de": [
+"Panierte Hähnchenbrust, gefüllt mit Camembert und Preiselbeeren",
+""
+]
+},
+"szarny-szezammagos-rantott-csirkemellszalagok-me": {
+"en": [
+"Sesame-crusted chicken strips with honey chilli sauce",
+""
+],
+"de": [
+"Hähnchenstreifen im Sesammantel mit Honig-Chili-Soße",
+""
+]
+},
+"szarny-vaslapon-sult-csirkemell-baconbe-tekerve-": {
+"en": [
+"Griddled chicken breast wrapped in bacon, with smoked cheese",
+""
+],
+"de": [
+"Hähnchenbrust im Speckmantel von der Grillplatte, mit Räucherkäse",
+""
+]
+},
+"szarny-csirkemell-brokkolival-sajttal-csoben-sut": {
+"en": [
+"Chicken breast baked with broccoli and cheese",
+""
+],
+"de": [
+"Hähnchenbrust mit Brokkoli und Käse überbacken",
+""
+]
+},
+"szarny-kemences-csirkecombfile-parasztos-raguval": {
+"en": [
+"Oven-roasted chicken thigh fillet with country-style ragout",
+"with bacon and onion"
+],
+"de": [
+"Hähnchenschenkelfilet aus dem Ofen mit Bauernragout",
+"mit Speck und Zwiebeln"
+]
+},
+"szarny-rantott-vagy-grillezett-csirkemellfile": {
+"en": [
+"Breaded or grilled chicken breast fillet",
+""
+],
+"de": [
+"Panierte oder gegrillte Hähnchenbrust",
+""
+]
+},
+"szarny-gyrostal-hasabburgonyaval-joghurtos-ontet": {
+"en": [
+"Gyros plate with chips and yoghurt dressing",
+""
+],
+"de": [
+"Gyrosteller mit Pommes frites und Joghurtsoße",
+""
+]
+},
+"szarny-rantott-csirkemaj-tartarmartassal": {
+"en": [
+"Breaded chicken liver with tartar sauce",
+""
+],
+"de": [
+"Panierte Hühnerleber mit Sauce Tartare",
+""
+]
+},
+"sertes-kemences-csulokszeletek-piritva-parasztos": {
+"en": [
+"Roasted pork knuckle slices with country-style fried sauerkraut",
+""
+],
+"de": [
+"Geröstete Stelzenscheiben aus dem Ofen mit Bauernsauerkraut",
+""
+]
+},
+"sertes-pikans-csulokszeletek-tejfollel-sajttal-b": {
+"en": [
+"Spicy pork knuckle slices baked with sour cream and cheese",
+""
+],
+"de": [
+"Pikante Stelzenscheiben mit Sauerrahm und Käse überbacken",
+""
+]
+},
+"sertes-csulkos-tormas-toltott-karaj-rantva": {
+"en": [
+"Breaded pork loin stuffed with pork knuckle and horseradish",
+""
+],
+"de": [
+"Panierter Schweinerücken, gefüllt mit Stelze und Meerrettich",
+""
+]
+},
+"sertes-erdelyi-fatanyeros": {
+"en": [
+"Transylvanian wooden platter",
+"spiced roast pork neck, fried pork knuckle slices, grilled chicken breast, house steak potatoes, house coleslaw"
+],
+"de": [
+"Siebenbürgische Holzplatte",
+"gewürzter Schweinenacken, geröstete Stelzenscheiben, gegrillte Hähnchenbrust, hausgemachte Steakkartoffeln, hausgemachter Krautsalat"
+]
+},
+"sertes-brassoi-apropecsenye-piritott-burgonyaval": {
+"en": [
+"Brassói pork stir-fry with fried potatoes and green peas",
+""
+],
+"de": [
+"Brassói Schweinegeschnetzeltes mit Bratkartoffeln und Erbsen",
+""
+]
+},
+"sertes-cordon-bleu": {
+"en": [
+"Cordon bleu",
+""
+],
+"de": [
+"Cordon bleu",
+""
+]
+},
+"sertes-ciganypecsenye": {
+"en": [
+"Gypsy-style roast pork with bacon",
+""
+],
+"de": [
+"Zigeunerbraten mit Speck",
+""
+]
+},
+"sertes-ordog-karaj-rantva": {
+"en": [
+"Breaded “devil's” pork loin",
+"stuffed with paprika salami, pepperoncini, red onion and cheese"
+],
+"de": [
+"Panierter „Teufels“-Schweinerücken",
+"gefüllt mit Paprikasalami, Pfefferoni, roter Zwiebel und Käse"
+]
+},
+"sertes-rantott-sertesszelet": {
+"en": [
+"Breaded pork escalope",
+""
+],
+"de": [
+"Wiener Schnitzel vom Schwein",
+""
+]
+},
+"sertes-sertesporkolt": {
+"en": [
+"Pork stew (pörkölt)",
+""
+],
+"de": [
+"Schweinegulasch (Pörkölt)",
+""
+]
+},
+"sertes-hortobagyi-husos-palacsinta-2-db": {
+"en": [
+"Hortobágy meat pancakes (2 pcs)",
+""
+],
+"de": [
+"Hortobágyer Fleischpalatschinken (2 Stk.)",
+""
+]
+},
+"marhah-lassan-parolt-omlos-marhapofa-barna-marta": {
+"en": [
+"Slow-braised tender beef cheek with brown gravy and red onion jam",
+""
+],
+"de": [
+"Langsam geschmorte Rinderbacke mit brauner Soße und Zwiebelmarmelade",
+""
+]
+},
+"marhah-vorosboros-marhaporkolt": {
+"en": [
+"Beef stew with red wine",
+""
+],
+"de": [
+"Rindsgulasch mit Rotwein",
+""
+]
+},
+"halak-rantott-vagy-grillezett-fogasfile-tartarma": {
+"en": [
+"Breaded or grilled pike-perch fillet with tartar sauce",
+""
+],
+"de": [
+"Panierter oder gegrillter Zanderfilet mit Sauce Tartare",
+""
+]
+},
+"halak-harcsapaprikas-hazi-galuskaval-es-tejfolle": {
+"en": [
+"Catfish paprikash with homemade dumplings and sour cream",
+""
+],
+"de": [
+"Welspaprikasch mit hausgemachten Nockerln und Sauerrahm",
+""
+]
+},
+"teszta-tonhalas-olivas-spagetti-reszelt-sajttal": {
+"en": [
+"Tuna and olive spaghetti with grated cheese",
+""
+],
+"de": [
+"Spaghetti mit Thunfisch und Oliven, geriebenem Käse",
+""
+]
+},
+"teszta-tejszines-brokkolis-csirkemellcsikok-spag": {
+"en": [
+"Creamy broccoli chicken strips with spaghetti",
+""
+],
+"de": [
+"Hähnchenstreifen in Brokkoli-Sahnesoße mit Spaghetti",
+""
+]
+},
+"teszta-bolognai-spagetti": {
+"en": [
+"Spaghetti Bolognese",
+""
+],
+"de": [
+"Spaghetti Bolognese",
+""
+]
+},
+"teszta-zalai-dodolle-piritott-hagymaval-tejfolle": {
+"en": [
+"Zala-style dödölle (potato dumplings) with fried onions and sour cream",
+""
+],
+"de": [
+"Zalaer Dödölle (Kartoffelnocken) mit Röstzwiebeln und Sauerrahm",
+""
+]
+},
+"teszta-kasespatzle-osztrak-sajtos-galuska-lyoni-": {
+"en": [
+"Käsespätzle – Austrian cheese dumplings with caramelised onions",
+""
+],
+"de": [
+"Käsespätzle mit Röstzwiebeln",
+""
+]
+},
+"teszta-grillezett-vagy-rantott-camembert-afonyal": {
+"en": [
+"Grilled or breaded camembert with cranberry jam",
+""
+],
+"de": [
+"Gegrillter oder panierter Camembert mit Preiselbeeren",
+""
+]
+},
+"teszta-rantott-trappista-sajt-tartarral": {
+"en": [
+"Breaded trappista cheese with tartar sauce",
+""
+],
+"de": [
+"Panierter Trappistenkäse mit Sauce Tartare",
+""
+]
+},
+"teszta-rantott-fustolt-sajt-tartarral": {
+"en": [
+"Breaded smoked cheese with tartar sauce",
+""
+],
+"de": [
+"Panierter Räucherkäse mit Sauce Tartare",
+""
+]
+},
+"teszta-rantott-gombafejek-tartarral": {
+"en": [
+"Breaded mushrooms with tartar sauce",
+""
+],
+"de": [
+"Panierte Champignons mit Sauce Tartare",
+""
+]
+},
+"talak-udvarnok-tal-2-fos": {
+"en": [
+"Udvarnok platter (for 2)",
+"breaded pork loin, cordon bleu, gypsy-style roast pork, breaded cheese; steamed rice or chips"
+],
+"de": [
+"Udvarnok-Platte (für 2)",
+"panierter Schweinerücken, Cordon bleu, Zigeunerbraten, panierter Käse; Reis oder Pommes frites"
+]
+},
+"talak-udvarnok-tal-4-fos": {
+"en": [
+"Udvarnok platter (for 4)",
+"breaded pork loin, cordon bleu, gypsy-style roast pork, breaded cheese; steamed rice or chips"
+],
+"de": [
+"Udvarnok-Platte (für 4)",
+"panierter Schweinerücken, Cordon bleu, Zigeunerbraten, panierter Käse; Reis oder Pommes frites"
+]
+},
+"talak-vadvirag-tal-2-fos": {
+"en": [
+"Vadvirág platter (for 2)",
+"sesame-crusted chicken strips, Vadvirág speciality (bacon, cheese, red onion), grilled bacon-wrapped chicken breast with smoked cheese, breaded mushrooms; steamed rice or spiced steak potatoes"
+],
+"de": [
+"Vadvirág-Platte (für 2)",
+"Hähnchenstreifen im Sesammantel, Vadvirág-Spezialität (Speck, Käse, rote Zwiebel), gegrillte Hähnchenbrust im Speckmantel mit Räucherkäse, panierte Champignons; Reis oder gewürzte Steakkartoffeln"
+]
+},
+"talak-vadvirag-tal-4-fos": {
+"en": [
+"Vadvirág platter (for 4)",
+"sesame-crusted chicken strips, Vadvirág speciality (bacon, cheese, red onion), grilled bacon-wrapped chicken breast with smoked cheese, breaded mushrooms; steamed rice or spiced steak potatoes"
+],
+"de": [
+"Vadvirág-Platte (für 4)",
+"Hähnchenstreifen im Sesammantel, Vadvirág-Spezialität (Speck, Käse, rote Zwiebel), gegrillte Hähnchenbrust im Speckmantel mit Räucherkäse, panierte Champignons; Reis oder gewürzte Steakkartoffeln"
+]
+},
+"talak-parasztos-fatal-2-fore": {
+"en": [
+"Country-style wooden platter (for 2)",
+"crispy pork knuckle slices, oven-roasted knuckle slices baked with spicy sour cream and cheese, spiced roast pork neck; with country potatoes and fried bacon"
+],
+"de": [
+"Bauern-Holzplatte (für 2)",
+"knusprige Stelzenscheiben, Stelzenscheiben aus dem Ofen mit pikantem Sauerrahm und Käse überbacken, gewürzter Schweinenacken; dazu Bauernkartoffeln mit Speck"
+]
+},
+"talak-erdelyi-fatanyeros-1-fore": {
+"en": [
+"Transylvanian wooden platter (for 1)",
+"spiced roast pork neck, fried pork knuckle slices, grilled chicken breast, house steak potatoes, house coleslaw"
+],
+"de": [
+"Siebenbürgische Holzplatte (für 1)",
+"gewürzter Schweinenacken, geröstete Stelzenscheiben, gegrillte Hähnchenbrust, hausgemachte Steakkartoffeln, hausgemachter Krautsalat"
+]
+},
+"salata-csirkes-cezarsalata": {
+"en": [
+"Chicken Caesar salad",
+"fresh mixed salad with grilled chicken strips, croutons and dressing"
+],
+"de": [
+"Caesar Salad mit Hähnchen",
+"frischer gemischter Salat mit gegrillten Hähnchenstreifen, Croûtons und Dressing"
+]
+},
+"salata-tonhalsalata": {
+"en": [
+"Tuna salad",
+"fresh mixed salad with tuna and dressing"
+],
+"de": [
+"Thunfischsalat",
+"frischer gemischter Salat mit Thunfisch und Dressing"
+]
+},
+"salata-friss-kevert-salata-mezes-mustaros-dressz": {
+"en": [
+"Fresh mixed salad with honey-mustard dressing",
+"iceberg lettuce, cucumber, red onion, tomato"
+],
+"de": [
+"Frischer gemischter Salat mit Honig-Senf-Dressing",
+"Eisbergsalat, Gurke, rote Zwiebel, Tomate"
+]
+},
+"korete-hasabburgonya": {
+"en": [
+"Chips (French fries)",
+""
+],
+"de": [
+"Pommes frites",
+""
+]
+},
+"korete-edesburgonya-hasab": {
+"en": [
+"Sweet potato fries",
+""
+],
+"de": [
+"Süßkartoffel-Pommes",
+""
+]
+},
+"korete-parasztos-burgonya-baconnel": {
+"en": [
+"Country potatoes with bacon",
+""
+],
+"de": [
+"Bauernkartoffeln mit Speck",
+""
+]
+},
+"korete-fuszeres-steakburgonya": {
+"en": [
+"Spiced steak potatoes",
+""
+],
+"de": [
+"Gewürzte Steakkartoffeln",
+""
+]
+},
+"korete-hazi-burgonyagratin": {
+"en": [
+"Homemade potato gratin",
+""
+],
+"de": [
+"Hausgemachtes Kartoffelgratin",
+""
+]
+},
+"korete-parolt-rizs": {
+"en": [
+"Steamed rice",
+""
+],
+"de": [
+"Gedünsteter Reis",
+""
+]
+},
+"korete-parolt-zoldseg": {
+"en": [
+"Steamed vegetables",
+""
+],
+"de": [
+"Gedünstetes Gemüse",
+""
+]
+},
+"korete-hazi-dodolle": {
+"en": [
+"Homemade dödölle (potato dumplings)",
+""
+],
+"de": [
+"Hausgemachte Dödölle (Kartoffelnocken)",
+""
+]
+},
+"korete-galuska": {
+"en": [
+"Hungarian dumplings (galuska)",
+""
+],
+"de": [
+"Nockerln",
+""
+]
+},
+"savany-hazi-kaposztasalata": {
+"en": [
+"Homemade cabbage salad",
+""
+],
+"de": [
+"Hausgemachter Krautsalat",
+""
+]
+},
+"savany-coleslaw": {
+"en": [
+"Coleslaw",
+""
+],
+"de": [
+"Coleslaw",
+""
+]
+},
+"savany-csemege-uborka": {
+"en": [
+"Dill pickles",
+""
+],
+"de": [
+"Essiggurken",
+""
+]
+},
+"savany-friss-kevert-salata-mezes-mustaros-dressz": {
+"en": [
+"Fresh mixed salad with honey-mustard dressing",
+""
+],
+"de": [
+"Frischer gemischter Salat mit Honig-Senf-Dressing",
+""
+]
+},
+"savany-sult-savanyukaposzta-parasztosan": {
+"en": [
+"Country-style fried sauerkraut",
+""
+],
+"de": [
+"Gebratenes Sauerkraut nach Bauernart",
+""
+]
+},
+"szoszo-tartarmartas": {
+"en": [
+"Tartar sauce",
+""
+],
+"de": [
+"Sauce Tartare",
+""
+]
+},
+"szoszo-mezes-chili-szosz": {
+"en": [
+"Honey chilli sauce",
+""
+],
+"de": [
+"Honig-Chili-Soße",
+""
+]
+},
+"szoszo-bbq-szosz": {
+"en": [
+"BBQ sauce",
+""
+],
+"de": [
+"BBQ-Soße",
+""
+]
+},
+"szoszo-ketchup": {
+"en": [
+"Ketchup",
+""
+],
+"de": [
+"Ketchup",
+""
+]
+},
+"szoszo-majonez": {
+"en": [
+"Mayonnaise",
+""
+],
+"de": [
+"Mayonnaise",
+""
+]
+},
+"szoszo-mustar": {
+"en": [
+"Mustard",
+""
+],
+"de": [
+"Senf",
+""
+]
+},
+"szoszo-pokoli-pista": {
+"en": [
+"“Pokoli Pista” (hellfire)",
+"hot paprika paste with garlic sour cream"
+],
+"de": [
+"„Pokoli Pista“ (höllisch scharf)",
+"scharfe Paprikapaste mit Knoblauch-Sauerrahm"
+]
+},
+"szoszo-fokhagymas-tejfol": {
+"en": [
+"Garlic sour cream",
+""
+],
+"de": [
+"Knoblauch-Sauerrahm",
+""
+]
+},
+"szoszo-zalai-zoldarany": {
+"en": [
+"“Zala green gold”",
+"tartar sauce with pumpkin seed oil and mayonnaise"
+],
+"de": [
+"„Zalaer Grüngold“",
+"Sauce Tartare mit Kürbiskernöl und Mayonnaise"
+]
+},
+"szoszo-marinara-szosz": {
+"en": [
+"Marinara sauce",
+""
+],
+"de": [
+"Marinara-Soße",
+""
+]
+},
+"dessze-hazi-almasretes-vaniliasodo": {
+"en": [
+"Homemade apple strudel with vanilla custard",
+""
+],
+"de": [
+"Hausgemachter Apfelstrudel mit Vanillesoße",
+""
+]
+},
+"dessze-gundel-palacsinta": {
+"en": [
+"Gundel pancake",
+""
+],
+"de": [
+"Gundel-Palatschinken",
+""
+]
+},
+"dessze-lekvaros-palacsinta": {
+"en": [
+"Pancakes with jam",
+""
+],
+"de": [
+"Palatschinken mit Marmelade",
+""
+]
+},
+"dessze-kakaos-palacsinta": {
+"en": [
+"Pancakes with cocoa",
+""
+],
+"de": [
+"Palatschinken mit Kakao",
+""
+]
+},
+"dessze-gesztenyetatar": {
+"en": [
+"“Chestnut tartare”",
+""
+],
+"de": [
+"„Kastanientatar“",
+""
+]
+},
+"dessze-gesztenyepure": {
+"en": [
+"Chestnut purée",
+""
+],
+"de": [
+"Kastanienpüree",
+""
+]
+},
+"burger-extra-szosz-ketchup-majonez-bbq-mezes-chi": {
+"en": [
+"Extra sauce (ketchup, mayo, BBQ, honey chilli, house burger sauce)",
+""
+],
+"de": [
+"Extra Soße (Ketchup, Mayo, BBQ, Honig-Chili, Burgersoße)",
+""
+]
+},
+"burger-extra-marhahuspogacsa": {
+"en": [
+"Extra beef patty",
+""
+],
+"de": [
+"Extra Rindfleischpatty",
+""
+]
+},
+"burger-extra-jalapeno": {
+"en": [
+"Extra jalapeños",
+""
+],
+"de": [
+"Extra Jalapeños",
+""
+]
+},
+"burger-extra-cheddar-sajt": {
+"en": [
+"Extra cheddar",
+""
+],
+"de": [
+"Extra Cheddar",
+""
+]
+},
+"burger-coleslaw-salata-kis-adag": {
+"en": [
+"Coleslaw (small)",
+""
+],
+"de": [
+"Coleslaw (klein)",
+""
+]
+},
+"burger-dobozos-coca-cola": {
+"en": [
+"Coca-Cola (can)",
+""
+],
+"de": [
+"Coca-Cola (Dose)",
+""
+]
+}
+}
+}

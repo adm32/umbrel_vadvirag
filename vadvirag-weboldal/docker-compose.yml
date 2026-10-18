@@ -1,0 +1,24 @@
+services:
+  app_proxy:
+    environment:
+      # <app-id>_<szolgáltatás neve>_1
+      APP_HOST: vadvirag-weboldal_web_1
+      APP_PORT: 8080
+      # Nyilvános weboldal, nem kell hozzá Umbrel-bejelentkezés.
+      PROXY_AUTH_ADD: "false"
+
+  web:
+    build:
+      context: ${APP_DATA_DIR}
+    # Minden indításkor újraépül, így frissítés után tényleg az új program fut.
+    pull_policy: build
+    restart: on-failure
+    stop_grace_period: 5s
+    environment:
+      PORT: "8080"
+      TZ: Europe/Budapest
+      # A rendeléskezelő (étlap, online rendelés, üzenetek). Sorban próbálja őket.
+      ORDER_URL: "http://vadvirag-rendelesek_web_1:8080,http://host.docker.internal:4747,http://172.17.0.1:4747"
+      SITE_URL: "https://www.vadviragetterem.com"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

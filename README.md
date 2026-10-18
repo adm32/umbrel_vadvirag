@@ -77,3 +77,18 @@ Az étlap a `source/menu.json` fájlban van; módosítás után `source/build.sh
 Az Umbrel frissítéskor csak a `docker-compose.yml`, `umbrel-app.yml` és `hooks/` fájlokat
 másolja át. A `hooks/pre-start` szkript ezért minden indítás előtt átmásolja a friss
 programfájlokat (`bin/`, `Dockerfile`) az áruház példányából, így elég a Frissítés gomb.
+
+## Vadvirág Weboldal (`vadvirag-weboldal`, 4748-as port)
+
+Az étterem új, háromnyelvű (HU / DE / EN) weboldala. Forrás: `web-source/`
+(a `site/` mappa a weboldal, a `main.go` a kis kiszolgáló), fordítás: `web-source/build.sh`.
+
+- Az étlapot élőben a Rendelések appból kéri le (`/api/public/menu`); ha az épp
+  nem fut, a beépített másolatot mutatja (`menu-fallback.json`, a build készíti).
+- A `/rendeles` oldalt és az `/api/public/*` hívásokat továbbítja a Rendelések
+  apphoz, így saját domainen is működik az online rendelés.
+- A „Kapcsolat” és „Rendezvények” részen küldött üzenetek a Rendelések app
+  boríték ikonja alatt jelennek meg (2.4-es verziótól).
+- Az étlap fordításai: `web-source/site/data/menu-i18n.json` (étel azonosító szerint),
+  az itallap: `web-source/site/data/drinks.json`, a feliratok: `web-source/site/i18n.js`.
+- Saját domain: Cloudflare Tunnel `www.vadviragetterem.com` → `http://<umbrel>:4748`.

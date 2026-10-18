@@ -17,7 +17,9 @@ input,select,textarea{font:inherit;color:inherit}
 .serif{font-family:Lora,Georgia,serif}
 
 /* fejléc */
-header{text-align:center;padding:26px 16px 6px}
+header{text-align:center;padding:26px 16px 6px;position:relative}
+.home{position:absolute;left:12px;top:12px;display:inline-flex;align-items:center;gap:2px;padding:8px 12px 8px 8px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink2);font-size:14px;font-weight:600;text-decoration:none}
+.home[hidden]{display:none}
 header img{width:min(250px,62vw);display:block;margin:0 auto}
 header h1{font:italic 600 26px Lora,serif;margin-top:6px}
 .info{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:12px auto 0;color:var(--ink2);font-size:14px;max-width:560px}
@@ -152,6 +154,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 
 <div id="menuView">
 <header>
+  <a class="home" id="homeLink" href="/" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Főoldal</a>
   <img src="/logo.png" alt="Vadvirág">
   <h1>Online rendelés</h1>
   <div class="info">
@@ -247,7 +250,8 @@ function toast(t){if(document.querySelector('.sheet.open'))return;const e=$('toa
 
 async function load(){
   try{
-    const r=await fetch('/api/public/menu',{cache:'no-store'});if(!r.ok)throw 0;M=await r.json();if(!M.sections)throw 0;
+    const r=await fetch('/api/public/menu',{cache:'no-store'});if(!r.ok)throw 0;if(r.headers.get('X-Vadvirag-Site'))$('homeLink').hidden=false; // a weboldalon keresztül nyitották meg
+    M=await r.json();if(!M.sections)throw 0;
   }catch(e){$('menu').innerHTML=`<div class="empty">Az étlap most nem tölthető be.<br>Próbáld újra pár perc múlva, vagy rendelj telefonon: <a href="${telHref()}"><b>${phone}</b></a></div>`;return}
   phone=M.phone||phone;$('phoneTop').textContent=phone;$('callTop').href=telHref();$('callFoot').textContent=phone;$('callFoot').href=telHref();
   isOpen=M.open!==false;renderNotices();
@@ -259,7 +263,14 @@ async function load(){
   renderMenu();updateCart();
   const tok=(location.hash.match(/r=([a-z0-9]+)/)||[])[1];
   if(tok)showStatus(tok);else checkActive();
+  fromSite();
 }
+// A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
+function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toString())return;
+  const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=store.get('vv_me',{});me.city=ct;me.mode='delivery';store.set('vv_me',me)}
+  const ad=qs.get('add');if(ad&&idx[ad]&&isOpen){const it=idx[ad];const vs=it.variants||[];let v=qs.get('v')||'';if(vs.length&&!vs.some(x=>x.label===v))v=vs[0].label;if(!vs.length)v='';
+    if(!cart[key(ad,v)])add(ad,v||undefined);setTimeout(()=>{const e=document.getElementById('i_'+ad);if(e)e.scrollIntoView({block:'center',behavior:'smooth'})},120)}
+  history.replaceState(null,'',location.pathname+location.hash)}
 // Zárva / szünetel üzenet és a folyamatban lévő rendelés jelzése a lap tetején
 let active=null;
 function renderNotices(){let h='';

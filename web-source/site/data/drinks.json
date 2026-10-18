@@ -1,0 +1,57 @@
+[
+ {"id":"kave","hu":"Kávék, meleg italok","en":"Coffee & hot drinks","de":"Kaffee & warme Getränke","note":{"hu":"Julius Meinl kávé","en":"Julius Meinl coffee","de":"Julius-Meinl-Kaffee"},"items":[
+  {"hu":"Espresso","price":"650"},
+  {"hu":"Dupla kávé (doppio)","en":"Double espresso (doppio)","de":"Doppelter Espresso (Doppio)","price":"1200"},
+  {"hu":"Hosszú kávé (lungo)","en":"Lungo","de":"Verlängerter (Lungo)","price":"750"},
+  {"hu":"Cappuccino","price":"950"},
+  {"hu":"Latte macchiato","price":"950"},
+  {"hu":"Melange","price":"1350"},
+  {"hu":"Bécsi kávé","en":"Viennese coffee","de":"Wiener Kaffee","sub":{"hu":"espresso tejszínhabbal","en":"espresso with whipped cream","de":"Espresso mit Schlagsahne"},"price":"900"},
+  {"hu":"Baileys kávé","en":"Baileys coffee","de":"Baileys-Kaffee","sub":{"hu":"espresso + 2 cl Baileys","en":"espresso + 2 cl Baileys","de":"Espresso + 2 cl Baileys"},"price":"1590"},
+  {"hu":"Forró tea","en":"Hot tea","de":"Heißer Tee","price":"850"},
+  {"hu":"Forró csokoládé tejszínhabbal","en":"Hot chocolate with whipped cream","de":"Heiße Schokolade mit Schlagsahne","price":"1250"},
+  {"hu":"Extra méz","en":"Extra honey","de":"Extra Honig","price":"300"},
+  {"hu":"Extra tej","en":"Extra milk","de":"Extra Milch","price":"250"}
+ ]},
+ {"id":"udito","hu":"Üdítőitalok","en":"Soft drinks","de":"Erfrischungsgetränke","items":[
+  {"hu":"Natur Aqua 0,33 l","sub":{"hu":"mentes / szénsavas","en":"still / sparkling","de":"ohne / mit Kohlensäure"},"price":"750"},
+  {"hu":"Coca-Cola 0,25 l","price":"800"},
+  {"hu":"Coca-Cola Zero 0,25 l","price":"800"},
+  {"hu":"Sprite Zero 0,25 l","price":"800"},
+  {"hu":"Fanta 0,25 l","price":"800"},
+  {"hu":"Kinley Tonic 0,25 l","price":"800"},
+  {"hu":"Kinley Ginger 0,25 l","price":"800"},
+  {"hu":"XIXO Ice Tea 0,33 l","price":"650"},
+  {"hu":"Cappy","sub":{"hu":"narancs, alma, őszibarack, eper koktél","en":"orange, apple, peach, strawberry cocktail","de":"Orange, Apfel, Pfirsich, Erdbeer-Cocktail"},"price":"900"},
+  {"hu":"Gyümölcsfröccs","en":"Fruit spritzer","de":"Fruchtschorle","sub":{"hu":"Cappy + szóda","en":"Cappy + soda","de":"Cappy + Soda"},"price":"1100"},
+  {"hu":"Szódavíz","en":"Soda water","de":"Sodawasser","price":"100 / dl"},
+  {"hu":"Hell energiaital","en":"Hell energy drink","de":"Hell Energydrink","price":"950"},
+  {"hu":"Spéci 0,5 l","price":"1450"}
+ ]},
+ {"id":"jeges","hu":"Jeges frissítők","en":"Iced refreshments","de":"Eisgetränke","items":[
+  {"hu":"Limonádé 0,5 l","en":"Lemonade 0.5 l","de":"Limonade 0,5 l","sub":{"hu":"erdei gyümölcs, mangó, bodza, citrom","en":"forest fruit, mango, elderflower, lemon","de":"Waldfrucht, Mango, Holunder, Zitrone"},"price":"1590"},
+  {"hu":"Házi jegestea (barackos) 0,5 l","en":"House peach iced tea 0.5 l","de":"Hausgemachter Pfirsich-Eistee 0,5 l","price":"1350"},
+  {"hu":"Jeges kávé","en":"Iced coffee","de":"Eiskaffee","sub":{"hu":"vaníliafagyival, tejszínhabbal","en":"with vanilla ice cream and whipped cream","de":"mit Vanilleeis und Schlagsahne"},"price":"1650"}
+ ]},
+ {"id":"csapolt","hu":"Sörök","en":"Beer","de":"Bier","items":[
+  {"hu":"Dreher Gold 0,3 l (pohár)","en":"Dreher Gold 0.3 l (draught, glass)","de":"Dreher Gold 0,3 l (vom Fass, Glas)","price":"890"},
+  {"hu":"Dreher Gold 0,5 l (korsó)","en":"Dreher Gold 0.5 l (draught, mug)","de":"Dreher Gold 0,5 l (vom Fass, Krug)","price":"1190"},
+  {"hu":"Heineken 0,33 l","price":"900"},
+  {"hu":"Soproni 0,5 l","price":"950"},
+  {"hu":"Staropramen 0,5 l","sub":{"hu":"búza","en":"wheat beer","de":"Weizenbier"},"price":"1350"},
+  {"hu":"Dreher Bak 0,5 l","sub":{"hu":"barna","en":"dark","de":"dunkel"},"price":"990"},
+  {"hu":"Belga meggysör 0,25 l","en":"Belgian sour cherry beer 0.25 l","de":"Belgisches Sauerkirschbier 0,25 l","sub":{"hu":"Mort Subite","en":"Mort Subite","de":"Mort Subite"},"price":"1490"},
+  {"hu":"Gösser Citrom 0,33 l (alkoholmentes)","en":"Gösser Lemon 0.33 l (alcohol-free)","de":"Gösser Zitrone 0,33 l (alkoholfrei)","price":"990"},
+  {"hu":"Dreher 0% 0,33 l (alkoholmentes)","en":"Dreher 0% 0.33 l (alcohol-free)","de":"Dreher 0 % 0,33 l (alkoholfrei)","price":"990"}
+ ]},
+ {"id":"bor","hu":"Borok, pezsgő","en":"Wine & sparkling","de":"Wein & Sekt","note":{"hu":"Folyó borok a Varga Pincészettől","en":"House wines from Varga Winery","de":"Offene Weine vom Weingut Varga"},"items":[
+  {"hu":"Olaszrizling","en":"Olaszrizling (Welschriesling)","de":"Welschriesling","sub":{"hu":"száraz","en":"dry","de":"trocken"},"price":"400 / dl"},
+  {"hu":"Irsai Olivér","sub":{"hu":"száraz","en":"dry","de":"trocken"},"price":"400 / dl"},
+  {"hu":"Muskotály","en":"Muscat","de":"Muskateller","sub":{"hu":"édes","en":"sweet","de":"süß"},"price":"400 / dl"},
+  {"hu":"Rosé","sub":{"hu":"édes vagy száraz","en":"sweet or dry","de":"süß oder trocken"},"price":"400 / dl"},
+  {"hu":"Kékfrankos","en":"Kékfrankos (Blaufränkisch)","de":"Blaufränkisch","sub":{"hu":"száraz","en":"dry","de":"trocken"},"price":"400 / dl"},
+  {"hu":"Merlot","sub":{"hu":"édes","en":"sweet","de":"süß"},"price":"400 / dl"},
+  {"hu":"Palackos borok","en":"Bottled wines","de":"Flaschenweine","sub":{"hu":"Szekszárd, Eger, Balatonfüred-Csopak, Tokaj","en":"Szekszárd, Eger, Balatonfüred-Csopak, Tokaj","de":"Szekszárd, Eger, Balatonfüred-Csopak, Tokaj"},"price":"600 / dl · 4800–6500 / palack","priceEn":"600 / dl · 4800–6500 / bottle","priceDe":"600 / dl · 4800–6500 / Flasche"},
+  {"hu":"Pezsgő 0,75 l","en":"Sparkling wine 0.75 l","de":"Sekt 0,75 l","sub":{"hu":"száraz, édes, alkoholmentes","en":"dry, sweet, alcohol-free","de":"trocken, süß, alkoholfrei"},"price":"4800"}
+ ]}
+]

@@ -160,6 +160,20 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .banner .bx{flex:none;width:30px;height:30px;border-radius:50%;background:var(--fill2);color:var(--label2);display:grid;place-items:center}
 .banner .bx svg{width:14px;height:14px}
 @media (max-width:600px){.banner{flex-wrap:wrap}.banner .bb{order:3;width:100%;height:44px;border-radius:12px}}
+.msg{background:var(--card2);border-radius:14px;padding:12px 14px;margin-top:10px}
+.msg.done{opacity:.55}
+.msg .mh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.msg .mk{font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal)}
+.msg .mk.rendezveny{background:color-mix(in srgb,var(--purple) 15%,transparent);color:var(--purple)}
+.msg .mk.asztal{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
+.msg .mn{font-weight:600;font-size:16px}
+.msg .mt{margin-left:auto;color:var(--label2);font-size:13px}
+.msg .md{margin-top:6px;font-size:15px;font-weight:600}
+.msg .mx{margin-top:6px;font-size:15px;white-space:pre-wrap;word-break:break-word;color:var(--label)}
+.msg .ma{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.msg .ma a,.msg .ma button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;background:var(--fill2);color:var(--blue);font-size:14px;font-weight:600}
+.msg .ma svg{width:16px;height:16px}
+.ibtn .cnt{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
 .ibtn .bdg{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--bg)}
 .ibtn{position:relative}
 .stat{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:14px 16px}
@@ -203,6 +217,7 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
     <span class="sp"></span>
     <button class="ibtn" id="ntf" onclick="openNotif()" title="Értesítések"></button>
     <button class="ibtn" id="snd" onclick="toggleSound()" title="Hang"></button>
+    <button class="ibtn" id="msgBtn" onclick="openMsgs()" title="Üzenetek a weboldalról" style="color:var(--teal);position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg></button>
     <button class="ibtn" onclick="openRaffle()" title="Nyereményjáték sorsolás" style="color:var(--purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></button>
     <button class="ibtn" onclick="openSettings()" title="Beállítások" style="color:var(--label2)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.9 2.6l.4 2.3a7.6 7.6 0 0 1 1.9 1.1l2.2-.8a1 1 0 0 1 1.2.4l1.9 3.3a1 1 0 0 1-.2 1.3l-1.8 1.5a7.7 7.7 0 0 1 0 2.2l1.8 1.5a1 1 0 0 1 .2 1.3l-1.9 3.3a1 1 0 0 1-1.2.4l-2.2-.8a7.6 7.6 0 0 1-1.9 1.1l-.4 2.3a1 1 0 0 1-1 .8h-3.8a1 1 0 0 1-1-.8l-.4-2.3a7.6 7.6 0 0 1-1.9-1.1l-2.2.8a1 1 0 0 1-1.2-.4l-1.9-3.3a1 1 0 0 1 .2-1.3l1.8-1.5a7.7 7.7 0 0 1 0-2.2L2.1 9.9a1 1 0 0 1-.2-1.3l1.9-3.3A1 1 0 0 1 5 4.9l2.2.8a7.6 7.6 0 0 1 1.9-1.1l.4-2.3a1 1 0 0 1 1-.8h2.4a1 1 0 0 1 1 .8ZM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg></button>
     <button class="ibtn" onclick="location.href='/logout'" title="Kilépés"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></button>
@@ -271,6 +286,11 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
   <div class="sbody" id="rfBody"></div>
 </div></div></dialog>
 
+<dialog id="dMsg"><div class="dwrap" onclick="if(event.target===this)dMsg.close()"><div class="sheet">
+  <div class="shd"><span class="tb"></span><h2>Üzenetek</h2><button class="tb r" onclick="dMsg.close()">Kész</button></div>
+  <div class="sbody" id="msgBody"></div>
+</div></div></dialog>
+
 <dialog id="dNotif"><div class="dwrap" onclick="if(event.target===this)dNotif.close()"><div class="sheet">
   <div class="shd"><span class="tb"></span><h2>Értesítések</h2><button class="tb r" onclick="dNotif.close()">Kész</button></div>
   <div class="sbody" id="notifBody"></div>
@@ -321,7 +341,7 @@ async function load(){
 function counts(){const c={new:0,preparing:0,done:0,rejected:0};orders.forEach(o=>c[o.status]++);return c}
 function render(){
   const c=counts();
-  $('title').textContent=info.restaurant||'Rendelések';
+  $('title').textContent=info.restaurant||'Rendelések';msgBadge();
   $('snd').innerHTML=soundOn?I.spk:I.spkoff;$('ntf').innerHTML=I.bell+(N.on?'':'<span class="bdg"></span>');$('ntf').style.color=N.on?'var(--blue)':'var(--label2)';renderBanner();$('snd').style.color=soundOn?'var(--blue)':'var(--label2)';
   const T=[['active','Aktív',c.new+c.preparing],['new','Új',c.new],['preparing','Készül',c.preparing],['closed','Lezárt',c.done+c.rejected],['all','Mind',orders.length]];
   $('tabs').innerHTML='<span class="knob" id="knob"></span>'+T.map(([k,l,n])=>`<button data-k="${k}" onclick="setTab('${k}')">${l}${n?`<span class="n ${(k==='new'||k==='active')&&c.new?'hot':''}">${n}</span>`:''}</button>`).join('');
@@ -549,6 +569,23 @@ async function toggleOnline(){
   if(note===null)return;
   try{await api('/api/settings/online',{paused:true,note});toast('Az online rendelés szünetel');lastSig='';load()}catch(e){alert(e.message)}
 }
+// ---- Üzenetek a weboldalról (asztalfoglalás, rendezvény, kérdés)
+const MK={asztal:'Asztalfoglalás',rendezveny:'Rendezvény',egyeb:'Kérdés'};
+let MSGS=[],lastMsgN=-1;
+function msgBadge(){const n=info.messages||0;if(lastMsgN>=0&&n>lastMsgN)toast('Új üzenet érkezett a weboldalról');lastMsgN=n;const b=$('msgBtn');if(!b)return;let c=b.querySelector('.cnt');if(n){if(!c){c=document.createElement('span');c.className='cnt';b.appendChild(c)}c.textContent=n>99?'99+':n}else if(c)c.remove()}
+async function openMsgs(){dMsg.showModal();$('msgBody').innerHTML='<div class="hint">Betöltés…</div>';try{MSGS=await api('/api/messages');renderMsgs()}catch(e){$('msgBody').innerHTML=`<div class="hint">${esc(e.message)}</div>`}}
+function renderMsgs(){
+  if(!MSGS.length){$('msgBody').innerHTML='<div class="hint" style="padding-top:2px">Még nincs üzenet. Ide érkeznek a weboldal „Kapcsolat” és „Rendezvények” részén küldött asztalfoglalások, ajánlatkérések és kérdések.</div>';return}
+  $('msgBody').innerHTML='<div class="hint" style="padding:2px 2px 0">A weboldalról érkezett üzenetek. Ha válaszoltál, jelöld „Kész”-nek.</div>'+MSGS.map(m=>{
+    const when=new Date(m.at);const d=[m.date&&new Date(m.date+'T12:00').toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'}),m.time,m.guests?m.guests+' fő':''].filter(Boolean).join(' · ');
+    const lang=m.lang&&m.lang!=='hu'?` <span class="mk">${esc(m.lang.toUpperCase())}</span>`:'';
+    return `<div class="msg${m.done?' done':''}"><div class="mh"><span class="mk ${esc(m.kind)}">${MK[m.kind]||'Üzenet'}</span>${lang}<span class="mn">${esc(m.name)}</span><span class="mt">${fmtDay(m.at)} ${fmtTime(m.at)}</span></div>
+    ${d?`<div class="md">${esc(d)}</div>`:''}${m.text?`<div class="mx">${esc(m.text)}</div>`:''}
+    <div class="ma">${m.phone?`<a href="tel:${esc(m.phone.replace(/[^0-9+]/g,''))}">${I.phone}${esc(m.phone)}</a>`:''}${m.email?`<a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Vadvirág Étterem – '+(MK[m.kind]||'Üzenet'))}">${I.mail}${esc(m.email)}</a>`:''}<button onclick="msgDone(${m.id},${!m.done})" style="margin-left:auto;color:${m.done?'var(--label2)':'var(--green)'}">${m.done?I.undo+'Visszaállít':I.check+'Kész'}</button></div></div>`}).join('');
+}
+async function msgDone(id,done){try{await api('/api/messages/'+id+'/done',{done});const m=MSGS.find(x=>x.id===id);if(m)m.done=done;info.messages=MSGS.filter(x=>!x.done).length;msgBadge();renderMsgs()}catch(e){alert(e.message)}}
+if(location.hash==='#uzenetek')setTimeout(openMsgs,600);
+
 // ---- Nyereményjáték sorsolás
 let RF={title:'',link:'',names:'',winners:1,reserves:1,clean:[],off:new Set(),hist:[]},rfT=0;
 const I_GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';

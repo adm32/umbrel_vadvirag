@@ -43,11 +43,14 @@ func (a *App) loadRaffles() []Raffle {
 var (
 	junkLine = regexp.MustCompile(`(?i)^(megosztás|megosztotta|megosztva|követés|követem|barátnak jelölés|ismerős hozzáadása|üzenet|kedvelem|tetszik|válasz|hozzászólás|add friend|follow|following|message|like|reply|share|shared|public|nyilvános|ismerősök|friends|\d+\s*(p|ó|n|h|m|perc|óra|nap|hét|mp|min|hr|d|w|y)\.?|·.*|\d+)$`)
 	spaceRe  = regexp.MustCompile(`\s+`)
+	// [Név](https://…) – ilyen formában jön, ha a lista Markdown-ként másolódik.
+	mdLink = regexp.MustCompile(`\[([^\]]*)\]\([^)]*\)`)
 )
 
 func cleanNames(raw string) []string {
 	seen := map[string]bool{}
 	var out []string
+	raw = mdLink.ReplaceAllString(raw, "$1")
 	for _, ln := range strings.Split(raw, "\n") {
 		ln = strings.TrimSpace(strings.Trim(ln, "•-–*,;\t"))
 		ln = spaceRe.ReplaceAllString(ln, " ")

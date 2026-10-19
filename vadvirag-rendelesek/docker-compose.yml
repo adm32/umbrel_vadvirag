@@ -19,5 +19,7 @@ services:
       DATA_DIR: /data
       PORT: "8080"
       TZ: Europe/Budapest
+      # Belső adatcsatorna az Irányítópultnak (nincs kivezetve se a gépre, se az internetre).
+      DASH_ADDR: ":9091"
     volumes:
       - ${APP_DATA_DIR}/data:/data

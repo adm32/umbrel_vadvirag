@@ -1,0 +1,28 @@
+services:
+  app_proxy:
+    environment:
+      # <app-id>_<szolgáltatás neve>_1
+      APP_HOST: vadvirag-iranyitopult_web_1
+      APP_PORT: 8080
+      # Csak Umbrel-bejelentkezés után nyitható meg – vagyis csak te látod.
+      PROXY_AUTH_ADD: "true"
+
+  web:
+    build:
+      context: ${APP_DATA_DIR}
+    # Minden indításkor újraépül, így frissítés után tényleg az új program fut.
+    pull_policy: build
+    restart: on-failure
+    stop_grace_period: 5s
+    environment:
+      DATA_DIR: /data
+      PORT: "8080"
+      TZ: Europe/Budapest
+      # A másik két app belső portjai (nincsenek kivezetve se a gépre, se az internetre).
+      SITE_STATS: "http://vadvirag-weboldal_web_1:9090"
+      ORDERS_DASH: "http://vadvirag-rendelesek_web_1:9091"
+      ORDERS_PUBLIC: "http://vadvirag-rendelesek_web_1:8080,http://host.docker.internal:4747"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

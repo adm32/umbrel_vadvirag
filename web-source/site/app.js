@@ -14,6 +14,15 @@ const HOURS = { open: 11, close: 22 };                 // minden nap 11:00–22:
 const LANGS = ['hu', 'en', 'de'];
 
 let lang = 'hu', M = null, TR = { sections:{}, items:{} }, DR = [], tab = 'food', kind = 'asztal';
+/* látogatottság: sütik nélkül, csak névtelen jelzések a saját szerverünknek */
+const track = (t, o = {}) => { try {
+  const body = JSON.stringify(Object.assign({ t, p: location.pathname, l: lang }, o));
+  if (navigator.sendBeacon) navigator.sendBeacon('/api/t', new Blob([body], { type: 'application/json' }));
+  else fetch('/api/t', { method: 'POST', body, keepalive: true, headers: { 'Content-Type': 'application/json' } });
+} catch (e) {} };
+let errSent = 0;
+addEventListener('error', e => { if (errSent++ < 5) track('err', { msg: String(e.message || 'hiba'), src: (e.filename || '') + ':' + (e.lineno || 0) }); });
+addEventListener('unhandledrejection', e => { if (errSent++ < 5) track('err', { msg: 'Promise: ' + String(e.reason && e.reason.message || e.reason || '') }); });
 const T = (k, vars) => { let s = (I18N[lang] && I18N[lang][k]) ?? I18N.hu[k] ?? k; if (vars) for (const v in vars) s = s.replaceAll('{' + v + '}', vars[v]); return s; };
 
 /* ---------------------------------------------------------------- nyelv */
@@ -38,7 +47,7 @@ function setLang(l, push) {
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
   renderDrinks(); renderAlg();
 }
-$$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); }));
+$$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
 
 /* ---------------------------------------------------------------- fejléc, menü */
 const top = $('top');
@@ -203,6 +212,7 @@ new IntersectionObserver(([e]) => chipsBar.classList.toggle('stuck', e.intersect
 document.addEventListener('click', e => {
   const a = e.target.closest('a.add, a.add-v'); if (!a) return;
   e.preventDefault(); toast(T('added'));
+  try { track('ev', { n: 'add', v: new URL(a.href, location.href).searchParams.get('add') }); } catch (er) {}
   a.closest('.mi')?.classList.add('hit');
   burst(e.clientX, e.clientY, 6);
   setTimeout(() => { location.href = a.href; }, reduced ? 0 : 380);
@@ -215,7 +225,7 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-alg]'); if (!b) return;
   const all = [...b.parentElement.querySelectorAll('[data-alg]')].map(x => x.dataset.alg);
   e.preventDefault();
-  renderAlg(all); openModal($('alg'));
+  renderAlg(all); openModal($('alg')); track('ev', { n: 'alg' });
 });
 
 /* ---------------------------------------------------------------- modális ablakok */
@@ -258,7 +268,7 @@ $('spin').addEventListener('click', () => {
       name.classList.add('landed'); spinning = false;
       const vs = variants(pick), t = trItem(pick);
       $('reelMeta').textContent = [vs.map(v => (v.label ? v.label + ' ' : '') + huf(v.price) + ' Ft').join(' · '), t.desc].filter(Boolean).join(' — ');
-      const o = $('wheelOrder'); o.href = orderHref(pick.id, vs[0].label); o.hidden = M.open === false;
+      const o = $('wheelOrder'); o.href = orderHref(pick.id, vs[0].label); o.hidden = M.open === false; o.dataset.id = pick.id;
       $('spin').textContent = T('spinAgain');
       const r = $('reel').getBoundingClientRect(); burst(r.left + r.width / 2, r.top - 10, 8);
     }
@@ -289,9 +299,11 @@ function checkTown() {
   const f = exact || (starts.length === 1 ? starts[0] : null);
   if (f) {
     if (lastTown === f.name + lang) return; lastTown = f.name + lang;
+    track('ev', { n: 'town', v: f.name, ok: true });
     out.innerHTML = `<div class="del-card yes"><span class="van">${van}</span><div class="tx"><b>${esc(T('delYes'))}</b><div class="fee">${esc(f.name)}: ${esc(T('delFee', { fee: huf(f.fee) }))}</div></div>${M.open === false ? '' : `<a class="btn btn-red" href="/rendeles?city=${encodeURIComponent(f.name)}">${esc(T('delOrder'))}</a>`}</div>`;
   } else if (!starts.length && q.length >= 3) {
     if (lastTown === '!' + q + lang) return; lastTown = '!' + q + lang;
+    clearTimeout(checkTown.t); checkTown.t = setTimeout(() => { if ($('town').value.trim() === raw) track('ev', { n: 'town', v: raw, ok: false }); }, 1500);
     out.innerHTML = `<div class="del-card no"><div class="tx"><b>${esc(T('delNo'))}</b><div class="fee">${esc(T('delNoSub'))}</div></div><a class="btn btn-ghost" href="tel:+36203395099">${esc(T('call'))}</a></div>`;
   } else { out.innerHTML = ''; lastTown = ''; }
 }
@@ -305,7 +317,7 @@ function showImg(i) {
   img.style.animation = 'none'; void img.offsetWidth; img.style.animation = '';
   img.src = b.dataset.full; img.alt = b.querySelector('img').alt; $('lbCap').textContent = img.alt;
 }
-gal.forEach((b, i) => b.addEventListener('click', () => { showImg(i); openModal($('lb')); }));
+gal.forEach((b, i) => b.addEventListener('click', () => { showImg(i); openModal($('lb')); track('ev', { n: 'gallery' }); }));
 $('lbPrev').addEventListener('click', () => showImg(gi - 1));
 $('lbNext').addEventListener('click', () => showImg(gi + 1));
 $('lb').addEventListener('keydown', e => { if (e.key === 'ArrowLeft') showImg(gi - 1); if (e.key === 'ArrowRight') showImg(gi + 1); });
@@ -352,7 +364,7 @@ form.addEventListener('submit', async e => {
     const r = await fetch('/api/public/message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error((lang === 'hu' && d.error) || T('errNet'));
-    form.classList.add('sent');
+    form.classList.add('sent'); track('ev', { n: 'form', v: kind });
     form.dataset.html = form.innerHTML;
     form.innerHTML = `<div class="sent-ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h3>${esc(T('sentTitle'))}</h3><p class="form-note">${esc(T('sentText'))}</p><button type="button" class="btn btn-ghost" id="again">${esc(T('sentAgain'))}</button>`;
     const r2 = form.getBoundingClientRect(); burst(r2.left + r2.width / 2, r2.top + 60, 10);
@@ -441,6 +453,25 @@ if (!reduced) {
 /* ---------------------------------------------------------------- indulás */
 $('year').textContent = new Date().getFullYear();
 setLang(pickLang(), false);
+// oldal megnyitása, életjel (élő látogatók), megnézett szakaszok, kattintások
+track('view', { r: document.referrer, w: screen.width });
+setInterval(() => { if (!document.hidden) track('ping'); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) track('ping'); });
+const seenSec = new Set();
+const secObs = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting && !seenSec.has(en.target.id)) { seenSec.add(en.target.id); track('sec', { n: en.target.id }); } }), { rootMargin: '-45% 0px -45% 0px' }); // a képernyő közepén áthaladó szakasz számít (a hosszú étlap is)
+['rolunk', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => $(id) && secObs.observe($(id)));
+document.addEventListener('click', e => {
+  const a = e.target.closest('a,button'); if (!a) return;
+  const h = a.getAttribute('href') || '';
+  if (a.id === 'wheelOrder') track('ev', { n: 'wheel_order', v: a.dataset.id || '' });
+  else if (a.id === 'spin') track('ev', { n: 'wheel' });
+  else if (h.startsWith('tel:')) track('ev', { n: 'call' });
+  else if (h.includes('google.com/maps')) track('ev', { n: 'route' });
+  else if (h.includes('facebook.com')) track('ev', { n: 'fb' });
+  else if (h.startsWith('/rendeles') && !a.matches('.add,.add-v') && !h.includes('city=')) track('ev', { n: 'order_btn' });
+  else if (a.dataset.tab === 'drinks') track('ev', { n: 'drinks' });
+  if (a.closest('.quick')) track('ev', { n: 'quick', v: h });
+}, true);
 loadMenu();
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
 })();

@@ -20,5 +20,10 @@ services:
       # A rendeléskezelő (étlap, online rendelés, üzenetek). Sorban próbálja őket.
       ORDER_URL: "http://vadvirag-rendelesek_web_1:8080,http://host.docker.internal:4747,http://172.17.0.1:4747"
       SITE_URL: "https://www.vadviragetterem.com"
+      # Látogatottsági statisztika mentése és belső port az Irányítópultnak (nincs kivezetve).
+      DATA_DIR: /data
+      STATS_ADDR: ":9090"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
     extra_hosts:
       - "host.docker.internal:host-gateway"

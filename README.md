@@ -92,3 +92,17 @@ Az étterem új, háromnyelvű (HU / DE / EN) weboldala. Forrás: `web-source/`
 - Az étlap fordításai: `web-source/site/data/menu-i18n.json` (étel azonosító szerint),
   az itallap: `web-source/site/data/drinks.json`, a feliratok: `web-source/site/i18n.js`.
 - Saját domain: Cloudflare Tunnel `www.vadviragetterem.com` → `http://<umbrel>:4748`.
+
+## Vadvirág Irányítópult (`vadvirag-iranyitopult`, 4749-es port)
+
+Csak Umbrel-bejelentkezéssel nyitható meg. Rendelések és bevétel, a weboldal
+látogatottsága (sütik nélkül), állapotfigyelés és ntfy értesítések a telefonra.
+
+- Forrás: `dashboard-source/` (Go, a felület a `web/` mappából bele van fordítva), fordítás: `sh dashboard-source/build.sh`
+- Adatok: a Weboldal belső `:9090` portja (`/stats`, `/health`) és a Rendelések belső `:9091` portja
+  (`/dash/info`, `/dash/orders`, `/dash/messages`). Ezek nincsenek kivezetve, csak az Umbrel
+  belső Docker-hálózatán érhetők el.
+- Figyelés percenként: weboldal, rendeléskezelő, a weboldal → rendeléskezelő kapcsolat,
+  a domain kívülről (5 percenként), tárhely, régóta váró rendelés, el nem ment e-mail,
+  hibák a weboldalon. Hiba két egymás utáni mérés után, javuláskor is szól.
+- Beállítások és napló: `${APP_DATA_DIR}/data/beallitasok.json`, `allapot.json`

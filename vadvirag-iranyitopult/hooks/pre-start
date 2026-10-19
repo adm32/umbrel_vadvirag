@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Az Umbrel frissítéskor csak a docker-compose.yml-t és az umbrel-app.yml-t
+# másolja át az app mappájába, a programfájlokat (bin/, Dockerfile) nem.
+# Ez a szkript minden indítás előtt átmásolja őket az áruház friss példányából,
+# így a frissítés után tényleg az új verzió indul el.
+src="${SCRIPT_APP_REPO_DIR:-}"
+dst="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -z "${src}" || ! -d "${src}/bin" || "${src}" == "${dst}" ]]; then
+  exit 0
+fi
+mkdir -p "${dst}/bin"
+cp -f "${src}"/bin/iranyitopult-linux-* "${dst}/bin/" && chmod +x "${dst}"/bin/iranyitopult-linux-*
+for f in Dockerfile .dockerignore; do
+  [[ -f "${src}/${f}" ]] && cp -f "${src}/${f}" "${dst}/${f}"
+done
+echo "Vadvirág irányítópult: programfájlok frissítve innen: ${src}"
+exit 0

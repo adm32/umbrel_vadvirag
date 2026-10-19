@@ -1426,6 +1426,7 @@ func main() {
 	}
 	fmt.Println("==================================================")
 
+	app.startDash()
 	srv := &http.Server{Handler: app.routes(), ReadHeaderTimeout: 10 * time.Second}
 	// Újraindításkor a régi példány még pár pillanatig foglalhatja a portot.
 	var ln net.Listener

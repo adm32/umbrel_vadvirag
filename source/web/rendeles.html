@@ -250,7 +250,7 @@ function toast(t){if(document.querySelector('.sheet.open'))return;const e=$('toa
 
 async function load(){
   try{
-    const r=await fetch('/api/public/menu',{cache:'no-store'});if(!r.ok)throw 0;if(r.headers.get('X-Vadvirag-Site'))$('homeLink').hidden=false; // a weboldalon keresztül nyitották meg
+    const r=await fetch('/api/public/menu',{cache:'no-store'});if(!r.ok)throw 0;if(r.headers.get('X-Vadvirag-Site')){$('homeLink').hidden=false;viaSite=true;siteTrack('ev',{n:'order_page'})} // a weboldalon keresztül nyitották meg
     M=await r.json();if(!M.sections)throw 0;
   }catch(e){$('menu').innerHTML=`<div class="empty">Az étlap most nem tölthető be.<br>Próbáld újra pár perc múlva, vagy rendelj telefonon: <a href="${telHref()}"><b>${phone}</b></a></div>`;return}
   phone=M.phone||phone;$('phoneTop').textContent=phone;$('callTop').href=telHref();$('callFoot').textContent=phone;$('callFoot').href=telHref();
@@ -266,6 +266,9 @@ async function load(){
   fromSite();
 }
 // A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
+// névtelen látogatottsági jelzés a weboldalnak (csak ha a weboldalon keresztül nyitották meg)
+let viaSite=false;
+function siteTrack(t,o){if(!viaSite)return;try{navigator.sendBeacon('/api/t',new Blob([JSON.stringify(Object.assign({t,p:'/rendeles'},o||{}))],{type:'application/json'}))}catch(e){}}
 function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toString())return;
   const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=store.get('vv_me',{});me.city=ct;me.mode='delivery';store.set('vv_me',me)}
   const ad=qs.get('add');if(ad&&idx[ad]&&isOpen){const it=idx[ad];const vs=it.variants||[];let v=qs.get('v')||'';if(vs.length&&!vs.some(x=>x.label===v))v=vs[0].label;if(!vs.length)v='';
@@ -369,7 +372,7 @@ async function submitOrder(){
     cart={};store.set('vv_cart',cart);store.set('vv_last',d.token);
     history.replaceState(null,'',location.pathname+'#r='+d.token);
     $('note').value='';renderMenu();updateCart();
-    $('checkout').classList.remove('open');sheetPushed=false;showStatus(d.token,true);
+    $('checkout').classList.remove('open');sheetPushed=false;siteTrack('ev',{n:'order_sent'});showStatus(d.token,true);
   }catch(e){$('msg').textContent=e.message;renderSum()}
 }
 

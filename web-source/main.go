@@ -10,7 +10,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"io"
 	"io/fs"
 	"log"
@@ -21,6 +23,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -33,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.0.3"
+const version = "1.1.0"
 
 var (
 	site    fs.FS
@@ -97,6 +100,8 @@ func main() {
 		}
 	}()
 	siteURL = strings.TrimRight(env("SITE_URL", "https://www.vadviragetterem.com"), "/")
+	statsInit()
+	statsServer()
 	addr := ":" + env("PORT", "8080")
 
 	srv := &http.Server{Addr: addr, Handler: routes(), ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 120 * time.Second}
@@ -112,12 +117,14 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx)
+	statsSave(true)
 }
 
 func routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("GET /api/menu", handleMenu)
+	mux.HandleFunc("POST /api/t", handleBeacon)
 	mux.HandleFunc("GET /robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, "User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: "+siteURL+"/sitemap.xml\n")
@@ -141,7 +148,7 @@ func routes() http.Handler {
 	}
 
 	mux.HandleFunc("/", serveStatic)
-	return gzipMW(mux)
+	return errorMW(gzipMW(mux))
 }
 
 // ---------------------------------------------------------------- statikus fájlok
@@ -197,11 +204,47 @@ var types = map[string]string{
 
 var started = time.Now()
 
+// A HTML-ben a CSS/JS hivatkozások "?v=" értéke a fájl tartalmának ujjlenyomata,
+// így minden frissítés után a böngésző és a Cloudflare is az új fájlt tölti le
+// (a régit egy évig tárolhatják, mert az új címet kap).
+var (
+	htmlOnce sync.Once
+	htmlMap  = map[string][]byte{}
+	assetRe  = regexp.MustCompile(`(/[A-Za-z0-9_.-]+\.(?:css|js))\?v=[A-Za-z0-9]+`)
+)
+
+func fingerprintHTML() {
+	entries, _ := fs.ReadDir(site, ".")
+	for _, e := range entries {
+		if e.IsDir() || path.Ext(e.Name()) != ".html" {
+			continue
+		}
+		b, err := fs.ReadFile(site, e.Name())
+		if err != nil {
+			continue
+		}
+		htmlMap[e.Name()] = assetRe.ReplaceAllFunc(b, func(m []byte) []byte {
+			p := assetRe.FindSubmatch(m)[1]
+			data, err := fs.ReadFile(site, strings.TrimPrefix(string(p), "/"))
+			if err != nil {
+				return m
+			}
+			h := sha256.Sum256(data)
+			return []byte(string(p) + "?v=" + hex.EncodeToString(h[:5]))
+		})
+	}
+}
+
 func sendFile(w http.ResponseWriter, r *http.Request, name, cache string) {
-	data, err := fs.ReadFile(site, name)
-	if err != nil {
-		http.NotFound(w, r)
-		return
+	htmlOnce.Do(fingerprintHTML)
+	data, ok := htmlMap[name]
+	if !ok {
+		var err error
+		data, err = fs.ReadFile(site, name)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
 	}
 	if ct := types[path.Ext(name)]; ct != "" {
 		w.Header().Set("Content-Type", ct)
@@ -280,6 +323,7 @@ func orderProxy() http.Handler {
 	}
 	px.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		log.Printf("rendeléskezelő nem elérhető: %v", err)
+		noteServerError("upstream", "A rendeléskezelő nem érhető el: "+err.Error(), r.URL.Path)
 		go findUpstream()
 		if strings.HasPrefix(r.URL.Path, "/api/") {
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")

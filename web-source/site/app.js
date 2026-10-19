@@ -42,10 +42,18 @@ $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dat
 
 /* ---------------------------------------------------------------- fejléc, menü */
 const top = $('top');
+let lastY = scrollY, typing = false;
 const onScroll = () => {
-  top.classList.toggle('scrolled', scrollY > 40);
-  $('dock').classList.toggle('show', scrollY > innerHeight * 0.7);
+  const y = scrollY, down = y > lastY + 4, up = y < lastY - 4;
+  top.classList.toggle('scrolled', y > 40);
+  const dock = $('dock');
+  if (y < innerHeight * 0.7 || typing) dock.classList.remove('show');
+  else if (up) dock.classList.add('show');
+  else if (down) dock.classList.remove('show');
+  if (down || up) lastY = y;
 };
+document.addEventListener('focusin', e => { if (e.target.matches('input,textarea,select')) { typing = true; $('dock').classList.remove('show'); } });
+document.addEventListener('focusout', () => { typing = false; });
 addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
 const burger = $('burger'), drawer = $('drawer');
@@ -78,6 +86,7 @@ function renderStatus() {
   if (min >= o && min < c) { el.classList.add('open'); tx.textContent = c - min <= 45 ? T('closingSoon', { t: hh(HOURS.close) }) : T('openNow', { t: hh(HOURS.close) }); }
   else { el.classList.add('closed'); tx.textContent = min < o ? T('closedNow', { t: hh(HOURS.open) }) : T('closedTomorrow', { t: hh(HOURS.open) }); }
   if (M && M.open === false && el.classList.contains('open')) tx.textContent += ' · ' + T('orderPaused');
+  if ($('hoursToday')) $('hoursToday').textContent = tx.textContent;
 }
 function renderHours() {
   const { wd } = budapestNow();
@@ -127,14 +136,15 @@ function itemHTML(it) {
   const vs = variants(it), paused = M && M.open === false;
   const al = it.alg ? `<div class="al">${esc(T('allergens'))}: ${it.alg.split(/\s*,\s*/).map(n => `<button data-alg="${esc(n)}">${esc(n)}</button>`).join(', ')}</div>` : '';
   const ds = desc ? `<div class="ds">${esc(desc)}</div>` : '';
+  const sup = it.alg ? `<span class="als">${it.alg.split(/\s*,\s*/).map(n => `<button data-alg="${esc(n)}" aria-label="${esc(T('allergens'))} ${esc(n)}">${esc(n)}</button>`).join('')}</span>` : '';
   if (vs.length > 1) {
     const pills = vs.map(v => paused
       ? `<span class="var">${esc(v.label)} <b>${huf(v.price)} Ft</b></span>`
       : `<a class="var add-v" href="${orderHref(it.id, v.label)}" aria-label="${esc(T('addToCart', { n: name + ' ' + v.label }))}">${esc(v.label)} <b>${huf(v.price)} Ft</b>${plus}</a>`).join('');
-    return `<div class="mi mv" id="i-${esc(it.id)}"><div class="nm">${esc(name)}</div>${ds}<div class="vars">${pills}</div>${al}</div>`;
+    return `<div class="mi mv" id="i-${esc(it.id)}"><div class="nm"><span>${esc(name)}${sup}</span></div>${ds}<div class="vars">${pills}</div>${al}</div>`;
   }
   const btn = paused ? '' : `<a class="add" href="${orderHref(it.id, vs[0].label)}" aria-label="${esc(T('addToCart', { n: name }))}">${plus}</a>`;
-  return `<div class="mi" id="i-${esc(it.id)}"><div class="nm">${esc(name)}</div><div class="pr">${huf(vs[0].price)} Ft ${btn}</div>${ds}${al}</div>`;
+  return `<div class="mi" id="i-${esc(it.id)}"><div class="nm"><span>${esc(name)}${sup}</span></div><div class="pr">${huf(vs[0].price)} Ft ${btn}</div>${ds}${al}</div>`;
 }
 let secFood = null, secDrink = null;
 function pager(list, cur, nameOf, prefix) {
@@ -194,7 +204,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('a.add, a.add-v'); if (!a) return;
   e.preventDefault(); toast(T('added'));
   a.closest('.mi')?.classList.add('hit');
-  burst(e.clientX, e.clientY, 10);
+  burst(e.clientX, e.clientY, 6);
   setTimeout(() => { location.href = a.href; }, reduced ? 0 : 380);
 });
 
@@ -204,6 +214,7 @@ $('algBtn').addEventListener('click', () => { renderAlg(); openModal($('alg')); 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-alg]'); if (!b) return;
   const all = [...b.parentElement.querySelectorAll('[data-alg]')].map(x => x.dataset.alg);
+  e.preventDefault();
   renderAlg(all); openModal($('alg'));
 });
 
@@ -249,7 +260,7 @@ $('spin').addEventListener('click', () => {
       $('reelMeta').textContent = [vs.map(v => (v.label ? v.label + ' ' : '') + huf(v.price) + ' Ft').join(' · '), t.desc].filter(Boolean).join(' — ');
       const o = $('wheelOrder'); o.href = orderHref(pick.id, vs[0].label); o.hidden = M.open === false;
       $('spin').textContent = T('spinAgain');
-      const r = $('reel').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 18);
+      const r = $('reel').getBoundingClientRect(); burst(r.left + r.width / 2, r.top - 10, 8);
     }
   };
   step();
@@ -344,7 +355,7 @@ form.addEventListener('submit', async e => {
     form.classList.add('sent');
     form.dataset.html = form.innerHTML;
     form.innerHTML = `<div class="sent-ic"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h3>${esc(T('sentTitle'))}</h3><p class="form-note">${esc(T('sentText'))}</p><button type="button" class="btn btn-ghost" id="again">${esc(T('sentAgain'))}</button>`;
-    const r2 = form.getBoundingClientRect(); burst(r2.left + r2.width / 2, r2.top + 60, 16);
+    const r2 = form.getBoundingClientRect(); burst(r2.left + r2.width / 2, r2.top + 60, 10);
     $('again').addEventListener('click', () => location.reload());
   } catch (err) {
     $('formErr').textContent = err.message && err.message !== 'Failed to fetch' ? err.message : T('errNet');
@@ -416,12 +427,12 @@ function miniBurst(x, y, n) {
 }
 if (!reduced) {
   resize();
-  const n = innerWidth < 760 ? 6 : 11;
+  const n = innerWidth < 760 ? 3 : 6;
   for (let i = 0; i < n; i++) petals.push(petal(Math.random() * W, Math.random() * H));
   addEventListener('resize', resize);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(hero);
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-  hero.addEventListener('pointerdown', e => { if (e.target.closest('a,button')) return; burst(e.clientX, e.clientY, 14); document.querySelector('.hero-hint').classList.remove('show'); });
+  hero.addEventListener('pointerdown', e => { if (e.target.closest('a,button')) return; burst(e.clientX, e.clientY, 8); document.querySelector('.hero-hint').classList.remove('show'); });
   setTimeout(() => document.querySelector('.hero-hint').classList.add('show'), 3500);
   setTimeout(() => document.querySelector('.hero-hint').classList.remove('show'), 11000);
   start();

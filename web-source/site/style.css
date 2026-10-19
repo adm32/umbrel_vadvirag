@@ -385,3 +385,81 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 @media (min-width:1340px){.flora{display:block}}
 .flora-inline{display:block;width:80px;height:auto;margin:22px 0 -12px;opacity:.65;pointer-events:none}
 @media (min-width:1340px){.flora-inline{display:none}}
+
+/* ================================================================
+   Telefonos elrendezés – külön megtervezve, nem csak egymás alá rakva
+   ================================================================ */
+.hero-call,.quick{display:none}
+.hours-sum{display:none}
+.als{display:inline-flex;margin-left:5px;vertical-align:super;line-height:1}
+.als button{font:600 11px/1 var(--sans);color:var(--ink3);padding:4px 2px;margin:-4px 0}
+.als button+button::before{content:"·";margin-right:2px;color:var(--line)}
+.als button:hover{color:var(--red)}
+.mi .al{display:none}
+@media (max-width:760px){
+  /* fejléc: a logó mindig látszik */
+  .top:not(.scrolled) .brand img{opacity:1}
+  /* nyitó rész: kép felül, alatta szöveg, egy fő gomb + hívás, gyors csempék */
+  .hero{display:block;min-height:0;padding:6px 0 30px}
+  .hero-in{display:flex;flex-direction:column;gap:20px;text-align:left}
+  .hero h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .hero-art{order:-1;width:100%;max-width:none;aspect-ratio:16/11;max-height:none;border-radius:50% 50% 22px 22px / 26% 26% 22px 22px;box-shadow:0 24px 40px -28px #4a1a0f80}
+  .hero-lead{margin:0;font-size:20px;line-height:1.45;max-width:none}
+  .status{margin-top:14px;font-size:14px}
+  .hero-cta{margin-top:18px;flex-wrap:nowrap;gap:10px;justify-content:flex-start}
+  .hero-cta .btn{flex:none;min-width:0}
+  .hero-cta .btn-red{flex:1}
+  .hero-menu{display:none}
+  .hero-call{display:inline-flex;width:54px;padding:0}
+  .hero-call svg{width:22px;height:22px}
+  .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  .quick a{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 2px 10px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--ink);font-size:12.5px;font-weight:600;text-align:center;line-height:1.15}
+  .quick a:active{transform:scale(.96)}
+  .quick svg{width:22px;height:22px;color:var(--red);stroke-width:1.8}
+  .hero-small{display:none}
+  .hero-hint{bottom:6px}
+  /* rólunk: előbb a szöveg, utána két kép egymás mellett */
+  .about{display:flex;flex-direction:column;gap:24px;padding-top:36px;padding-bottom:52px}
+  .about-text{order:-1}
+  .about-text p{font-size:16.5px}
+  .about-pics{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;padding:0;max-width:none;margin:0}
+  .pic-a{aspect-ratio:auto;height:210px}
+  .pic-b{position:static;width:100%;height:210px;border:0;box-shadow:none;border-radius:16px}
+  .facts{margin-top:20px}
+  /* étlap: tömörebb sorok */
+  .menu{padding:48px 0 40px}
+  .menu::before{display:none}
+  .sec-head{margin-bottom:18px}
+  .mi{padding:11px 0}
+  .mi .nm{font-size:16.5px}
+  .mi .ds{font-size:14px;line-height:1.4}
+  .mi .vars{margin-top:7px;gap:6px}
+  .var{height:34px;font-size:13.5px}
+  .msec{padding-top:18px}
+  .burger-band{margin-top:32px}
+  /* rendezvények */
+  .events{padding:56px 0}
+  .strip img{width:58vw;aspect-ratio:4/5}
+  .strip img:nth-child(even){margin-top:20px}
+  /* kiszállítás */
+  .delivery{padding-top:56px;padding-bottom:20px}
+  /* galéria: lapozható sor a hosszú rács helyett */
+  .gallery{padding-top:36px;padding-bottom:56px}
+  .gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -16px;padding:0 16px 6px;scrollbar-width:none;scroll-padding:0 16px}
+  .gal::-webkit-scrollbar{display:none}
+  .g,.g-wide,.g-tall{flex:none;width:76vw;aspect-ratio:4/5;scroll-snap-align:start;grid-column:auto;grid-row:auto}
+  /* kapcsolat */
+  .contact{padding:56px 0 48px}
+  .contact-in{gap:32px}
+  .big-phone{font-size:26px;margin-top:16px}
+  .hours{margin-top:22px}
+  .hours ul{display:none}
+  .hours-sum{display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:var(--paper);border-radius:14px}
+  .hours-sum span{color:var(--ink2);font-size:14px}
+  .links{margin-top:18px}
+  .links .btn{flex:1}
+  .flora-inline{display:none}
+  /* lábléc: egy pipacs elég */
+  .foot{padding-top:40px}
+  .foot-poppy{display:none}
+}

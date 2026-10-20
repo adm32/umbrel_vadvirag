@@ -65,6 +65,7 @@ type Config struct {
 	SMTP           SMTPConf       `json:"email"`
 	Wix            WixConf        `json:"wix"`
 	Dijak          map[string]int `json:"szallitasi_dijak"`
+	DijakVerzio    int            `json:"szallitasi_dijak_verzio"` // ha kisebb, mint a beépített tábla verziója, frissítjük
 	IdoOpciok      []int          `json:"elkeszulesi_percek"`
 	Okok           []string       `json:"elutasitas_okai"`
 	// Online rendelés szüneteltetése (pl. zárva vagy túl sok a munka) – a vendég ezt látja.
@@ -97,30 +98,49 @@ func defaultConfig() Config {
 			APICim:        "https://www.wixapis.com",
 			LekerdezesSec: 20,
 		},
-		Dijak: map[string]int{
-			"Zalaszentlászló": 200, "Zalaudvarnok": 200,
-			"Gyülevész": 600, "Sénye": 600, "Zalaszentgrót": 600,
-			"Felsőaranyod": 1000, "Zalakoppány": 1000, "Tüskeszentpéter": 1000,
-			"Kiscsáford": 1200,
-			"Kallósd":    1400, "Kisgörbő": 1400, "Tekenye": 1400, "Zalabér": 1400, "Zalaköveskút": 1400,
-			"Kehidakustány": 1500, "Csáford": 1500, "Vindornyafok": 1500,
-			"Nagygörbő": 1600, "Türje": 1600,
-			"Döbröce": 1800, "Nemesbük": 1800, "Óhíd": 1800,
-			"Karmacs": 1900, "Vindornyaszőlős": 1900,
-			"Batyk": 2000, "Zalacsány": 2000,
-			"Mihályfa": 2400, "Szalapa": 2400,
-			"Zalavég": 2500,
-			"Dötk":    2600, "Pakod": 2600, "Sümegcsehi": 2600,
-			"Bérbaltavár": 2800,
-			"Pókaszepetk": 3000,
-		},
-		IdoOpciok: []int{15, 20, 30, 45, 60, 90},
+		Dijak:       defaultFees(),
+		DijakVerzio: feeTableVersion,
+		IdoOpciok:   []int{15, 20, 30, 45, 60, 90},
 		Okok: []string{
 			"Sajnos már túl késő van, a konyha bezárt",
 			"Az egyik étel elfogyott",
 			"Ide most nem tudunk kiszállítani",
 			"Jelenleg nagyon sok a rendelés",
 		},
+	}
+}
+
+// Szállítási díjak: 300 Ft alapdíj + 130 Ft / km (Zalaudvarnoktól mért autós távolság),
+// 100 Ft-ra kerekítve. A távolságok a 2026 októberi településlistából valók.
+// Ha a táblát módosítod, emeld a feeTableVersion értékét: induláskor a régi tábla lecserélődik.
+const feeTableVersion = 2
+
+func defaultFees() map[string]int {
+	return map[string]int{
+		"Zalaudvarnok":    300,
+		"Tüskeszentpéter": 600, "Zalaszentlászló": 600,
+		"Zalaszentgrót": 800,
+		"Aranyod":       900,
+		"Barátsziget":   1000, "Csáford": 1000, "Gyülevész": 1000, "Sénye": 1000, "Tekenye": 1000, "Tilaj": 1000,
+		"Kehida": 1100, "Kehidakustány": 1100, "Kisszentgrót": 1100,
+		"Zalakoppány": 1200,
+		"Zalacsány":   1300,
+		"Zalabér":     1400,
+		"Dötk":        1500, "Türje": 1500,
+		"Kallósd": 1600, "Ligetfalva": 1600,
+		"Almásháza": 1700, "Batyk": 1700, "Pakod": 1700, "Zalaköveskút": 1700,
+		"Bókaháza": 1800,
+		"Nemesbük": 1900, "Szalapa": 1900, "Zalavég": 1900,
+		"Padár": 2000, "Óhíd": 2000,
+		"Bezeréd": 2100, "Gétye": 2100, "Karmacs": 2100, "Vindornyafok": 2100, "Zalaapáti": 2100,
+		"Bérbaltavár": 2200, "Mihályfa": 2200,
+		"Felsőpáhok": 2300, "Kisgörbő": 2300, "Nagykapornak": 2300, "Nagytilaj": 2300, "Pókaszepetk": 2300, "Szentgyörgyvár": 2300, "Szentpéterúr": 2300, "Vindornyaszőlős": 2300,
+		"Dabronc": 2400, "Gyűrűs": 2400, "Hévíz": 2400, "Kisvásárhely": 2400, "Orbányosfa": 2400, "Zalaerdőd": 2400, "Zalaszántó": 2400,
+		"Alsópáhok": 2500, "Mikosszéplak": 2500, "Nagygörbő": 2500, "Zalaistvánd": 2500,
+		"Egeraracsa": 2600, "Esztergályhorváti": 2600, "Hetyefő": 2600, "Kemendollár": 2600, "Misefa": 2600, "Nemesrádó": 2600, "Rezi": 2600, "Sümegcsehi": 2600, "Vindornyalak": 2600, "Zalaigrice": 2600,
+		"Csehi": 2700, "Döbröce": 2700, "Pacsa": 2700,
+		"Csehimindszent": 2800, "Cserszegtomaj": 2800, "Dióskál": 2800, "Gógánfa": 2800, "Oszkó": 2800, "Sármellék": 2800, "Vöckönd": 2800, "Zalaszentmárton": 2800,
+		"Bazsi": 2900, "Sümegprága": 2900, "Zalagyömörő": 2900, "Zalaszentlőrinc": 2900,
 	}
 }
 
@@ -133,6 +153,8 @@ func loadConfig(path string) (Config, error) {
 	if err != nil {
 		return cfg, err
 	}
+	// a mentett tábla ne keveredjen a beépítettel, és a régi (verzió nélküli) fájl frissüljön
+	cfg.Dijak, cfg.DijakVerzio = nil, 0
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return cfg, fmt.Errorf("a beallitasok.json hibás (%v) – javítsd, vagy töröld, hogy újra létrejöjjön", err)
 	}
@@ -147,6 +169,13 @@ func loadConfig(path string) (Config, error) {
 	}
 	if cfg.Titok == "" {
 		cfg.Titok = randStr(40, "abcdef0123456789")
+	}
+	if cfg.DijakVerzio < feeTableVersion || len(cfg.Dijak) == 0 {
+		log.Printf("Szállítási díjak frissítése: %d település (tábla v%d)", len(defaultFees()), feeTableVersion)
+		cfg.Dijak, cfg.DijakVerzio = defaultFees(), feeTableVersion
+		if err := saveConfig(path, cfg); err != nil {
+			log.Printf("a frissített díjtábla mentése nem sikerült: %v", err)
+		}
 	}
 	return cfg, nil
 }
@@ -303,12 +332,17 @@ func (a *App) fee(mode, city string) int {
 	if c == "" {
 		return -1
 	}
+	// A leghosszabb nevek jönnek először, és a megtalált nevet kitöröljük, hogy egy rövidebb
+	// név ne találjon bele (Sümegcsehi ≠ Csehi, Nagytilaj ≠ Tilaj). Ha több település is
+	// szerepel („Zalaszentgrót-Csáford”), a messzebbi (drágább) számít.
+	best := -1
 	for _, f := range a.feeIx {
 		if strings.Contains(c, f.norm) {
-			return f.fee
+			c = strings.ReplaceAll(c, f.norm, "|")
+			best = max(best, f.fee)
 		}
 	}
-	return -1
+	return best
 }
 
 // ingest: új rendelés felvétele. Visszatér: felvettük-e (false = már megvolt).

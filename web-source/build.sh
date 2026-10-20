@@ -7,8 +7,8 @@ python3 - <<'PY'
 import json, re
 menu = json.load(open('../source/menu.json'))
 src = open('../source/main.go', encoding='utf-8').read()
-block = src[src.index('Dijak: map[string]int{'):]
-block = block[:block.index('},')]
+block = src[src.index('func defaultFees() map[string]int {'):]
+block = block[:block.index('\n}\n')]
 fees = sorted(({"name": n, "fee": int(f)} for n, f in re.findall(r'"([^"]+)":\s*(\d+)', block)), key=lambda x: x["name"])
 json.dump({"live": False, "restaurant": "Vadvirág Étterem", "phone": "06 20 339 5099", "open": True, "notice": "",
            "sections": menu["sections"], "fees": fees}, open('menu-fallback.json', 'w'), ensure_ascii=False)

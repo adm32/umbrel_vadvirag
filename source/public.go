@@ -25,6 +25,7 @@ var menuJSON []byte
 type MenuVariant struct {
 	Label string `json:"label"`
 	Price int    `json:"price"`
+	Pack  int    `json:"pack"` // csomagolás díja darabonként (a szerver tölti ki)
 }
 
 type MenuItem struct {
@@ -34,6 +35,7 @@ type MenuItem struct {
 	Alg      string        `json:"alg,omitempty"`
 	Price    int           `json:"price,omitempty"`
 	Variants []MenuVariant `json:"variants,omitempty"`
+	Pack     int           `json:"pack"` // csomagolás díja darabonként (a szerver tölti ki)
 }
 
 type MenuSection struct {
@@ -59,6 +61,10 @@ func init() {
 	for si := range menuSections {
 		for ii := range menuSections[si].Items {
 			it := &menuSections[si].Items[ii]
+			it.Pack = packFor(menuSections[si].ID, it, "")
+			for vi := range it.Variants {
+				it.Variants[vi].Pack = packFor(menuSections[si].ID, it, it.Variants[vi].Label)
+			}
 			menuIdx[it.ID] = it
 		}
 	}
@@ -188,19 +194,19 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 
 	// árak a szerver saját étlapjából
 	var lines []string
-	sub := 0
+	sub, pack := 0, 0
 	for _, l := range in.Items {
 		it := menuIdx[l.ID]
 		if it == nil || l.Qty < 1 || l.Qty > 50 {
 			publicErr(w, 400, "Az étlap közben változott – frissítsd az oldalt, és próbáld újra.")
 			return
 		}
-		price, label := it.Price, it.Name
+		price, label, pk := it.Price, it.Name, it.Pack
 		if len(it.Variants) > 0 {
 			price = -1
 			for _, v := range it.Variants {
 				if v.Label == l.Variant {
-					price, label = v.Price, it.Name+" "+v.Label
+					price, label, pk = v.Price, it.Name+" "+v.Label, v.Pack
 				}
 			}
 			if price < 0 {
@@ -209,7 +215,11 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		sub += price * l.Qty
+		pack += pk * l.Qty
 		lines = append(lines, fmt.Sprintf("%d× %s – %s Ft", l.Qty, label, formatHUF(price*l.Qty)))
+	}
+	if pack > 0 {
+		lines = append(lines, fmt.Sprintf("Csomagolás (elviteles dobozok) – %s Ft", formatHUF(pack)))
 	}
 	itemsText := strings.Join(lines, "\n")
 
@@ -258,13 +268,20 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	o.ExtID = "web:" + o.Token
 	a.ingest(o) // kiszámolja a szállítási díjat is
-	total := sub
-	totalTxt := formatHUF(sub) + " Ft"
+	total := sub + pack
+	parts := "étel " + formatHUF(sub)
+	if pack > 0 {
+		parts += " + csomagolás " + formatHUF(pack)
+	}
+	totalTxt := formatHUF(total) + " Ft"
+	if pack > 0 {
+		totalTxt += " (" + parts + ")"
+	}
 	if o.DeliveryFee > 0 {
 		total += o.DeliveryFee
-		totalTxt = fmt.Sprintf("%s Ft (étel %s + szállítás %s)", formatHUF(total), formatHUF(sub), formatHUF(o.DeliveryFee))
+		totalTxt = fmt.Sprintf("%s Ft (%s + szállítás %s)", formatHUF(total), parts, formatHUF(o.DeliveryFee))
 	} else if o.DeliveryFee < 0 {
-		totalTxt = formatHUF(sub) + " Ft + szállítás (egyeztetni)"
+		totalTxt = formatHUF(total) + " Ft + szállítás (egyeztetni)"
 	}
 	a.st.mu.Lock()
 	if x := a.find(o.ID); x != nil {

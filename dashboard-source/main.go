@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.0.0"
+const version = "1.1.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -161,6 +161,7 @@ type Order struct {
 	Reason      string    `json:"reason"`
 	EmailState  string    `json:"email_state"`
 	EmailErr    string    `json:"email_err"`
+	Customer    string    `json:"cust"`
 }
 
 type Message struct {
@@ -609,7 +610,13 @@ func checkSummary(s Settings) {
 	mon.Lock()
 	done := mon.lastSummary == day
 	mon.Unlock()
-	if done || now.Format("15:04") < s.SummaryTime {
+	// csak a beállított időpont utáni 3 órában (így egy késő esti újraindítás nem küldi újra / későn)
+	at, err := time.ParseInLocation("15:04", s.SummaryTime, budapest)
+	if done || err != nil {
+		return
+	}
+	at = time.Date(now.Year(), now.Month(), now.Day(), at.Hour(), at.Minute(), 0, 0, budapest)
+	if now.Before(at) || now.After(at.Add(3*time.Hour)) {
 		return
 	}
 	mon.Lock()
@@ -894,6 +901,20 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/overview", handleOverview)
 	mux.HandleFunc("POST /api/settings", handleSettings)
+	mux.HandleFunc("GET /api/sessions", func(w http.ResponseWriter, r *http.Request) {
+		date := r.URL.Query().Get("date")
+		if _, err := time.Parse("2006-01-02", date); err != nil {
+			date = time.Now().In(budapest).Format("2006-01-02")
+		}
+		var out json.RawMessage
+		if _, err := getJSON(siteStats, "/sessions?date="+date, &out); err != nil {
+			writeJSON(w, 502, map[string]string{"error": err.Error()})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Write(out)
+	})
 	mux.HandleFunc("POST /api/test", handleTest)
 	mux.HandleFunc("POST /api/check-now", func(w http.ResponseWriter, r *http.Request) {
 		mon.Lock()

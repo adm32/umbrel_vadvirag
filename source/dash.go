@@ -8,6 +8,8 @@ package main
 // de a vendégek telefonszámát, e-mail címét és utcáját nem is adjuk ki.
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"log"
 	"net/http"
 	"os"
@@ -33,6 +35,7 @@ type dashOrder struct {
 	Reason      string    `json:"reason,omitempty"`
 	EmailState  string    `json:"email_state,omitempty"`
 	EmailErr    string    `json:"email_err,omitempty"`
+	Customer    string    `json:"cust,omitempty"` // a telefonszámból képzett névtelen kód: így látszik, ki rendel újra
 }
 
 type dashMessage struct {
@@ -77,6 +80,7 @@ func (a *App) startDash() {
 			days = 90
 		}
 		since := time.Now().AddDate(0, 0, -days)
+		salt := a.conf().Titok
 		a.st.mu.Lock()
 		out := make([]dashOrder, 0, 256)
 		for _, o := range a.st.Orders {
@@ -85,7 +89,8 @@ func (a *App) startDash() {
 			}
 			out = append(out, dashOrder{ID: o.ID, Source: o.Source, Created: o.Created, Name: o.Name, Mode: o.Mode, City: o.City,
 				Items: o.Items, Total: o.Total, DeliveryFee: o.DeliveryFee, Payment: o.Payment, Status: o.Status,
-				StatusAt: o.StatusAt, AcceptedAt: o.AcceptedAt, ETA: o.ETA, Reason: o.Reason, EmailState: o.EmailState, EmailErr: o.EmailErr})
+				StatusAt: o.StatusAt, AcceptedAt: o.AcceptedAt, ETA: o.ETA, Reason: o.Reason, EmailState: o.EmailState, EmailErr: o.EmailErr,
+				Customer: custID(salt, o.Phone)})
 		}
 		a.st.mu.Unlock()
 		writeJSON(w, 200, out)
@@ -105,4 +110,22 @@ func (a *App) startDash() {
 			log.Printf("irányítópult adatcsatorna nem indult: %v", err)
 		}
 	}()
+}
+
+// custID: a telefonszám számjegyeiből (utolsó 9) képzett rövid, visszafejthetetlen kód.
+func custID(salt, phone string) string {
+	var digits []rune
+	for _, c := range phone {
+		if c >= '0' && c <= '9' {
+			digits = append(digits, c)
+		}
+	}
+	if len(digits) < 6 {
+		return ""
+	}
+	if len(digits) > 9 {
+		digits = digits[len(digits)-9:]
+	}
+	h := sha256.Sum256([]byte(salt + "|" + string(digits)))
+	return hex.EncodeToString(h[:6])
 }

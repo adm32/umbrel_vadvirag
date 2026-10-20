@@ -16,7 +16,7 @@ const LANGS = ['hu', 'en', 'de'];
 let lang = 'hu', M = null, TR = { sections:{}, items:{} }, DR = [], tab = 'food', kind = 'asztal';
 /* látogatottság: sütik nélkül, csak névtelen jelzések a saját szerverünknek */
 const track = (t, o = {}) => { try {
-  const body = JSON.stringify(Object.assign({ t, p: location.pathname, l: lang }, o));
+  const body = JSON.stringify(Object.assign({ t, p: location.pathname, l: lang, s: window.vvSec || '', d: window.vvScroll || 0 }, o));
   if (navigator.sendBeacon) navigator.sendBeacon('/api/t', new Blob([body], { type: 'application/json' }));
   else fetch('/api/t', { method: 'POST', body, keepalive: true, headers: { 'Content-Type': 'application/json' } });
 } catch (e) {} };
@@ -454,12 +454,20 @@ if (!reduced) {
 $('year').textContent = new Date().getFullYear();
 setLang(pickLang(), false);
 // oldal megnyitása, életjel (élő látogatók), megnézett szakaszok, kattintások
-track('view', { r: document.referrer, w: screen.width });
-setInterval(() => { if (!document.hidden) track('ping'); }, 30000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) track('ping'); });
+// minden jelzés magával viszi, melyik részt nézi éppen, és meddig görgetett le
+window.vvSec = 'hero'; window.vvScroll = 0;
+const scrollPct = () => { const h = document.documentElement.scrollHeight - innerHeight; return h > 0 ? Math.min(100, Math.round(scrollY / h * 100)) : 100; };
+addEventListener('scroll', () => { const p = scrollPct(); if (p > window.vvScroll) window.vvScroll = p; }, { passive: true });
+const pingNow = () => track('ping');
+track('view', { r: document.referrer, q: location.search, w: screen.width, h: screen.height, dk: matchMedia('(prefers-color-scheme: dark)').matches,
+  c: (navigator.connection && navigator.connection.effectiveType) || '', bl: navigator.language || '' });
+setInterval(() => { if (!document.hidden) pingNow(); }, 20000);
+document.addEventListener('visibilitychange', pingNow);   // eltűnéskor is: így pontos, meddig volt az oldalon
+addEventListener('pagehide', pingNow);
 const seenSec = new Set();
-const secObs = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting && !seenSec.has(en.target.id)) { seenSec.add(en.target.id); track('sec', { n: en.target.id }); } }), { rootMargin: '-45% 0px -45% 0px' }); // a képernyő közepén áthaladó szakasz számít (a hosszú étlap is)
-['rolunk', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => $(id) && secObs.observe($(id)));
+// a képernyő közepén áthaladó szakasz számít (a hosszú étlap is); ez az "éppen nézett" rész is
+const secObs = new IntersectionObserver(es => es.forEach(en => { if (!en.isIntersecting) return; const id = en.target.id; window.vvSec = id; window.vvScroll = Math.max(window.vvScroll, scrollPct()); if (!seenSec.has(id)) { seenSec.add(id); if (id !== 'hero') track('sec', { n: id }); } }), { rootMargin: '-45% 0px -45% 0px' });
+['hero', 'rolunk', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => $(id) && secObs.observe($(id)));
 document.addEventListener('click', e => {
   const a = e.target.closest('a,button'); if (!a) return;
   const h = a.getAttribute('href') || '';

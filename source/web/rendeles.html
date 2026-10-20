@@ -268,6 +268,7 @@ async function load(){
 // A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
 // névtelen látogatottsági jelzés a weboldalnak (csak ha a weboldalon keresztül nyitották meg)
 let viaSite=false;
+setInterval(()=>{if(!document.hidden)siteTrack('ping')},20000);addEventListener('pagehide',()=>siteTrack('ping'));
 function siteTrack(t,o){if(!viaSite)return;try{navigator.sendBeacon('/api/t',new Blob([JSON.stringify(Object.assign({t,p:'/rendeles'},o||{}))],{type:'application/json'}))}catch(e){}}
 function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toString())return;
   const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=store.get('vv_me',{});me.city=ct;me.mode='delivery';store.set('vv_me',me)}

@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.1.0"
+const version = "1.2.0"
 
 var (
 	site    fs.FS
@@ -175,6 +175,8 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	}
 	secHeaders(w)
 	if langPages[p] || langPages[strings.TrimSuffix(p, "/")] {
+		// a Chrome/Edge/Samsung böngészők ezután megmondják a telefon pontos típusát és a rendszer verzióját
+		w.Header().Set("Accept-CH", "Sec-CH-UA-Model, Sec-CH-UA-Platform-Version")
 		sendFile(w, r, "index.html", "no-cache")
 		return
 	}

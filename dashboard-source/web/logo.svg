@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3261a"/><stop offset="1" stop-color="#b40f07"/>
+    </linearGradient>
+    <linearGradient id="hl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="114" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="114" fill="url(#hl)"/>
+  <!-- alapvonal -->
+  <rect x="96" y="398" width="320" height="14" rx="7" fill="#fff" opacity=".35"/>
+  <!-- oszlopok -->
+  <rect x="112" y="300" width="64" height="98" rx="18" fill="#fff" opacity=".72"/>
+  <rect x="210" y="232" width="64" height="166" rx="18" fill="#fff" opacity=".86"/>
+  <!-- a legmagasabb "oszlop" egy pipacs szára -->
+  <rect x="331" y="200" width="18" height="198" rx="9" fill="#fff"/>
+  <path d="M340 300 C 372 290 394 268 398 244 C 374 246 352 262 340 290 Z" fill="#fff"/>
+  <!-- virág: öt kerek szirom felülnézetből, sötét közép -->
+  <g transform="translate(340 150) rotate(-12)">
+    <circle cx="0.0" cy="-34.0" r="34" fill="#fff"/><circle cx="32.3" cy="-10.5" r="34" fill="#fff"/><circle cx="20.0" cy="27.5" r="34" fill="#fff"/><circle cx="-20.0" cy="27.5" r="34" fill="#fff"/><circle cx="-32.3" cy="-10.5" r="34" fill="#fff"/>
+    <circle r="22" fill="#e3261a"/>
+    <circle r="13" fill="#2a1410"/>
+  </g>
+</svg>

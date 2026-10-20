@@ -110,31 +110,34 @@ func defaultConfig() Config {
 	}
 }
 
-// Szállítási díjak: 200 Ft alapdíj + 90 Ft / km (Zalaudvarnoktól mért autós távolság),
+// Szállítási díjak: 250 Ft alapdíj + 110 Ft / km (Zalaudvarnoktól mért autós távolság),
 // 100 Ft-ra kerekítve. A távolságok a 2026 októberi településlistából valók.
 // Ha a táblát módosítod, emeld a feeTableVersion értékét: induláskor a régi tábla lecserélődik.
-const feeTableVersion = 3
+const feeTableVersion = 4
 
 func defaultFees() map[string]int {
 	return map[string]int{
-		"Zalaudvarnok":    200,
-		"Tüskeszentpéter": 400, "Zalaszentlászló": 400,
-		"Zalaszentgrót": 500,
-		"Aranyod":       600,
-		"Barátsziget":   700, "Csáford": 700, "Gyülevész": 700, "Kehida": 700, "Kisszentgrót": 700, "Sénye": 700, "Tekenye": 700, "Tilaj": 700,
-		"Kehidakustány": 800, "Zalakoppány": 800,
-		"Zalacsány": 900,
-		"Dötk":      1000, "Türje": 1000, "Zalabér": 1000,
-		"Batyk": 1100, "Kallósd": 1100, "Ligetfalva": 1100, "Zalaköveskút": 1100,
-		"Almásháza": 1200, "Bókaháza": 1200, "Pakod": 1200,
-		"Nemesbük": 1300, "Szalapa": 1300, "Zalavég": 1300,
-		"Padár": 1400, "Vindornyafok": 1400, "Óhíd": 1400,
-		"Bezeréd": 1500, "Bérbaltavár": 1500, "Gétye": 1500, "Karmacs": 1500, "Mihályfa": 1500, "Zalaapáti": 1500,
-		"Felsőpáhok": 1600, "Gyűrűs": 1600, "Hévíz": 1600, "Kisgörbő": 1600, "Nagykapornak": 1600, "Nagytilaj": 1600, "Orbányosfa": 1600, "Pókaszepetk": 1600, "Szentgyörgyvár": 1600, "Szentpéterúr": 1600, "Vindornyaszőlős": 1600,
-		"Alsópáhok": 1700, "Dabronc": 1700, "Kisvásárhely": 1700, "Mikosszéplak": 1700, "Nagygörbő": 1700, "Zalaerdőd": 1700, "Zalaistvánd": 1700, "Zalaszántó": 1700,
-		"Egeraracsa": 1800, "Esztergályhorváti": 1800, "Hetyefő": 1800, "Kemendollár": 1800, "Misefa": 1800, "Nemesrádó": 1800, "Rezi": 1800, "Sümegcsehi": 1800, "Vindornyalak": 1800, "Zalaigrice": 1800,
-		"Csehi": 1900, "Döbröce": 1900, "Oszkó": 1900, "Pacsa": 1900, "Zalaszentmárton": 1900,
-		"Bazsi": 2000, "Csehimindszent": 2000, "Cserszegtomaj": 2000, "Dióskál": 2000, "Gógánfa": 2000, "Sármellék": 2000, "Sümegprága": 2000, "Vöckönd": 2000, "Zalagyömörő": 2000, "Zalaszentlőrinc": 2000,
+		"Zalaudvarnok":    300,
+		"Tüskeszentpéter": 500, "Zalaszentlászló": 500,
+		"Zalaszentgrót": 600,
+		"Aranyod":       700,
+		"Barátsziget":   800, "Gyülevész": 800,
+		"Csáford": 900, "Kehida": 900, "Kisszentgrót": 900, "Sénye": 900, "Tekenye": 900, "Tilaj": 900,
+		"Kehidakustány": 1000, "Zalakoppány": 1000,
+		"Zalacsány": 1100,
+		"Dötk":      1200, "Türje": 1200, "Zalabér": 1200,
+		"Batyk": 1400, "Kallósd": 1400, "Ligetfalva": 1400, "Zalaköveskút": 1400,
+		"Almásháza": 1500, "Bókaháza": 1500, "Pakod": 1500,
+		"Nemesbük": 1600, "Szalapa": 1600, "Zalavég": 1600,
+		"Padár": 1700, "Vindornyafok": 1700, "Óhíd": 1700,
+		"Bezeréd": 1800, "Bérbaltavár": 1800, "Gétye": 1800, "Karmacs": 1800, "Mihályfa": 1800, "Zalaapáti": 1800,
+		"Felsőpáhok": 1900, "Kisgörbő": 1900, "Pókaszepetk": 1900, "Szentpéterúr": 1900,
+		"Gyűrűs": 2000, "Hévíz": 2000, "Nagykapornak": 2000, "Nagytilaj": 2000, "Orbányosfa": 2000, "Szentgyörgyvár": 2000, "Vindornyaszőlős": 2000,
+		"Alsópáhok": 2100, "Dabronc": 2100, "Kisvásárhely": 2100, "Mikosszéplak": 2100, "Nagygörbő": 2100, "Zalaerdőd": 2100, "Zalaistvánd": 2100, "Zalaszántó": 2100,
+		"Egeraracsa": 2200, "Esztergályhorváti": 2200, "Hetyefő": 2200, "Kemendollár": 2200, "Misefa": 2200, "Nemesrádó": 2200, "Rezi": 2200, "Sümegcsehi": 2200, "Vindornyalak": 2200, "Zalaigrice": 2200,
+		"Csehi": 2300, "Döbröce": 2300, "Oszkó": 2300, "Pacsa": 2300, "Zalaszentmárton": 2300,
+		"Csehimindszent": 2400, "Cserszegtomaj": 2400, "Dióskál": 2400, "Gógánfa": 2400, "Sármellék": 2400, "Vöckönd": 2400,
+		"Bazsi": 2500, "Sümegprága": 2500, "Zalagyömörő": 2500, "Zalaszentlőrinc": 2500,
 	}
 }
 

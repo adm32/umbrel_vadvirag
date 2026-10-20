@@ -191,6 +191,7 @@ type Order struct {
 	Total       int               `json:"total,omitempty"`   // weboldali rendelésnél: végösszeg (szállítással, ha ismert)
 	Payment     string            `json:"payment,omitempty"` // Készpénz | Kártya
 	Token       string            `json:"token,omitempty"`   // a vendég ezzel követi a rendelése állapotát
+	Visitor     string            `json:"visitor,omitempty"` // a weboldal sütijének hash-e (csak ha a vendég elfogadta) – az irányítópult ebből látja, honnan jött
 }
 
 const modePickup = "Személyes átvétel"

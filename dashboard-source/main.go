@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.1.0"
+const version = "1.2.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -162,6 +162,7 @@ type Order struct {
 	EmailState  string    `json:"email_state"`
 	EmailErr    string    `json:"email_err"`
 	Customer    string    `json:"cust"`
+	Visitor     string    `json:"visitor,omitempty"`
 }
 
 type Message struct {
@@ -773,6 +774,22 @@ func handleOverview(w http.ResponseWriter, r *http.Request) {
 	}()
 	go func() { defer wg.Done(); set("dish_names", dishNames()) }()
 	wg.Wait()
+	// a sütit elfogadó vendégek rendeléseihez: honnan jöttek, hányadik látogatásukon rendeltek
+	if os, ok := out["orders"].([]Order); ok {
+		seen, keys := map[string]bool{}, []string{}
+		for _, o := range os {
+			if o.Visitor != "" && !seen[o.Visitor] && len(keys) < 400 {
+				seen[o.Visitor] = true
+				keys = append(keys, o.Visitor)
+			}
+		}
+		if len(keys) > 0 {
+			var known json.RawMessage
+			if _, err := getJSON(siteStats, "/known?ck="+strings.Join(keys, ","), &known); err == nil {
+				out["known"] = known
+			}
+		}
+	}
 	mon.Lock()
 	checks := []Check{}
 	for _, d := range checkDefs {

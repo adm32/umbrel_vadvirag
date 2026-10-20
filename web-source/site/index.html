@@ -250,7 +250,7 @@
       <img class="foot-logo" src="/img/logo.webp" alt="Vadvirág" width="1200" height="406" loading="lazy">
       <p>Vadvirág Étterem és Rendezvényhelyszín · Zalaudvarnok</p>
       <p><a href="tel:+36203395099">06 20 339 5099</a> · <a href="https://www.facebook.com/vadviragetterem.zalaudvarnok" target="_blank" rel="noopener">Facebook</a> · <a href="/rendeles" data-t="orderOnline">Rendelés online</a></p>
-      <p class="copy">© <span id="year">2026</span> Vadvirág Étterem</p>
+      <p class="copy">© <span id="year">2026</span> Vadvirág Étterem · <button class="linkish foot-cookie" id="cookieSettings" data-t="ckSettings">Süti beállítások</button></p>
     </div>
   </div>
 </footer>
@@ -283,6 +283,32 @@
     <h3 id="algTitle" data-t="algTitle">Allergének</h3>
     <ol class="alg-list" id="algList"></ol>
     <p class="wheel-sub" data-t="algNote">Ha ételallergiád van, szólj nekünk rendeléskor, és segítünk választani.</p>
+  </div>
+</dialog>
+
+<!-- Süti hozzájárulás -->
+<div class="consent" id="consent" role="dialog" aria-live="polite" aria-labelledby="ckTitle" hidden>
+  <div class="consent-in">
+    <p><b id="ckTitle" data-t="ckTitle">Sütit csak az engedélyeddel</b> <span data-t="ckText">Ha elfogadod, egy sütiből látjuk, hogy visszatérsz-e, és a rendelésnél megjegyezzük az adataidat. Enélkül is minden működik.</span> <button class="linkish" id="ckMore" data-t="ckMore">Részletek</button></p>
+    <div class="consent-btns">
+      <button class="btn btn-ghost" id="ckNo" data-t="ckNo">Nem kérem</button>
+      <button class="btn btn-red" id="ckYes" data-t="ckYes">Elfogadom</button>
+    </div>
+  </div>
+</div>
+<dialog class="modal" id="ckInfo" aria-labelledby="ckInfoTitle">
+  <div class="modal-card">
+    <button class="x" data-close aria-label="Bezárás" data-ta="close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h3 id="ckInfoTitle" data-t="ckInfoTitle">Sütik és adatok</h3>
+    <div class="ck-info">
+      <p data-t="ckInfo1">Statisztikát süti nélkül, névtelenül készítünk: nem tároljuk az IP-címedet, és a napi azonosító másnap már nem köthető hozzád.</p>
+      <p data-t="ckInfo2">Ha elfogadod a sütit, a böngésződ egy véletlen kódot kap (vv_id, 13 hónapig). Ebből látjuk, hogy visszatérő látogató vagy, honnan találtál ránk, és a rendelésnél megjegyezzük a neved, telefonszámod és címed, hogy legközelebb ne kelljen újra beírnod. Az adataidat senkinek nem adjuk tovább, és nem használunk hirdetési sütit.</p>
+      <p data-t="ckInfo3">A döntésed bármikor megváltoztathatod a lap alján a „Süti beállítások” gombbal.</p>
+    </div>
+    <div class="consent-btns" style="margin-top:18px">
+      <button class="btn btn-ghost" data-ck="0" data-t="ckNo">Nem kérem</button>
+      <button class="btn btn-red" data-ck="1" data-t="ckYes">Elfogadom</button>
+    </div>
   </div>
 </dialog>
 

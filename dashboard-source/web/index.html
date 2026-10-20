@@ -296,6 +296,8 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
       <div class="card"><h3>Átvétel és fizetés</h3><ul class="bl purple" id="modes"></ul></div>
       <div class="card"><h3>Bevétel átvétel szerint</h3><ul class="bl orange" id="revModes"></ul></div>
       <div class="card"><h3>Elutasítás okai</h3><ul class="bl red" id="rejects"></ul></div>
+      <div class="card"><h3>Honnan jöttek a rendelők?<small>akik elfogadták a sütit</small></h3><ul class="bl purple" id="ordRefs"></ul></div>
+      <div class="card"><h3>Hányadik látogatáson rendeltek?</h3><ul class="bl indigo" id="ordVisits"></ul></div>
     </div>
     <div class="hdr"><h2>Lista</h2><span class="sp"></span><span class="note" id="ordCount" style="margin:0"></span></div>
     <div class="card"><div class="tbl-wrap"><table class="tbl" id="ordTable"></table></div>
@@ -333,7 +335,7 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
       <div class="card"><h3>Keresett települések<small>szállítunk oda</small></h3><ul class="bl teal" id="towns"></ul></div>
       <div class="card"><h3>Keresték, de nem szállítunk oda</h3><ul class="bl red" id="townsNo"></ul><p class="note">Ha valahonnan sokan keresnek, érdemes lehet oda is szállítani.</p></div>
     </div>
-    <p class="note" style="margin-top:16px">Sütik és a böngészőben tárolt azonosító nélkül számolunk: naponta cserélődő, névtelen azonosítóval, IP-cím tárolása nélkül. Ezért ugyanaz az ember két különböző napon két látogatónak számít, és azt sem tudjuk, ki jár vissza.</p>
+    <p class="note" style="margin-top:16px">Alapból sütik nélkül számolunk: naponta cserélődő, névtelen azonosítóval, IP-cím tárolása nélkül. Aki a weboldalon elfogadja a sütit, azt napokon át is felismerjük – csak náluk látszik, hogy visszatérnek-e, és a rendelésükhöz, honnan jöttek.</p>
   </section>
 
   <!-- ========== EGYENKÉNT ========== -->
@@ -462,7 +464,7 @@ const sq = (color, icon) => `<span class="sq" style="background:var(--${color})"
 const STATUS = { new: ['Vár', 'o'], preparing: ['Elfogadva', 'b'], done: ['Kész', 'g'], rejected: ['Elutasítva', 'r'] };
 const EVENTS = { add: 'Kosárba tett egy ételt', order_btn: '„Rendelés” gombra nyomott', order_page: 'Megnyitotta a rendelési oldalt', order_sent: 'Elküldött egy rendelést',
   wheel: 'Pörgetett a „Mit egyek ma?”-n', wheel_order: '…és rendelt a pörgetésből', town: 'Kiszállítást keresett', form: 'Üzenetet küldött', call: 'Hívás gombra nyomott',
-  route: 'Útvonalat kért', fb: 'Facebookra kattintott', lang: 'Nyelvet váltott', drinks: 'Megnézte az itallapot', gallery: 'Képet nagyított a galériában', alg: 'Megnézte az allergéneket', quick: 'Gyors csempét használt', page: 'Másik oldalt nyitott meg', error: 'Hiba történt a böngészőjében' };
+  route: 'Útvonalat kért', fb: 'Facebookra kattintott', lang: 'Nyelvet váltott', drinks: 'Megnézte az itallapot', gallery: 'Képet nagyított a galériában', alg: 'Megnézte az allergéneket', quick: 'Gyors csempét használt', consent_yes: 'Elfogadta a sütit', consent_no: 'Nem kérte a sütit', page: 'Másik oldalt nyitott meg', error: 'Hiba történt a böngészőjében' };
 const SECTIONS = { hero: 'a nyitó rész', rolunk: 'Rólunk', etlap: 'Étlap', rendezvenyek: 'Rendezvények', kiszallitas: 'Kiszállítás', galeria: 'Galéria', kapcsolat: 'Kapcsolat' };
 const LANGS = { hu: 'Magyar', en: 'Angol', de: 'Német' };
 const PAGES = { '/': 'Főoldal', '/en': 'Főoldal (angol)', '/de': 'Főoldal (német)', '/rendeles': 'Rendelési oldal' };
@@ -579,6 +581,7 @@ function personRow(s, live) {
   const [c, ic] = devIcon(s.device), open = openRows.has(s.id);
   const pills = [];
   if (live) pills.push(`<span class="pill g">● ${esc(SECTIONS[s.section] || 'az oldalon')}</span>`);
+  if (s.visit_no > 1) pills.push(`<span class="pill b">visszatérő · ${s.visit_no}. nap</span>`);
   if (s.ordered) pills.push('<span class="pill g">Rendelt</span>');
   else if (s.added) pills.push(`<span class="pill o">${s.added} kosárba</span>`);
   if ((s.events || []).some(e => e.n === 'error')) pills.push('<span class="pill r">hiba</span>');
@@ -592,7 +595,8 @@ function personDetail(s) {
     ['Hely', placeOf(s) || '–'], ['Honnan jött', (s.ref || 'közvetlen') + (s.campaign ? ' · ' + s.campaign : '')], ['Belépett itt', PAGES[s.entry] || s.entry],
     ['Az oldal nyelve', LANGS[s.lang] || s.lang || '–'], ['A böngésző nyelve', s.blang ? langName(s.blang) : '–'], ['Kapcsolat', s.conn ? s.conn.toUpperCase() : '–'],
     ['Az oldalon', `${dur(s.dur)} (${fmtHM(s.first)}–${fmtHM(s.last)})`], ['Lapozás', `${s.views || 1} oldal, ${s.scroll || 0}%-ig görgetett`],
-    ['Megnézte', (s.sections || []).map(x => SECTIONS[x] || x).join(', ') || '–']
+    ['Megnézte', (s.sections || []).map(x => SECTIONS[x] || x).join(', ') || '–'],
+    ['Süti', s.cookie ? `elfogadta · ${s.visit_no}. napja jár itt (először ${s.first_seen})` : 'nincs (névtelen)']
   ].filter(x => x[1]);
   const names = D.dish_names || {};
   const evs = (s.events || []).map(e => {
@@ -617,8 +621,8 @@ document.addEventListener('click', e => {
 /* ---------- megjelenítés ---------- */
 function render() {
   const errs = [];
-  if (D.site_error) errs.push(`A weboldal statisztikája nem érhető el (${D.site_error}). Fut a Vadvirág Weboldal app (1.2.0 vagy újabb)?`);
-  if (D.orders_error) errs.push(`A rendelések nem érhetők el (${D.orders_error}). Fut a Vadvirág Rendelések app (2.6.0 vagy újabb)?`);
+  if (D.site_error) errs.push(`A weboldal statisztikája nem érhető el (${D.site_error}). Fut a Vadvirág Weboldal app (1.3.0 vagy újabb)?`);
+  if (D.orders_error) errs.push(`A rendelések nem érhetők el (${D.orders_error}). Fut a Vadvirág Rendelések app (2.7.0 vagy újabb)?`);
   $('topErr').innerHTML = errs.map(e => `<div class="err-box">${esc(e)}</div>`).join('');
   const live = (D.site && D.site.live) || [], bad = (D.checks || []).filter(c => c.known && !c.ok);
   $('badBadge').hidden = !bad.length; $('badBadge').textContent = bad.length;
@@ -704,12 +708,17 @@ function renderOrders() {
   const rm = {}; ok.forEach(o => { const k = o.mode === 'Kiszállítás' ? 'Kiszállítás' : 'Elvitel'; rm[k] = (rm[k] || 0) + (o.total || 0); });
   const fees = sum(ok.filter(o => o.delivery_fee > 0), 'delivery_fee'); if (fees) rm['ebből szállítási díj'] = fees;
   barList('revModes', Object.entries(rm), { money: true, max: 4, empty: 'Még nincs bevétel.' });
+  const K = D.known || {}, src = {}, vn = {};
+  list.forEach(o => { const k = K[o.visitor]; if (!k) return; const r = (k.ref || 'közvetlen') + (k.campaign ? ' · ' + k.campaign : ''); src[r] = (src[r] || 0) + 1;
+    const dn = k.order_day || k.days, b = dn <= 1 ? 'az első napon' : dn <= 3 ? '2–3. napon' : dn <= 10 ? '4–10. napon' : 'törzsvendég (10+ nap)'; vn[b] = (vn[b] || 0) + 1; });
+  barList('ordRefs', Object.entries(src), { max: 8, empty: 'Még nincs olyan rendelés, ahol a vendég elfogadta a sütit.' });
+  barList('ordVisits', ['az első napon', '2–3. napon', '4–10. napon', 'törzsvendég (10+ nap)'].map(k => [k, vn[k] || 0]), { keepOrder: true, empty: 'Még nincs adat.' });
   const rj = {}; list.filter(o => o.status === 'rejected').forEach(o => { const k = o.reason || 'nincs megadva'; rj[k] = (rj[k] || 0) + 1; });
   barList('rejects', Object.entries(rj), { max: 6, empty: 'Nem volt elutasított rendelés.' });
   $('ordCount').textContent = list.length + ' rendelés';
   $('ordTable').innerHTML = list.length ? `<thead><tr><th>Idő</th><th>#</th><th>Vendég</th><th class="hide-m">Tételek</th><th>Átvétel</th><th class="num">Összeg</th><th>Állapot</th></tr></thead><tbody>` +
     list.slice(0, 200).map(o => { const s = STATUS[o.status] || [o.status, '']; const rep = o.cust && custAll[o.cust] > 1;
-      return `<tr><td>${fmtTime(o.created)}</td><td>${o.id}</td><td>${esc(o.name)}${rep ? ' <span class="pill b" title="Rendelt már máskor is">visszatérő</span>' : ''}</td><td class="hide-m"><span class="sub">${esc(itemsOf(o).map(([k, q]) => q + '× ' + k).join(', '))}</span></td><td>${o.mode === 'Kiszállítás' ? esc(o.city || 'Kiszállítás') : 'Elvitel'}</td><td class="num">${o.total ? huf(o.total) + ' Ft' : '–'}</td><td><span class="pill ${s[1]}">${esc(s[0])}</span>${o.email_state === 'failed' ? '<div class="sub" style="color:var(--red)">az e-mail nem ment el</div>' : ''}${o.status === 'rejected' && o.reason ? `<div class="sub">${esc(o.reason)}</div>` : ''}</td></tr>`; }).join('') + '</tbody>'
+      return `<tr><td>${fmtTime(o.created)}</td><td>${o.id}</td><td>${esc(o.name)}${rep ? ' <span class="pill b" title="Rendelt már máskor is">visszatérő</span>' : ''}${K[o.visitor] ? `<div class="sub">${esc((K[o.visitor].ref || 'közvetlen') + (K[o.visitor].campaign ? ' · ' + K[o.visitor].campaign : ''))}${K[o.visitor].days > 1 ? ` · ${K[o.visitor].days} napja jár ide` : ''}</div>` : ''}</td><td class="hide-m"><span class="sub">${esc(itemsOf(o).map(([k, q]) => q + '× ' + k).join(', '))}</span></td><td>${o.mode === 'Kiszállítás' ? esc(o.city || 'Kiszállítás') : 'Elvitel'}</td><td class="num">${o.total ? huf(o.total) + ' Ft' : '–'}</td><td><span class="pill ${s[1]}">${esc(s[0])}</span>${o.email_state === 'failed' ? '<div class="sub" style="color:var(--red)">az e-mail nem ment el</div>' : ''}${o.status === 'rejected' && o.reason ? `<div class="sub">${esc(o.reason)}</div>` : ''}</td></tr>`; }).join('') + '</tbody>'
     : '<tbody><tr><td class="empty">Ebben az időszakban nem volt rendelés.</td></tr></tbody>';
 }
 
@@ -726,7 +735,9 @@ function renderVisits() {
     { l: 'Gyorsan távozott', v: withDur ? pct(bounces, withDur) : '–', i: 'bounce', c: 'red', s: '10 mp-en belül, kattintás nélkül' },
     { l: 'Rendelt a weboldalról', v: vis ? (Math.min(sent, vis) / vis * 100).toFixed(1).replace('.', ',') + '%' : '–', i: 'cart', c: 'orange', s: `${sent} látogató rendelt a ${vis}-ból` },
     { l: 'Telefonról', v: pct(dev.telefon || 0, vis), i: 'phone', c: 'blue', s: `számítógépről ${pct(dev['számítógép'] || 0, vis)}` },
-    { l: 'Sötét módban', v: pct(sum(dl, 'dark'), vis), i: 'eye', c: 'purple', s: 'a látogatók közül' }
+    { l: 'Elfogadta a sütit', v: pct(sum(dl, 'consented'), vis), i: 'check', c: 'green', s: `${ev.consent_yes || 0} igen, ${ev.consent_no || 0} nem` },
+    { l: 'Visszatérő látogató', v: sum(dl, 'consented') ? pct(sum(dl, 'returning'), sum(dl, 'consented')) : '–', i: 'repeat', c: 'purple', s: 'a sütit elfogadók közül' },
+    { l: 'Sötét módban', v: pct(sum(dl, 'dark'), vis), i: 'eye', c: 'indigo', s: 'a látogatók közül' }
   ]);
   const tips = keys.map(k => `${shortDay(k)} ${dayName(k)}`);
   bars('chVisDays', n === 1 ? ['ma'] : keys.map(shortDay), keys.map(k => (by[k] || {}).visitors || 0), { tipLabels: tips, unit: ' látogató', maxLabels: 8, color: 'blue' });

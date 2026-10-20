@@ -35,7 +35,8 @@ type dashOrder struct {
 	Reason      string    `json:"reason,omitempty"`
 	EmailState  string    `json:"email_state,omitempty"`
 	EmailErr    string    `json:"email_err,omitempty"`
-	Customer    string    `json:"cust,omitempty"` // a telefonszámból képzett névtelen kód: így látszik, ki rendel újra
+	Customer    string    `json:"cust,omitempty"`
+	Visitor     string    `json:"visitor,omitempty"` // a telefonszámból képzett névtelen kód: így látszik, ki rendel újra
 }
 
 type dashMessage struct {
@@ -90,7 +91,7 @@ func (a *App) startDash() {
 			out = append(out, dashOrder{ID: o.ID, Source: o.Source, Created: o.Created, Name: o.Name, Mode: o.Mode, City: o.City,
 				Items: o.Items, Total: o.Total, DeliveryFee: o.DeliveryFee, Payment: o.Payment, Status: o.Status,
 				StatusAt: o.StatusAt, AcceptedAt: o.AcceptedAt, ETA: o.ETA, Reason: o.Reason, EmailState: o.EmailState, EmailErr: o.EmailErr,
-				Customer: custID(salt, o.Phone)})
+				Customer: custID(salt, o.Phone), Visitor: o.Visitor})
 		}
 		a.st.mu.Unlock()
 		writeJSON(w, 200, out)

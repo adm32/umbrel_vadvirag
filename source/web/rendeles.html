@@ -150,6 +150,12 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .nudge{margin:16px auto 0;max-width:420px;background:#fff6e6;border:1px solid #f1d7a6;color:#7a4a00;border-radius:14px;padding:12px 14px;font-size:15px}
 .priv{color:var(--ink3);font-size:12.5px;text-align:center;margin-top:14px;line-height:1.5}
 @media (min-width:700px){header{padding-top:36px}.it{padding:16px 18px}}
+/* süti hozzájárulás */
+.consent{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:45;max-width:560px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:0 20px 44px -20px #2a282399;display:grid;gap:10px;animation:ckin .35s cubic-bezier(.2,1.2,.4,1)}
+.consent p{font-size:14px;color:var(--ink2);line-height:1.45;margin:0}.consent p b{color:var(--ink)}
+.consent .cb{display:flex;gap:8px}.consent .cb button{flex:1;height:44px;border-radius:12px;font-weight:700;font-size:15px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.consent .cb .yes{background:var(--red);border-color:var(--red);color:#fff}
+@keyframes ckin{from{opacity:0;transform:translateY(12px)}}
 </style></head><body>
 
 <div id="menuView">
@@ -241,6 +247,22 @@ const SVG={plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
  heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/></svg>'};
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 
+// --- süti hozzájárulás (ugyanaz, mint a weboldalon: vv_consent, vv_id) ---
+// A vendég adatait (név, telefon, cím) csak akkor jegyezzük meg a következő rendelésre, ha elfogadta.
+// A kosár és a folyamatban lévő rendelés követése a rendeléshez szükséges, az mindig megmarad.
+const getCookie=n=>(document.cookie.split('; ').find(c=>c.startsWith(n+'='))||'').split('=')[1]||'';
+const setCookie=(n,v,d)=>{document.cookie=`${n}=${v}; Max-Age=${d*86400}; Path=/; SameSite=Lax${location.protocol==='https:'?'; Secure':''}`};
+const consented=()=>getCookie('vv_consent')==='1';
+let meMem={};
+const meGet=()=>consented()?store.get('vv_me',{}):meMem;
+const meSet=v=>{meMem=v;if(consented())store.set('vv_me',v)};
+function setConsent(yes){setCookie('vv_consent',yes?'1':'0',390);
+  if(yes){if(!/^[0-9a-f]{32}$/.test(getCookie('vv_id'))){const b=crypto.getRandomValues(new Uint8Array(16));setCookie('vv_id',[...b].map(x=>x.toString(16).padStart(2,'0')).join(''),390)}if(Object.keys(meMem).length)store.set('vv_me',meMem)}
+  else{setCookie('vv_id','',0);try{localStorage.removeItem('vv_me')}catch(e){}}
+  const c=document.getElementById('consent');if(c)c.remove();siteTrack('ev',{n:yes?'consent_yes':'consent_no'})}
+function showConsent(){if(getCookie('vv_consent'))return;const d=document.createElement('div');d.id='consent';d.className='consent';
+  d.innerHTML='<p><b>Megjegyezzük az adataidat?</b> Ha elfogadod a sütit, legközelebb nem kell újra beírnod a nevedet, telefonszámodat és címedet. Enélkül is ugyanúgy rendelhetsz.</p><div class="cb"><button class="no">Nem kérem</button><button class="yes">Elfogadom</button></div>';
+  d.querySelector('.yes').onclick=()=>setConsent(true);d.querySelector('.no').onclick=()=>setConsent(false);document.body.appendChild(d)}
 let M=null, idx={}, cart=store.get('vv_cart',{}), mode='pickup', pay='Készpénz', phone='06 20 339 5099', isOpen=true;
 const telHref=()=>'tel:'+phone.replace(/[^+\d]/g,'');
 const key=(id,v)=>id+'|'+(v||'');
@@ -263,7 +285,7 @@ async function load(){
   renderMenu();updateCart();
   const tok=(location.hash.match(/r=([a-z0-9]+)/)||[])[1];
   if(tok)showStatus(tok);else checkActive();
-  fromSite();
+  fromSite();setTimeout(showConsent,1500);
 }
 // A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
 // névtelen látogatottsági jelzés a weboldalnak (csak ha a weboldalon keresztül nyitották meg)
@@ -271,7 +293,7 @@ let viaSite=false;
 setInterval(()=>{if(!document.hidden)siteTrack('ping')},20000);addEventListener('pagehide',()=>siteTrack('ping'));
 function siteTrack(t,o){if(!viaSite)return;try{navigator.sendBeacon('/api/t',new Blob([JSON.stringify(Object.assign({t,p:'/rendeles'},o||{}))],{type:'application/json'}))}catch(e){}}
 function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toString())return;
-  const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=store.get('vv_me',{});me.city=ct;me.mode='delivery';store.set('vv_me',me)}
+  const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=meGet();me.city=ct;me.mode='delivery';meSet(me)}
   const ad=qs.get('add');if(ad&&idx[ad]&&isOpen){const it=idx[ad];const vs=it.variants||[];let v=qs.get('v')||'';if(vs.length&&!vs.some(x=>x.label===v))v=vs[0].label;if(!vs.length)v='';
     if(!cart[key(ad,v)])add(ad,v||undefined);setTimeout(()=>{const e=document.getElementById('i_'+ad);if(e)e.scrollIntoView({block:'center',behavior:'smooth'})},120)}
   history.replaceState(null,'',location.pathname+location.hash)}
@@ -326,7 +348,7 @@ $('q').addEventListener('input',()=>renderMenu());
 
 // ---- fizetés
 function openCheckout(){renderCheckout();$('toast').classList.remove('show');$('checkout').classList.add('open');pushSheet();$('cartbar').classList.remove('show');document.body.style.overflow='hidden';
-  const saved=store.get('vv_me',{});['name','phone','email','street'].forEach(f=>{if(saved[f]&&!$(f).value)$(f).value=saved[f]});if(saved.city&&!$('city').value){$('city').value=saved.city}if(saved.mode)setMode(saved.mode);renderSum()}
+  const saved=meGet();['name','phone','email','street'].forEach(f=>{if(saved[f]&&!$(f).value)$(f).value=saved[f]});if(saved.city&&!$('city').value){$('city').value=saved.city}if(saved.mode)setMode(saved.mode);renderSum()}
 function closeCheckout(fromPop){$('checkout').classList.remove('open');document.body.style.overflow='';updateCart();if(!fromPop)popSheet()}
 // A telefon „vissza” gombja zárja be a kosarat/állapotot, ne lépjen ki az oldalról
 let sheetPushed=false;
@@ -369,7 +391,7 @@ async function submitOrder(){
     const r=await fetch('/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,mode,city:mode==='delivery'?city:'',street:mode==='delivery'?v('street'):'',name:v('name'),phone:v('phone'),email:v('email'),note:v('note'),payment:pay,website:$('website').value})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Nem sikerült elküldeni. Próbáld újra, vagy hívj minket!');
-    store.set('vv_me',{name:v('name'),phone:v('phone'),email:v('email'),street:v('street'),city:v('city'),mode});
+    meSet({name:v('name'),phone:v('phone'),email:v('email'),street:v('street'),city:v('city'),mode});
     cart={};store.set('vv_cart',cart);store.set('vv_last',d.token);
     history.replaceState(null,'',location.pathname+'#r='+d.token);
     $('note').value='';renderMenu();updateCart();

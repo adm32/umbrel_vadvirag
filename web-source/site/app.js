@@ -450,6 +450,29 @@ if (!reduced) {
   start();
 }
 
+/* ---------------------------------------------------------------- süti hozzájárulás */
+// vv_consent: a döntés (1/0) – ez maga szükséges süti, enélkül minden alkalommal kérdeznénk.
+// vv_id: véletlen kód, csak elfogadás után; a rendelési oldal is ezt használja.
+const getCookie = n => (document.cookie.split('; ').find(c => c.startsWith(n + '=')) || '').split('=')[1] || '';
+const secureAttr = location.protocol === 'https:' ? '; Secure' : '';
+const setCookie = (n, v, days) => { document.cookie = `${n}=${v}; Max-Age=${days * 86400}; Path=/; SameSite=Lax${secureAttr}`; };
+function setConsent(yes) {
+  setCookie('vv_consent', yes ? '1' : '0', 390);
+  if (yes) { if (!/^[0-9a-f]{32}$/.test(getCookie('vv_id'))) { const b = crypto.getRandomValues(new Uint8Array(16)); setCookie('vv_id', [...b].map(x => x.toString(16).padStart(2, '0')).join(''), 390); } }
+  else { setCookie('vv_id', '', 0); try { localStorage.removeItem('vv_me'); } catch (e) {} }   // a rendelésnél megjegyzett adatokat is töröljük
+  $('consent').hidden = true; document.body.classList.remove('ck-open');
+  if ($('ckInfo').open) $('ckInfo').close();
+  track('ev', { n: yes ? 'consent_yes' : 'consent_no' });
+  toast(T(yes ? 'ckSavedYes' : 'ckSavedNo'));
+}
+function showConsent() { $('consent').hidden = false; document.body.classList.add('ck-open'); }
+$('ckYes').addEventListener('click', () => setConsent(true));
+$('ckNo').addEventListener('click', () => setConsent(false));
+$$('#ckInfo [data-ck]').forEach(b => b.addEventListener('click', () => setConsent(b.dataset.ck === '1')));
+$('ckMore').addEventListener('click', () => openModal($('ckInfo')));
+$('cookieSettings').addEventListener('click', () => openModal($('ckInfo')));
+if (!getCookie('vv_consent')) setTimeout(showConsent, 1200);   // a nyitó animáció után
+
 /* ---------------------------------------------------------------- indulás */
 $('year').textContent = new Date().getFullYear();
 setLang(pickLang(), false);

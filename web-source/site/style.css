@@ -463,3 +463,21 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
   .foot{padding-top:40px}
   .foot-poppy{display:none}
 }
+
+/* süti hozzájárulás – a lap alján, nem takar el semmit végleg */
+.consent{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;display:flex;justify-content:center;pointer-events:none}
+.consent[hidden]{display:none}
+.consent-in{pointer-events:auto;max-width:720px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:0 24px 50px -24px #2a282399;display:flex;gap:16px;align-items:center;animation:rise .4s cubic-bezier(.2,1.2,.4,1)}
+.consent-in p{flex:1;font-size:14.5px;color:var(--ink2);line-height:1.45}
+.consent-in p b{color:var(--ink);font-weight:600}
+.consent-btns{display:flex;gap:10px;flex:none}
+.consent-btns .btn{height:44px;padding:0 18px;font-size:15px}
+.linkish{color:var(--red);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.foot-cookie{color:#d9c7b2;font:inherit;text-decoration:underline;text-underline-offset:2px;font-weight:400}
+.ck-info{display:grid;gap:10px;color:var(--ink2);font-size:15px;line-height:1.5;margin-top:8px}
+body.ck-open .dock{transform:translateY(110%)}
+@media (max-width:640px){
+  .consent{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom))}
+  .consent-in{flex-direction:column;align-items:stretch;gap:12px;padding:14px 15px}
+  .consent-btns .btn{flex:1}
+}

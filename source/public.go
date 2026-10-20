@@ -4,7 +4,9 @@ package main
 // a szerver a saját étlapja alapján számolja az árat, majd a vendég élőben látja az állapotát.
 
 import (
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -246,7 +248,7 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 	rlMu.Unlock()
 
 	o := &Order{
-		Source: "web", Name: in.Name, Phone: in.Phone, Email: in.Email, Mode: mode,
+		Source: "web", Visitor: visitorKey(r), Name: in.Name, Phone: in.Phone, Email: in.Email, Mode: mode,
 		Items: itemsText, Note: in.Note, Payment: payment,
 		Token: randStr(22, "abcdefghjkmnpqrstuvwxyz23456789"),
 		Extra: map[string]string{"Fizetés módja": payment},
@@ -390,4 +392,20 @@ func secHeaders(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(w, r)
 	})
+}
+
+// visitorKey: a weboldal "vv_id" sütijének hash-e – ugyanúgy képezve, mint a weboldal statisztikájában.
+// Csak akkor van, ha a vendég elfogadta a sütit; magát a kódot nem tároljuk.
+func visitorKey(r *http.Request) string {
+	c, err := r.Cookie("vv_id")
+	if err != nil || len(c.Value) != 32 {
+		return ""
+	}
+	for _, ch := range c.Value {
+		if !(ch >= '0' && ch <= '9' || ch >= 'a' && ch <= 'f') {
+			return ""
+		}
+	}
+	h := sha256.Sum256([]byte("vadvirag-visitor|" + c.Value))
+	return hex.EncodeToString(h[:10])
 }

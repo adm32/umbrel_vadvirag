@@ -85,11 +85,14 @@ type Day struct {
 	FunMenu  int `json:"fun_menu"`
 	FunAdd   int `json:"fun_add"`
 	FunOrder int `json:"fun_order_page"`
-	Errors   int `json:"js_errors"`
-	Srv5xx   int `json:"srv_5xx"`
-	Upstream int `json:"upstream_errors"`
-	seen     map[string]bool
-	hourSeen [24]map[string]bool
+	// süti (csak hozzájárulással): visszatérő / új látogatók
+	Consented int `json:"consented"`
+	Returning int `json:"returning"`
+	Errors    int `json:"js_errors"`
+	Srv5xx    int `json:"srv_5xx"`
+	Upstream  int `json:"upstream_errors"`
+	seen      map[string]bool
+	hourSeen  [24]map[string]bool
 }
 
 // Session – egy látogató egy napon (névtelen, naponta új azonosító).
@@ -120,6 +123,23 @@ type Session struct {
 	Events    []SessEv  `json:"events"`
 	Added     int       `json:"added"`
 	Ordered   bool      `json:"ordered,omitempty"`
+	// csak ha elfogadta a sütit: hányadszor jár itt, mikor először
+	Cookie    bool   `json:"cookie,omitempty"`
+	VisitNo   int    `json:"visit_no,omitempty"`
+	CK        string `json:"ck,omitempty"` // a süti hash-e: ezzel köti össze az irányítópult a rendeléssel
+	FirstSeen string `json:"first_seen,omitempty"`
+}
+
+// Known – egy sütit elfogadó látogató (a süti kódját nem, csak a hash-ét tároljuk).
+type Known struct {
+	First    string `json:"first"`               // első nap
+	Last     string `json:"last"`                // utolsó nap
+	Days     int    `json:"days"`                // hány különböző napon járt itt
+	Ref      string `json:"ref,omitempty"`       // honnan jött először
+	Campaign string `json:"campaign,omitempty"`  // melyik kampánylinkről először
+	Device   string `json:"device,omitempty"`    // első eszköze
+	Orders   int    `json:"orders,omitempty"`    // hányszor küldött rendelést
+	OrderDay int    `json:"order_day,omitempty"` // hányadik itt töltött napján rendelt először
 }
 
 type SessEv struct {
@@ -144,6 +164,7 @@ type statsFile struct {
 	Seen     map[string]bool                `json:"seen_today"`
 	HourSeen [24]map[string]bool            `json:"hour_seen_today"`
 	Sessions map[string]map[string]*Session `json:"sessions"` // nap -> látogató hash -> részletek
+	Known    map[string]*Known              `json:"known"`    // süti kódjának hash-e -> visszatérés (csak hozzájárulással)
 	Errors   []ErrEntry                     `json:"errors"`
 }
 
@@ -205,6 +226,9 @@ func statsInit() {
 	}
 	if st.f.Sessions == nil {
 		st.f.Sessions = map[string]map[string]*Session{}
+	}
+	if st.f.Known == nil {
+		st.f.Known = map[string]*Known{}
 	}
 	for _, d := range st.f.Days {
 		d.init()
@@ -329,6 +353,12 @@ func statsSave(force bool) {
 			delete(st.f.Days, k)
 		}
 	}
+	kcut := dayKey(now.AddDate(0, 0, -400)) // a süti 13 hónapig él – utána a nyilvántartásból is törlődik
+	for k, v := range st.f.Known {
+		if v.Last < kcut {
+			delete(st.f.Known, k)
+		}
+	}
 	scut := dayKey(now.AddDate(0, 0, -sessionDays))
 	for k := range st.f.Sessions {
 		if k < scut {
@@ -394,6 +424,18 @@ func isBot(ua string) bool {
 func visitorID(r *http.Request) string {
 	h := sha256.Sum256([]byte(st.f.Salt + "|" + clientIP(r) + "|" + r.UserAgent()))
 	return hex.EncodeToString(h[:8])
+}
+
+var cookieRe = regexp.MustCompile(`^[0-9a-f]{32}$`)
+
+// cookieKey: a "vv_id" süti (csak akkor van, ha a látogató elfogadta) hash-e; különben üres.
+func cookieKey(r *http.Request) string {
+	c, err := r.Cookie("vv_id")
+	if err != nil || !cookieRe.MatchString(c.Value) {
+		return ""
+	}
+	h := sha256.Sum256([]byte("vadvirag-visitor|" + c.Value))
+	return hex.EncodeToString(h[:10])
 }
 
 func countryOf(r *http.Request) string {
@@ -649,7 +691,7 @@ type beacon struct {
 }
 
 var allowedEvents = map[string]bool{"add": true, "wheel": true, "wheel_order": true, "town": true, "form": true, "lang": true, "call": true,
-	"route": true, "fb": true, "order_sent": true, "order_page": true, "order_btn": true, "drinks": true, "search": true, "gallery": true, "alg": true, "quick": true}
+	"route": true, "fb": true, "order_sent": true, "order_page": true, "order_btn": true, "consent_yes": true, "consent_no": true, "drinks": true, "search": true, "gallery": true, "alg": true, "quick": true}
 var allowedSections = map[string]bool{"hero": true, "rolunk": true, "etlap": true, "rendezvenyek": true, "kiszallitas": true, "galeria": true, "kapcsolat": true}
 
 func campaignOf(q string) string {
@@ -685,6 +727,27 @@ func handleBeacon(w http.ResponseWriter, r *http.Request) {
 	defer st.Unlock()
 	d := today()
 	id := visitorID(r)
+	ck := cookieKey(r)
+	if ck != "" {
+		// sütivel: a napi azonosító a sütiből jön (így akkor is ugyanaz, ha közben más hálózatra vált)
+		h := sha256.Sum256([]byte(st.f.Salt + "|c|" + ck))
+		cid := hex.EncodeToString(h[:8])
+		// ha ma már járt itt süti nélkül (az elfogadás előtt), azt a látogatást visszük tovább
+		if ss := st.f.Sessions[d.Date]; ss != nil && ss[cid] == nil && ss[id] != nil {
+			ss[cid] = ss[id]
+			ss[cid].ID = cid[:6]
+			delete(ss, id)
+		}
+		if d.seen[id] && !d.seen[cid] {
+			d.seen[cid] = true
+		}
+		for h := range d.hourSeen {
+			if d.hourSeen[h][id] {
+				d.hourSeen[h][cid] = true
+			}
+		}
+		id = cid
+	}
 	page := clip(b.P, 40)
 	if page == "" {
 		page = "/"
@@ -709,6 +772,29 @@ func handleBeacon(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.Last = now
+	if ck != "" && !s.Cookie {
+		s.Cookie = true
+		k := st.f.Known[ck]
+		if k == nil {
+			k = &Known{First: d.Date, Ref: s.Ref, Campaign: s.Campaign}
+			if s.OS != "" {
+				k.Device = deviceTitle(s)
+			}
+			st.f.Known[ck] = k
+		}
+		if k.Last != d.Date {
+			k.Days++
+			k.Last = d.Date
+			d.Consented++
+			if k.Days > 1 {
+				d.Returning++
+			}
+		}
+		s.VisitNo, s.FirstSeen = k.Days, k.First
+	}
+	if ck != "" {
+		s.CK = ck
+	}
 	if b.S != "" && allowedSections[b.S] {
 		s.Section = b.S
 	}
@@ -734,6 +820,9 @@ func handleBeacon(w http.ResponseWriter, r *http.Request) {
 				s.Ref = refHost(b.R, r.Host)
 			}
 			s.Campaign = campaignOf(b.Q)
+		}
+		if k := st.f.Known[ck]; ck != "" && k != nil && k.Ref == "" && k.Days <= 1 {
+			k.Ref, k.Campaign, k.Device = s.Ref, s.Campaign, deviceTitle(s)
 		}
 		if !d.seen[id] {
 			d.seen[id] = true
@@ -795,6 +884,12 @@ func handleBeacon(w http.ResponseWriter, r *http.Request) {
 			}
 		case "order_sent":
 			s.Ordered = true
+			if k := st.f.Known[ck]; k != nil {
+				k.Orders++
+				if k.OrderDay == 0 {
+					k.OrderDay = k.Days
+				}
+			}
 		}
 		addEv(b.N, v)
 	case "err":
@@ -884,6 +979,18 @@ func statsServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /stats", handleStats)
 	mux.HandleFunc("GET /sessions", handleSessions)
+	// GET /known?ck=a,b,c – a sütit elfogadó látogatók (a rendelésekhez: honnan jött, hányadszorra rendelt)
+	mux.HandleFunc("GET /known", func(w http.ResponseWriter, r *http.Request) {
+		st.Lock()
+		defer st.Unlock()
+		out := map[string]*Known{}
+		for _, k := range strings.Split(r.URL.Query().Get("ck"), ",") {
+			if v := st.f.Known[k]; v != nil && len(out) < 500 {
+				out[k] = v
+			}
+		}
+		writeJSONs(w, out)
+	})
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		upMu.RLock()
 		up := upstream.String()
@@ -991,4 +1098,15 @@ func handleSessions(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].First.After(out[j].First) })
 	writeJSONs(w, map[string]any{"date": date, "sessions": out})
+}
+
+func deviceTitle(s *Session) string {
+	m := s.Model
+	if m == "" {
+		m = s.Device
+	}
+	if s.OS != "" {
+		m += " · " + s.OS
+	}
+	return m
 }

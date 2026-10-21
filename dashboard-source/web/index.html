@@ -416,6 +416,8 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
 <div class="tip" id="tip"></div>
 
 <script>
+// Az esemény célpontja elemként (szöveg csomópontnál a szülője; ablak/dokumentum esetén null)
+const tgt = e => { let t = e && e.target; if (t && t.nodeType === 3) t = t.parentNode; return t && t.nodeType === 1 ? t : null; };
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
@@ -538,7 +540,7 @@ function bars(el, labels, values, opt = {}) {
   const svg = el.querySelector('svg'), tip = $('tip');
   const hide = () => { tip.classList.remove('show'); svg.querySelectorAll('.b.on').forEach(b => b.classList.remove('on')); };
   const show = e => {
-    const t = e.target.closest('[data-i]'); if (!t) return hide();
+    const t = tgt(e)?.closest('[data-i]'); if (!t) return hide();
     const i = +t.dataset.i; svg.querySelectorAll('.b').forEach(b => b.classList.toggle('on', +b.dataset.i === i));
     const rr = svg.getBoundingClientRect(), x = rr.left + (pl + i * bw + bw / 2) / W * rr.width, y = rr.top + (pt + ih - values[i] / top * ih) / H * rr.height;
     tip.textContent = `${opt.tipLabels ? opt.tipLabels[i] : labels[i]}: ${opt.money ? huf(values[i]) + ' Ft' : values[i] + (opt.unit || '')}`;
@@ -612,7 +614,7 @@ function personDetail(s) {
     `<ul class="tl"><li><time>${fmtHM(s.first)}</time>Megérkezett: <b>${esc(PAGES[s.entry] || s.entry)}</b></li>${evs.join('')}${s.dur >= 10 ? `<li><time>${fmtHM(s.last)}</time>Utoljára aktív</li>` : ''}</ul>`;
 }
 document.addEventListener('click', e => {
-  const r = e.target.closest('.row[data-sid]'); if (!r) return;
+  const r = tgt(e)?.closest('.row[data-sid]'); if (!r) return;
   const id = r.dataset.sid, det = r.nextElementSibling, open = r.getAttribute('aria-expanded') !== 'true';
   r.setAttribute('aria-expanded', String(open)); if (det) det.hidden = !open;
   open ? openRows.add(id) : openRows.delete(id);
@@ -783,7 +785,7 @@ function renderDayPick() {
   el.innerHTML = keys.map((k, i) => `<button data-day="${k}" aria-pressed="${k === cur}"${avail.includes(k) || i === 0 ? '' : ' disabled style="opacity:.4"'}>${i === 0 ? 'Ma' : i === 1 ? 'Tegnap' : shortDay(k)}</button>`).join('');
   placeKnob(el);
 }
-$('dayPick').addEventListener('click', e => { const b = e.target.closest('[data-day]'); if (!b || b.disabled) return; peopleDay = b.dataset.day; renderDayPick(); people = null; $('peopleList').innerHTML = '<p class="empty">Betöltés…</p>'; loadPeople(); });
+$('dayPick').addEventListener('click', e => { const b = tgt(e)?.closest('[data-day]'); if (!b || b.disabled) return; peopleDay = b.dataset.day; renderDayPick(); people = null; $('peopleList').innerHTML = '<p class="empty">Betöltés…</p>'; loadPeople(); });
 function renderPeople() {
   const list = people || [];
   if (!list.length) { $('peopleList').innerHTML = '<p class="empty">Ezen a napon még nem járt senki az oldalon.</p>'; return; }
@@ -855,7 +857,7 @@ addEventListener('hashchange', () => setView(location.hash.slice(1), false));
 const PERIODS = [[1, 'Ma'], [7, '7 nap'], [30, '30 nap'], [90, '90 nap']];
 $$('[data-period]').forEach(seg => {
   seg.innerHTML = PERIODS.map(([n, l]) => `<button data-p="${n}">${l}</button>`).join('');
-  seg.addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; period = +b.dataset.p; markPeriod(); if (period > loadedDays) load(); else render(); });
+  seg.addEventListener('click', e => { const b = tgt(e)?.closest('[data-p]'); if (!b) return; period = +b.dataset.p; markPeriod(); if (period > loadedDays) load(); else render(); });
 });
 function markPeriod() { $$('[data-p]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.p === period))); $$('[data-period]').forEach(placeKnob); }
 let rsT; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => $$('.chart').forEach(c => { if (c._args && c.offsetParent) bars(c, ...c._args); }), 150); placeKnob($('tabs')); $$('[data-period]').forEach(placeKnob); placeKnob($('dayPick')); });

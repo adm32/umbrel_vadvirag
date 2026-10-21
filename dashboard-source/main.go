@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.2.1"
+const version = "1.2.2"
 
 //go:embed web
 var webRoot embed.FS

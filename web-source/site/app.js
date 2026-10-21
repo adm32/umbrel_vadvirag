@@ -3,6 +3,8 @@
 'use strict';
 document.documentElement.classList.add('js');
 const $ = id => document.getElementById(id);
+// Az esemény célpontja elemként (szöveg csomópontnál a szülője; ablak/dokumentum esetén null)
+const tgt = e => { let t = e && e.target; if (t && t.nodeType === 3) t = t.parentNode; return t && t.nodeType === 1 ? t : null; };
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const huf = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -61,7 +63,7 @@ const onScroll = () => {
   else if (down) dock.classList.remove('show');
   if (down || up) lastY = y;
 };
-document.addEventListener('focusin', e => { if (e.target.matches('input,textarea,select')) { typing = true; $('dock').classList.remove('show'); } });
+document.addEventListener('focusin', e => { if (tgt(e)?.matches('input,textarea,select')) { typing = true; $('dock').classList.remove('show'); } });
 document.addEventListener('focusout', () => { typing = false; });
 addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
@@ -137,8 +139,8 @@ function goSection(go) {
   const t = $('etlap').querySelector('.chips-bar'), y = t.getBoundingClientRect().top + scrollY - top.offsetHeight;
   if (scrollY > y) scrollTo({ top: y, behavior: reduced ? 'auto' : 'smooth' });
 }
-$('chips').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) goSection(b.dataset.go); });
-$('etlap').addEventListener('click', e => { const b = e.target.closest('.pager [data-go]'); if (b) goSection(b.dataset.go); });
+$('chips').addEventListener('click', e => { const b = tgt(e)?.closest('[data-go]'); if (b) goSection(b.dataset.go); });
+$('etlap').addEventListener('click', e => { const b = tgt(e)?.closest('.pager [data-go]'); if (b) goSection(b.dataset.go); });
 
 function itemHTML(it) {
   const { name, desc } = trItem(it);
@@ -210,7 +212,7 @@ new IntersectionObserver(([e]) => chipsBar.classList.toggle('stuck', e.intersect
 
 // kosárba gomb: rövid visszajelzés, aztán megyünk a rendelési oldalra
 document.addEventListener('click', e => {
-  const a = e.target.closest('a.add, a.add-v'); if (!a) return;
+  const a = tgt(e)?.closest('a.add, a.add-v'); if (!a) return;
   e.preventDefault(); toast(T('added'));
   try { track('ev', { n: 'add', v: new URL(a.href, location.href).searchParams.get('add') }); } catch (er) {}
   a.closest('.mi')?.classList.add('hit');
@@ -222,7 +224,7 @@ document.addEventListener('click', e => {
 function renderAlg(hl) { $('algList').innerHTML = T('alg').map((a, i) => `<li class="${hl && hl.includes(String(i + 1)) ? 'hl' : ''}">${esc(a)}</li>`).join(''); }
 $('algBtn').addEventListener('click', () => { renderAlg(); openModal($('alg')); });
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-alg]'); if (!b) return;
+  const b = tgt(e)?.closest('[data-alg]'); if (!b) return;
   const all = [...b.parentElement.querySelectorAll('[data-alg]')].map(x => x.dataset.alg);
   e.preventDefault();
   renderAlg(all); openModal($('alg')); track('ev', { n: 'alg' });
@@ -230,7 +232,7 @@ document.addEventListener('click', e => {
 
 /* ---------------------------------------------------------------- modális ablakok */
 $$('dialog').forEach(d => {
-  d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
+  d.addEventListener('click', e => { if (e.target === d || tgt(e)?.closest('[data-close]')) d.close(); });
   d.addEventListener('close', () => { document.body.style.overflow = ''; });
 });
 const openModal = d => { d.showModal(); document.body.style.overflow = 'hidden'; };
@@ -247,7 +249,7 @@ function buildWheelFilters() {
   const secs = M.sections.filter(s => !WHEEL_SKIP.includes(s.id));
   $('wheelFilters').innerHTML = `<button class="chip${wheelSec === 'all' ? ' on' : ''}" data-ws="all">${esc(T('all'))}</button>` + secs.map(s => `<button class="chip${wheelSec === s.id ? ' on' : ''}" data-ws="${s.id}">${esc(trSecShort(s))}</button>`).join('');
 }
-$('wheelFilters').addEventListener('click', e => { const b = e.target.closest('[data-ws]'); if (!b || spinning) return; wheelSec = b.dataset.ws; buildWheelFilters(); });
+$('wheelFilters').addEventListener('click', e => { const b = tgt(e)?.closest('[data-ws]'); if (!b || spinning) return; wheelSec = b.dataset.ws; buildWheelFilters(); });
 $('wheelBtn').addEventListener('click', () => {
   buildWheelFilters(); $('reelName').textContent = '?'; $('reelName').className = 'reel-name'; $('reelMeta').textContent = '';
   $('wheelOrder').hidden = true; $('spin').textContent = T('spin'); openModal($('wheel'));
@@ -343,7 +345,7 @@ $$('[data-kind]', form).forEach(b => b.addEventListener('click', () => setKind(b
 $$('a[data-kind]').forEach(a => a.addEventListener('click', () => setKind(a.dataset.kind)));
 // ma előtti napot ne lehessen választani
 (() => { const d = new Date(); const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); form.elements.date.min = iso; })();
-form.addEventListener('input', e => e.target.closest('.f')?.classList.remove('bad'));
+form.addEventListener('input', e => tgt(e)?.closest('.f')?.classList.remove('bad'));
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const v = Object.fromEntries(new FormData(form));
@@ -444,7 +446,7 @@ if (!reduced) {
   addEventListener('resize', resize);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(hero);
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-  hero.addEventListener('pointerdown', e => { if (e.target.closest('a,button')) return; burst(e.clientX, e.clientY, 8); document.querySelector('.hero-hint').classList.remove('show'); });
+  hero.addEventListener('pointerdown', e => { if (tgt(e)?.closest('a,button')) return; burst(e.clientX, e.clientY, 8); document.querySelector('.hero-hint').classList.remove('show'); });
   setTimeout(() => document.querySelector('.hero-hint').classList.add('show'), 3500);
   setTimeout(() => document.querySelector('.hero-hint').classList.remove('show'), 11000);
   start();
@@ -492,7 +494,7 @@ const seenSec = new Set();
 const secObs = new IntersectionObserver(es => es.forEach(en => { if (!en.isIntersecting) return; const id = en.target.id; window.vvSec = id; window.vvScroll = Math.max(window.vvScroll, scrollPct()); if (!seenSec.has(id)) { seenSec.add(id); if (id !== 'hero') track('sec', { n: id }); } }), { rootMargin: '-45% 0px -45% 0px' });
 ['hero', 'rolunk', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => $(id) && secObs.observe($(id)));
 document.addEventListener('click', e => {
-  const a = e.target.closest('a,button'); if (!a) return;
+  const a = tgt(e)?.closest('a,button'); if (!a) return;
   const h = a.getAttribute('href') || '';
   if (a.id === 'wheelOrder') track('ev', { n: 'wheel_order', v: a.dataset.id || '' });
   else if (a.id === 'spin') track('ev', { n: 'wheel' });

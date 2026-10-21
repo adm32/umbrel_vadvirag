@@ -124,7 +124,7 @@ async function loadMenu() {
     M = m; TR = tr; DR = dr;
   } catch (e) { $('food').innerHTML = `<p class="empty">${esc(T('menuError'))}</p>`; return; }
   renderChips(); renderFood(); renderDrinks(); renderFees(); renderFacts(); renderStatus(); buildWheelFilters();
-  const opts = M.fees.map(f => `<option value="${esc(f.name)}">`).join(''); $('towns').innerHTML = opts;
+  const opts = [...M.fees].sort((a, b) => a.name.localeCompare(b.name, 'hu')).map(f => `<option value="${esc(f.name)}">`).join(''); $('towns').innerHTML = opts;
 }
 
 function renderChips() {
@@ -287,7 +287,7 @@ function renderFacts() {
 }
 function renderFees() {
   if (!M) return;
-  const fees = [...M.fees].sort((a, b) => a.fee - b.fee || a.name.localeCompare(b.name, 'hu'));
+  const fees = [...M.fees].sort((a, b) => a.name.localeCompare(b.name, 'hu'));
   $('feeTable').innerHTML = fees.map(f => `<div class="fee-row"><span>${esc(f.name)}</span><b>${huf(f.fee)} Ft</b></div>`).join('');
 }
 const van = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>';

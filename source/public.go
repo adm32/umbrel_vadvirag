@@ -182,6 +182,10 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 			publicErr(w, 400, "Kiszállításhoz add meg a települést és a címet.")
 			return
 		}
+		if a.fee(modeDelivery, in.City) < 0 {
+			publicErr(w, 400, "Erre a településre sajnos nem szállítunk ki. Válaszd az elvitelt, vagy hívj minket: "+a.conf().EtteremTelefon)
+			return
+		}
 	}
 	payment := "Készpénz"
 	if strings.HasPrefix(norm(in.Payment), "kart") {

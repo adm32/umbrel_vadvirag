@@ -9,18 +9,17 @@ import (
 func TestFeeMatching(t *testing.T) {
 	a := newApp(Config{Dijak: defaultFees()}, &Store{})
 	cases := map[string]int{
-		"Zalaudvarnok": 300, "zalaszentgrot": 600, "Sümegcsehi": 2200, "Csehi": 2300,
-		"Csehimindszent": 2400, "Nagytilaj": 2000, "Tilaj": 900, "Kehidakustány": 1000,
-		"Zalaszentgrót-Csáford": 900, "Kiscsáford": 900, "Felsőaranyod": 700, "Budapest": -1,
-		"8790 Zalaszentgrót": 600, "Hévíz": 2000,
+		"Zalaudvarnok": 200, "zalaszentgrot": 500, "Sümegcsehi": 1700, "Kehida": 1300,
+		"Kehidakustány": 1300, "Zalaszentgrót-Csáford": 900, "Kiscsáford": 900, "Felsőaranyod": 700,
+		"Budapest": -1, "Hévíz": -1, "Pókaszepetk": -1, "8790 Zalaszentgrót": 500, "Dabronc": 2300,
 	}
 	for in, want := range cases {
 		if got := a.fee(modeDelivery, in); got != want {
 			t.Errorf("fee(%q)=%d, want %d", in, got, want)
 		}
 	}
-	if n := len(defaultFees()); n != 82 {
-		t.Errorf("want 82 towns, got %d", n)
+	if n := len(defaultFees()); n != 44 {
+		t.Errorf("want 44 towns, got %d", n)
 	}
 }
 
@@ -61,11 +60,11 @@ func TestFeeMigration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 82 || cfg.Dijak["Pókaszepetk"] != 1900 {
+	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 44 || cfg.Dijak["Türje"] != 1200 {
 		t.Fatalf("not migrated: v%d %d towns", cfg.DijakVerzio, len(cfg.Dijak))
 	}
 	again, _ := loadConfig(p) // a mentett v2 fájl változatlan marad
-	if len(again.Dijak) != 82 || again.DijakVerzio != feeTableVersion {
+	if len(again.Dijak) != 44 || again.DijakVerzio != feeTableVersion {
 		t.Fatal("saved file not v2")
 	}
 }

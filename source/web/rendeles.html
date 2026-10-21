@@ -281,7 +281,7 @@ async function load(){
   M.sections.forEach(s=>s.items.forEach(it=>idx[it.id]=it));
   for(const k in cart){const [id,v]=k.split('|');if(!idx[id]||!price(id,v))delete cart[k]}
   const mn=Math.min(...M.fees.map(f=>f.fee));if(isFinite(mn))$('feeInfo').textContent=`Kiszállítás ${huf(mn)} Ft-tól, vagy elvitel`;
-  $('city').innerHTML='<option value="">– válassz –</option>'+M.fees.map(f=>`<option value="${esc(f.name)}">${esc(f.name)} · ${huf(f.fee)} Ft</option>`).join('')+'<option value="__other">Másik település…</option>';
+  $('city').innerHTML='<option value="">– válassz –</option>'+[...M.fees].sort((a,b)=>a.name.localeCompare(b.name,'hu')).map(f=>`<option value="${esc(f.name)}">${esc(f.name)} · ${huf(f.fee)} Ft</option>`).join('');
   $('chips').innerHTML=M.sections.map(s=>`<button class="chip" data-s="${s.id}" onclick="goSec('${s.id}')">${esc(s.short)}</button>`).join('');
   renderMenu();updateCart();
   const tok=(location.hash.match(/r=([a-z0-9]+)/)||[])[1];
@@ -335,7 +335,7 @@ function add(id,v){const k=key(id,v);cart[k]=(cart[k]||0)+1;afterChange(id);toas
 function chg(k,d){cart[k]=(cart[k]||0)+d;if(cart[k]<=0)delete cart[k];afterChange(k.split('|')[0])}
 function afterChange(id){store.set('vv_cart',cart);rerenderItem(id);updateCart();if($('checkout').classList.contains('open'))renderCheckout()}
 function totals(){let n=0,sub=0,pk=0;for(const k in cart){const [id,v]=k.split('|');n+=cart[k];sub+=cart[k]*price(id,v);pk+=cart[k]*pack(id,v)}
-  let fee=0;if(mode==='delivery'){const c=$('city').value;if(c==='__other')fee=-1;else{const f=M.fees.find(x=>x.name===c);fee=f?f.fee:null}}
+  let fee=0;if(mode==='delivery'){const c=$('city').value;{const f=M.fees.find(x=>x.name===c);fee=f?f.fee:null}}
   return {n,sub,pk,fee}}
 function updateCart(){const t=totals();$('cbN').textContent=t.n;$('cbT').textContent=huf(t.sub+t.pk)+' Ft';$('cartbar').classList.toggle('show',t.n>0&&!$('checkout').classList.contains('open'))}
 function goSec(id){const el=$('s_'+id);if(!el){$('q').value='';renderMenu()}$('s_'+id).scrollIntoView({behavior:'smooth'})}
@@ -367,7 +367,7 @@ function renderSum(){const t=totals();let feeTxt='';
   const tot=t.sub+t.pk+(t.fee>0?t.fee:0);
   $('sum').innerHTML=`<div><span>Ételek</span><span>${huf(t.sub)} Ft</span></div>${t.pk?`<div><span>Csomagolás (elviteles dobozok)</span><span>${huf(t.pk)} Ft</span></div>`:''}${mode==='delivery'?`<div><span>Szállítás</span><span>${feeTxt}</span></div>`:''}<div class="tot"><span>Végösszeg</span><span>${huf(tot)} Ft</span></div>`;
   $('send').textContent=!isOpen?'Az online rendelés most szünetel':t.n?`Rendelés elküldése · ${huf(tot)}${mode==='delivery'&&t.fee<0?' Ft + szállítás':' Ft'}`:'A kosár üres';$('send').disabled=!t.n||!isOpen;
-  $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'':t.fee<0?'Erre a településre egyedileg egyeztetjük a díjat – visszahívunk.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
+  $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':t.fee<0?'Erre a településre egyedileg egyeztetjük a díjat – visszahívunk.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
 function setMode(v){mode=v;document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('addr').style.display=v==='delivery'?'block':'none';$('pickupHint').style.display=v==='delivery'?'none':'block';renderSum()}
 document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.v));
@@ -385,7 +385,6 @@ async function submitOrder(){
   if(mode==='delivery'){if(!city)bad.push('fCity');if(!v('street'))bad.push('fStreet')}
   bad.forEach(f=>$(f).classList.add('err'));
   if(bad.length){$('msg').textContent={fName:'Add meg a neved.',fPhone:'Adj meg egy telefonszámot, amin elérünk.',fEmail:'Az e-mail cím nem tűnik helyesnek.',fCity:'Válaszd ki a települést.',fStreet:'Add meg a címet.'}[bad[0]];$(bad[0]).scrollIntoView({behavior:'smooth',block:'center'});return}
-  if(city==='__other')city='Egyéb település';
   const items=Object.keys(cart).map(k=>{const [id,vv]=k.split('|');return {id,variant:vv,qty:cart[k]}});
   $('send').disabled=true;$('send').textContent='Küldés…';$('msg').textContent='';
   try{

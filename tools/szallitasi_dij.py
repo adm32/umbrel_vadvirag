@@ -18,7 +18,7 @@ Csak a Python beépített részeit használja, nem kell semmit telepíteni.
 Internet kell hozzá. Az első számolás kb. 2 perc (a térképkereső másodpercenként 1 kérést enged).
 """
 
-import json, math, os, sys, time, urllib.parse, urllib.request, zipfile
+import json, math, os, sys, time, urllib.error, urllib.parse, urllib.request, zipfile
 from xml.sax.saxutils import escape
 
 # ---------------------------------------------------------------- beállítások
@@ -135,10 +135,46 @@ MAPPA = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(MAPPA, "szallitasi_dij_cache.json")
 
 
+_SSL = None
+
+
+def _ssl_ctx():
+    """A python.org-os Mac Python nem bízik meg egy weboldalban sem, amíg nem futtatják az
+    „Install Certificates” lépést. Ilyenkor a Mac saját (Kulcskarika) tanúsítványait használjuk."""
+    import ssl, subprocess, tempfile
+    try:
+        import certifi  # ha telepítve van
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        pass
+    pem = ""
+    for kc in ("/System/Library/Keychains/SystemRootCertificates.keychain", "/Library/Keychains/System.keychain"):
+        try:
+            pem += subprocess.run(["security", "find-certificate", "-a", "-p", kc],
+                                  capture_output=True, text=True, timeout=20).stdout
+        except Exception:
+            pass
+    if not pem:
+        return None
+    f = tempfile.NamedTemporaryFile("w", suffix=".pem", delete=False)
+    f.write(pem)
+    f.close()
+    return ssl.create_default_context(cafile=f.name)
+
+
 def get(url):
+    global _SSL
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=40) as r:
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=40, context=_SSL) as r:
+            return json.load(r)
+    except urllib.error.URLError as e:
+        if _SSL is None and "CERTIFICATE_VERIFY_FAILED" in str(e):
+            _SSL = _ssl_ctx()
+            if _SSL is not None:
+                with urllib.request.urlopen(req, timeout=40, context=_SSL) as r:
+                    return json.load(r)
+        raise
 
 
 def geocode(nev, cache):
@@ -258,7 +294,7 @@ def szamol(telepulesek, etterem, log, allj=lambda: False):
             cache = json.load(f)
     except Exception:
         pass
-    helyek = {}
+    helyek, hibak = {}, []
     nevek = [n for n, _ in telepulesek]
     if not etterem and "Zalaudvarnok" not in nevek:
         nevek = ["Zalaudvarnok"] + nevek
@@ -268,8 +304,11 @@ def szamol(telepulesek, etterem, log, allj=lambda: False):
         try:
             helyek[nev] = geocode(nev, cache)
         except Exception as e:
+            hibak.append(f"{nev}: {e}")
             log(f"! {nev}: hiba a keresésnél ({e})", i, len(nevek))
             helyek[nev] = None
+            if len(hibak) >= 3 and not cache:
+                raise RuntimeError("Nem érem el a térképet. Az első hibák: " + " | ".join(hibak[:3]))
             continue
         h = helyek[nev]
         log(f"{nev}: " + (f"{h['lat']:.4f}, {h['lon']:.4f}" if h else "NEM TALÁLHATÓ a térképen"), i, len(nevek))

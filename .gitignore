@@ -1,1 +1,4 @@
 Vadvirag_Rendeleskezelo.exe
+__pycache__/
+tools/szallitasi_dij_cache.json
+tools/szallitasi_dijak.*

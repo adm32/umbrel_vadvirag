@@ -421,6 +421,42 @@ func isBot(ua string) bool {
 	return false
 }
 
+// A Meta (Facebook, Instagram, Messenger) saját szerverei: amikor valaki megoszt egy linket,
+// vagy egy hirdetést / bejegyzést ellenőriznek, ezek nyitják meg az oldalt egy „telefonnak”
+// álcázott böngészővel (jellemzően Android 10, Chrome, amerikai IP). Nem valódi látogatók.
+var metaNets = func() []*net.IPNet {
+	var out []*net.IPNet
+	for _, c := range []string{
+		"31.13.24.0/21", "31.13.64.0/18", "45.64.40.0/22", "57.141.0.0/16", "57.144.0.0/14",
+		"66.220.144.0/20", "69.63.176.0/20", "69.171.224.0/19", "74.119.76.0/22", "102.132.96.0/20",
+		"103.4.96.0/22", "129.134.0.0/16", "147.75.208.0/20", "157.240.0.0/16", "163.70.128.0/17",
+		"173.252.64.0/18", "179.60.192.0/22", "185.60.216.0/22", "185.89.216.0/22", "204.15.20.0/22",
+		"2a03:2880::/32",
+	} {
+		if _, n, err := net.ParseCIDR(c); err == nil {
+			out = append(out, n)
+		}
+	}
+	return out
+}()
+
+func isMetaIP(s string) bool {
+	ip := net.ParseIP(s)
+	if ip == nil {
+		return false
+	}
+	for _, n := range metaNets {
+		if n.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+func isBotReq(r *http.Request) bool {
+	return isBot(r.UserAgent()) || isMetaIP(clientIP(r))
+}
+
 func visitorID(r *http.Request) string {
 	h := sha256.Sum256([]byte(st.f.Salt + "|" + clientIP(r) + "|" + r.UserAgent()))
 	return hex.EncodeToString(h[:8])
@@ -715,7 +751,7 @@ func campaignOf(q string) string {
 
 func handleBeacon(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
-	if isBot(r.UserAgent()) {
+	if isBotReq(r) {
 		return
 	}
 	var b beacon

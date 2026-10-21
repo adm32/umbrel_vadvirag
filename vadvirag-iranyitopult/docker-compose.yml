@@ -4,8 +4,8 @@ services:
       # <app-id>_<szolgáltatás neve>_1
       APP_HOST: vadvirag-iranyitopult_web_1
       APP_PORT: 8080
-      # Csak Umbrel-bejelentkezés után nyitható meg – vagyis csak te látod.
-      PROXY_AUTH_ADD: "true"
+      # Saját jelszó védi (mint a Rendelések appot), nem kell hozzá Umbrel-bejelentkezés.
+      PROXY_AUTH_ADD: "false"
 
   web:
     build:

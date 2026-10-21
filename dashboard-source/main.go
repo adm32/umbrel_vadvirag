@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.2.2"
+const version = "1.3.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -948,7 +948,8 @@ func main() {
 		files.ServeHTTP(w, r)
 	}))
 	addr := ":" + env("PORT", "8080")
-	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
+	loadAuth()
+	srv := &http.Server{Addr: addr, Handler: requireLogin(mux), ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		log.Printf("Vadvirág Irányítópult %s – %s", version, addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

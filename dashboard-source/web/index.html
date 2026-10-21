@@ -244,6 +244,7 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
     <button class="ibtn" id="refresh" aria-label="Frissítés" title="Frissítés"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
     <button class="ibtn" id="toHealth" aria-label="Hibák és figyelés" title="Hibák és figyelés"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="bdg" id="badBadge" hidden></span></button>
     <button class="ibtn" id="toSettings" aria-label="Értesítések beállítása" title="Értesítések"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+    <a class="ibtn" href="/logout" aria-label="Kijelentkezés" title="Kijelentkezés"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></a>
   </div>
   <div class="ttl">
     <h1>Irányítópult</h1>
@@ -399,6 +400,17 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
         <div class="btns"><button class="btn btn-blue" type="submit">Mentés</button><button class="btn btn-gray" type="button" id="testBtn"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Próba értesítés</button></div>
         <p class="msg" id="setMsg" role="status"></p>
       </form>
+      <form id="pwForm" autocomplete="off" style="grid-column:1">
+        <div class="ghead">JELSZÓ</div>
+        <div class="group">
+          <div class="gl-row"><label for="p_cur">Jelenlegi</label><input id="p_cur" type="password" name="current" autocomplete="current-password" required></div>
+          <div class="gl-row"><label for="p_new">Új jelszó</label><input id="p_new" type="password" name="new" autocomplete="new-password" minlength="6" required></div>
+          <div class="gl-row"><label for="p_new2">Még egyszer</label><input id="p_new2" type="password" name="new2" autocomplete="new-password" minlength="6" required></div>
+        </div>
+        <div class="gfoot">Jelszócsere után minden más eszközön újra be kell lépni.</div>
+        <div class="btns"><button class="btn btn-blue" type="submit">Jelszó módosítása</button><a class="btn btn-gray" href="/logout" style="text-decoration:none">Kijelentkezés</a></div>
+        <p class="msg" id="pwMsg" role="status"></p>
+      </form>
       <div class="card howto" style="margin-top:44px">
         <h3>Így állítsd be a telefonodon</h3>
         <ol>
@@ -481,6 +493,7 @@ async function load(manual) {
   if (manual) $('refresh').classList.add('spin');
   try {
     const r = await fetch('/api/overview?days=' + need, { cache: 'no-store' });
+    if (r.status === 401) { location.reload(); return; }
     if (!r.ok) throw new Error('HTTP ' + r.status);
     D = await r.json(); loadedDays = need;
     render();
@@ -820,6 +833,17 @@ $('setForm').addEventListener('submit', async e => {
     const d = await r.json().catch(() => ({}));
     m.className = 'msg ' + (r.ok ? 'ok' : 'err'); m.textContent = r.ok ? 'Elmentve.' : (d.error || 'Nem sikerült menteni.');
   } catch (er) { m.className = 'msg err'; m.textContent = 'Nem sikerült menteni: ' + er.message; }
+});
+$('pwForm').addEventListener('submit', async e => {
+  e.preventDefault(); const f = e.target, m = $('pwMsg');
+  if (f.elements.new.value !== f.elements.new2.value) { m.className = 'msg err'; m.textContent = 'A két új jelszó nem egyezik.'; return; }
+  m.className = 'msg'; m.textContent = 'Mentés…';
+  try {
+    const r = await fetch('/api/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current: f.elements.current.value, new: f.elements.new.value, new2: f.elements.new2.value }) });
+    const d = await r.json().catch(() => ({}));
+    m.className = 'msg ' + (r.ok ? 'ok' : 'err'); m.textContent = r.ok ? 'A jelszó megváltozott.' : (d.error || 'Nem sikerült.');
+    if (r.ok) f.reset();
+  } catch (er) { m.className = 'msg err'; m.textContent = 'Nem sikerült: ' + er.message; }
 });
 $('testBtn').addEventListener('click', async () => {
   const m = $('setMsg'); m.className = 'msg'; m.textContent = 'Küldés…';

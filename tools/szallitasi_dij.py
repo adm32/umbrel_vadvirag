@@ -12,8 +12,10 @@ Az eredményt táblázatba menti (szallitasi_dijak.xlsx) a program mellé, és
 összeveti a korábbi (Gemini által becsült) kilométerekkel.
 
 Futtatás Macen:  Terminál  →  python3 ~/Downloads/szallitasi_dij.py
+A böngészőben megnyílik egy egyszerű ablak: ott állíthatod a díjakat, a településlistát,
+és onnan töltheted le a táblázatot. (Ablak nélkül: ... szallitasi_dij.py --parancssor)
 Csak a Python beépített részeit használja, nem kell semmit telepíteni.
-Internet kell hozzá. Kb. 2 perc (a térképkereső másodpercenként 1 kérést enged).
+Internet kell hozzá. Az első számolás kb. 2 perc (a térképkereső másodpercenként 1 kérést enged).
 """
 
 import json, math, os, sys, time, urllib.parse, urllib.request, zipfile
@@ -171,10 +173,6 @@ def utvonalak(start, celok):
     return [(None if x is None else x / 1000, None if y is None else y / 60) for x, y in zip(d, t)]
 
 
-def dij(km):
-    return int(math.floor((ALAPDIJ + KM_DIJ * km) / KEREKITES + 0.5)) * KEREKITES
-
-
 # ---------------------------------------------------------------- egyszerű .xlsx író (csak beépített modulokkal)
 # stílusok: 0 sima, 1 fejléc, 2 km, 3 Ft, 4 km sárga, 5 Ft félkövér, 6 szöveg sárga
 
@@ -245,70 +243,277 @@ def xlsx(path, sorok, szelessegek):
         z.writestr("xl/worksheets/sheet1.xml", sheet)
 
 
-# ---------------------------------------------------------------- futás
+# ---------------------------------------------------------------- számolás
 
-def main():
+def dij_k(km, alap, kmdij, ker):
+    ker = int(ker) or 100
+    return int(math.floor((alap + kmdij * km) / ker + 0.5)) * ker
+
+
+def szamol(telepulesek, etterem, log, allj=lambda: False):
+    """Megkeresi a településeket, lekéri az autós távokat. Visszaad: (start, [{nev, gemini, km, perc, legvonal, lat, lon}])."""
     cache = {}
     try:
-        cache = json.load(open(CACHE, encoding="utf-8"))
+        with open(CACHE, encoding="utf-8") as f:
+            cache = json.load(f)
     except Exception:
         pass
-
-    uj_keres = sum(1 for n, _ in TELEPULESEK if n not in cache)
-    print(f"Települések keresése a térképen ({len(TELEPULESEK)} db, kb. {uj_keres * 1.2 / 60:.0f}–{uj_keres * 1.2 / 60 + 1:.0f} perc)...")
     helyek = {}
-    for i, (nev, _) in enumerate(TELEPULESEK, 1):
+    nevek = [n for n, _ in telepulesek]
+    if not etterem and "Zalaudvarnok" not in nevek:
+        nevek = ["Zalaudvarnok"] + nevek
+    for i, nev in enumerate(nevek, 1):
+        if allj():
+            raise RuntimeError("leállítva")
         try:
             helyek[nev] = geocode(nev, cache)
         except Exception as e:
-            print(f"  ! {nev}: hiba a keresésnél ({e})")
+            log(f"! {nev}: hiba a keresésnél ({e})", i, len(nevek))
             helyek[nev] = None
+            continue
         h = helyek[nev]
-        print(f"  {i:2}/{len(TELEPULESEK)}  {nev:<20} " + (f"{h['lat']:.4f}, {h['lon']:.4f}" if h else "NEM TALÁLHATÓ"))
-        json.dump(cache, open(CACHE, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-
+        log(f"{nev}: " + (f"{h['lat']:.4f}, {h['lon']:.4f}" if h else "NEM TALÁLHATÓ a térképen"), i, len(nevek))
+        with open(CACHE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=1)
     z = helyek.get("Zalaudvarnok")
-    start = ETTEREM or (z and (z["lat"], z["lon"]))
+    start = tuple(etterem) if etterem else (z and (z["lat"], z["lon"]))
     if not start:
-        sys.exit("Az étterem helyét nem találtam – írd be az ETTEREM sorba a koordinátákat.")
-
-    talalt = [(n, (helyek[n]["lat"], helyek[n]["lon"])) for n, _ in TELEPULESEK if helyek.get(n)]
-    print("Autós távolságok lekérése...")
-    utak = dict(zip([n for n, _ in talalt], utvonalak(start, [p for _, p in talalt])))
-
-    fejlec = ["Település", "Autós táv (km)", "Menetidő (perc)", "Légvonal (km)", "Gemini km", "Eltérés (km)",
-              "Új díj (valódi km)", "Díj a Gemini km-rel", "Különbség", "Megjegyzés", "Útvonal a térképen"]
-    sorok, eredmeny, rossz = [], [], 0
-    for nev, gem in TELEPULESEK:
+        raise RuntimeError("Az étterem helyét nem találtam – add meg a koordinátáit.")
+    talalt = [(n, (helyek[n]["lat"], helyek[n]["lon"])) for n, _ in telepulesek if helyek.get(n)]
+    log("Autós távolságok lekérése…", len(nevek), len(nevek))
+    utak = dict(zip([n for n, _ in talalt], utvonalak(start, [p for _, p in talalt]))) if talalt else {}
+    out = []
+    for nev, gem in telepulesek:
         h = helyek.get(nev)
         km, perc = utak.get(nev, (None, None))
-        if not h or km is None:
-            sorok.append([nev, "", "", "", (gem, 2), "", "", (dij(gem), 3), "",
-                          ("nem találtam a térképen – ellenőrizd kézzel", 6), ""])
-            rossz += 1
-            continue
-        elt = km - gem
-        nagy = abs(elt) >= 2
-        rossz += nagy
-        megj = (f"a Gemini {abs(elt):.1f} km-rel {'kevesebbet' if elt > 0 else 'többet'} írt" if nagy else "")
-        uj, regi = dij(km), dij(gem)
-        link = f"https://www.google.com/maps/dir/{start[0]:.5f},{start[1]:.5f}/{h['lat']:.5f},{h['lon']:.5f}"
-        sorok.append([nev, (round(km, 1), 4 if nagy else 2), (round(perc), 0), (round(legvonal(start, (h["lat"], h["lon"])), 1), 2),
-                      (gem, 2), (round(elt, 1), 4 if nagy else 2), (uj, 5), (regi, 3), (uj - regi, 3),
-                      (megj, 6) if nagy else "", link])
-        eredmeny.append({"nev": nev, "km": round(km, 1), "perc": round(perc), "dij": uj,
-                         "lat": round(h["lat"], 5), "lon": round(h["lon"], 5)})
+        out.append({"nev": nev, "gemini": gem, "km": None if km is None else round(km, 1),
+                    "perc": None if perc is None else round(perc),
+                    "legvonal": round(legvonal(start, (h["lat"], h["lon"])), 1) if h else None,
+                    "lat": h and round(h["lat"], 5), "lon": h and round(h["lon"], 5)})
+    return start, out
 
+
+def tablazat(path, start, sorok_in, alap, kmdij, ker):
+    fejlec = ["Település", "Autós táv (km)", "Menetidő (perc)", "Légvonal (km)", "Gemini km", "Eltérés (km)",
+              "Új díj (valódi km)", "Díj a Gemini km-rel", "Különbség", "Megjegyzés", "Útvonal a térképen"]
+    sorok = []
+    for r in sorok_in:
+        gem, km = r["gemini"], r["km"]
+        if km is None:
+            sorok.append([r["nev"], "", "", "", (gem, 2) if gem is not None else "", "", "",
+                          (dij_k(gem, alap, kmdij, ker), 3) if gem is not None else "", "",
+                          ("nem találtam a térképen – ellenőrizd kézzel", 6), ""])
+            continue
+        elt = None if gem is None else km - gem
+        nagy = elt is not None and abs(elt) >= 2
+        megj = f"a Gemini {abs(elt):.1f} km-rel {'kevesebbet' if elt > 0 else 'többet'} írt" if nagy else ""
+        uj = dij_k(km, alap, kmdij, ker)
+        regi = None if gem is None else dij_k(gem, alap, kmdij, ker)
+        link = f"https://www.google.com/maps/dir/{start[0]:.5f},{start[1]:.5f}/{r['lat']:.5f},{r['lon']:.5f}"
+        sorok.append([r["nev"], (km, 4 if nagy else 2), (r["perc"], 0), (r["legvonal"], 2),
+                      (gem, 2) if gem is not None else "", (round(elt, 1), 4 if nagy else 2) if elt is not None else "",
+                      (uj, 5), (regi, 3) if regi is not None else "", (uj - regi, 3) if regi is not None else "",
+                      (megj, 6) if nagy else "", link])
     sorok.sort(key=lambda r: r[1][0] if isinstance(r[1], tuple) else 999)
-    out = os.path.join(MAPPA, "szallitasi_dijak.xlsx")
-    xlsx(out, [fejlec] + sorok, [20, 14, 15, 13, 11, 12, 18, 19, 11, 36, 70])
-    json.dump({"szabaly": f"{ALAPDIJ} Ft + {KM_DIJ} Ft/km, {KEREKITES} Ft-ra kerekítve", "etterem": start,
-               "telepulesek": eredmeny}, open(os.path.join(MAPPA, "szallitasi_dijak.json"), "w", encoding="utf-8"),
-              ensure_ascii=False, indent=1)
-    print(f"\nKész: {out}")
-    print(f"{len(eredmeny)} település kiszámolva; {rossz} helyen tér el legalább 2 km-rel a Gemini adata vagy hiányzik (sárga).")
-    print(f"Szabály: {ALAPDIJ} Ft + {KM_DIJ} Ft/km, {KEREKITES} Ft-ra kerekítve.")
+    xlsx(path, [fejlec] + sorok, [20, 14, 15, 13, 11, 12, 18, 19, 11, 36, 70])
+
+
+# ---------------------------------------------------------------- ablak (a böngészőben nyílik meg)
+
+OLDAL = r"""<!doctype html><html lang="hu"><meta charset="utf-8"><title>Szállítási díj kalkulátor</title>
+<style>
+body{font:15px -apple-system,system-ui,sans-serif;margin:20px;max-width:1150px;color:#222}
+h1{font-size:22px;margin:0 0 14px}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+label{display:flex;flex-direction:column;font-size:13px;color:#555;gap:4px}
+input{font:inherit;padding:6px 8px;border:1px solid #bbb;border-radius:6px;width:110px}
+#coords{width:220px}
+textarea{width:100%;height:150px;font:13px ui-monospace,Menlo,monospace;border:1px solid #bbb;border-radius:6px;padding:8px;box-sizing:border-box}
+button{font:inherit;padding:8px 16px;border:0;border-radius:8px;background:#c4140a;color:#fff;cursor:pointer}
+button.sec{background:#e9e9ee;color:#222}
+button:disabled{opacity:.5;cursor:default}
+#bar{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin:10px 0}
+#bar div{height:100%;width:0;background:#c4140a;transition:width .3s}
+#log{font:12px ui-monospace,Menlo,monospace;color:#666;height:1.4em;overflow:hidden;white-space:nowrap}
+table{border-collapse:collapse;width:100%;margin-top:14px;font-size:14px}
+th,td{border-bottom:1px solid #e3e3e3;padding:5px 8px;text-align:right;white-space:nowrap}
+th{position:sticky;top:0;background:#f7e3df;cursor:pointer}
+td:first-child,th:first-child{text-align:left}
+td.m{text-align:left;white-space:normal;color:#8a5a00}
+tr.warn td{background:#fff2cc}
+.sum{margin-top:10px;color:#444}
+small{color:#777}
+</style>
+<h1>Vadvirág – szállítási díj kalkulátor</h1>
+<div class="row">
+ <label>Alapdíj (Ft)<input id="alap" type="number" value="__ALAP__"></label>
+ <label>Kilométerdíj (Ft/km)<input id="kmdij" type="number" value="__KMDIJ__"></label>
+ <label>Kerekítés (Ft)<input id="ker" type="number" value="__KER__"></label>
+ <label>Étterem helye (szélesség, hosszúság)<input id="coords" placeholder="üres = Zalaudvarnok közepe" value="__COORDS__"></label>
+</div>
+<label>Települések – soronként: <b>név, régi km</b> (a régi km elhagyható)
+<textarea id="list">__LIST__</textarea></label>
+<div class="row" style="margin-top:10px">
+ <button id="go">Kiszámolás</button>
+ <button id="dl" class="sec" disabled>Táblázat letöltése (.xlsx)</button>
+ <small>A díjak módosításához nem kell újra számolni – a táblázat azonnal frissül.</small>
+</div>
+<div id="bar"><div></div></div><div id="log"></div>
+<div class="sum" id="sum"></div>
+<table id="t"></table>
+<script>
+const $=id=>document.getElementById(id);
+let data=null,sortKey='km',sortDir=1,timer=0;
+const fee=km=>{const a=+$('alap').value,k=+$('kmdij').value,r=+$('ker').value||100;return Math.floor((a+k*km)/r+0.5)*r};
+const ft=n=>n==null?'':n.toLocaleString('hu-HU')+' Ft';
+const n1=n=>n==null?'':n.toFixed(1).replace('.',',');
+function rows(){return (data?data.rows:[]).map(r=>{const elt=r.km!=null&&r.gemini!=null?r.km-r.gemini:null;
+  return {...r,elt,uj:r.km!=null?fee(r.km):null,regi:r.gemini!=null?fee(r.gemini):null,warn:r.km==null||(elt!=null&&Math.abs(elt)>=2)}})}
+function render(){if(!data)return;const rs=rows();
+  rs.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];if(x==null)return 1;if(y==null)return -1;return (typeof x==='string'?x.localeCompare(y,'hu'):x-y)*sortDir});
+  const cols=[['nev','Település'],['km','Autós km'],['perc','Perc'],['legvonal','Légvonal km'],['gemini','Régi km'],['elt','Eltérés'],['uj','Új díj'],['regi','Díj a régi km-rel'],['m','Megjegyzés'],['map','']];
+  $('t').innerHTML='<tr>'+cols.map(c=>`<th data-k="${c[0]}">${c[1]}${sortKey===c[0]?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>'+
+   rs.map(r=>`<tr class="${r.warn?'warn':''}"><td>${r.nev}</td><td>${n1(r.km)}</td><td>${r.perc??''}</td><td>${n1(r.legvonal)}</td><td>${n1(r.gemini)}</td><td>${r.elt==null?'':(r.elt>0?'+':'')+n1(r.elt)}</td><td><b>${ft(r.uj)}</b></td><td>${ft(r.regi)}</td><td class="m">${r.km==null?'nem találtam a térképen':r.warn?'nagy eltérés':''}</td><td>${r.lat?`<a target="_blank" href="https://www.google.com/maps/dir/${data.start[0]},${data.start[1]}/${r.lat},${r.lon}">térkép</a>`:''}</td></tr>`).join('');
+  const ok=rs.filter(r=>r.uj!=null),w=rs.filter(r=>r.warn).length;
+  $('sum').textContent=`${ok.length} település · díjak ${ft(Math.min(...ok.map(r=>r.uj)))} – ${ft(Math.max(...ok.map(r=>r.uj)))} · ${w} sárga sor (2 km-nél nagyobb eltérés vagy nem található)`;
+  document.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(k==='map'||k==='m')return;sortDir=sortKey===k?-sortDir:1;sortKey=k;render()})}
+['alap','kmdij','ker'].forEach(id=>$(id).oninput=render);
+async function poll(){const s=await (await fetch('/status')).json();
+  $('bar').firstElementChild.style.width=(s.total?100*s.done/s.total:0)+'%';$('log').textContent=s.msg||'';
+  if(s.running){timer=setTimeout(poll,700);return}
+  $('go').disabled=false;
+  if(s.error){$('log').textContent='Hiba: '+s.error;return}
+  if(s.result){data=s.result;$('dl').disabled=false;render()}}
+$('go').onclick=async()=>{$('go').disabled=true;$('dl').disabled=true;
+  const r=await fetch('/start',{method:'POST',body:JSON.stringify({list:$('list').value,coords:$('coords').value})});
+  const j=await r.json();if(j.error){$('log').textContent='Hiba: '+j.error;$('go').disabled=false;return}poll()};
+$('dl').onclick=()=>{location.href=`/xlsx?alap=${$('alap').value}&kmdij=${$('kmdij').value}&ker=${$('ker').value}`};
+poll();
+</script></html>"""
+
+
+def ablak(port=8765):
+    import http.server, threading, webbrowser
+
+    allapot = {"running": False, "done": 0, "total": 0, "msg": "", "error": None, "result": None}
+    zar = threading.Lock()
+
+    def feldolgoz(lista, coords):
+        def log(msg, i, n):
+            with zar:
+                allapot.update(msg=msg, done=i, total=n)
+        try:
+            start, sorok = szamol(lista, coords, log)
+            with zar:
+                allapot.update(result={"start": start, "rows": sorok}, msg="Kész.", running=False)
+        except Exception as e:
+            with zar:
+                allapot.update(error=str(e), running=False)
+
+    def olvas_lista(szoveg):
+        out = []
+        for sor in szoveg.splitlines():
+            sor = sor.strip()
+            if not sor or sor.startswith("#"):
+                continue
+            nev, _, km = sor.partition(",")
+            km = km.strip().replace(",", ".")
+            try:
+                km = float(km) if km else None
+            except ValueError:
+                km = None
+            out.append((nev.strip(), km))
+        return out
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def kuld(self, kod, tipus, adat, extra=None):
+            self.send_response(kod)
+            self.send_header("Content-Type", tipus)
+            for k, v in (extra or {}).items():
+                self.send_header(k, v)
+            self.end_headers()
+            self.wfile.write(adat)
+
+        def do_GET(self):
+            u = urllib.parse.urlparse(self.path)
+            if u.path == "/":
+                lista = "\n".join(f"{n}, {k:g}" for n, k in TELEPULESEK)
+                coords = f"{ETTEREM[0]}, {ETTEREM[1]}" if ETTEREM else ""
+                html = (OLDAL.replace("__ALAP__", str(ALAPDIJ)).replace("__KMDIJ__", str(KM_DIJ))
+                        .replace("__KER__", str(KEREKITES)).replace("__COORDS__", coords).replace("__LIST__", escape(lista)))
+                self.kuld(200, "text/html; charset=utf-8", html.encode())
+            elif u.path == "/status":
+                with zar:
+                    self.kuld(200, "application/json", json.dumps(allapot, ensure_ascii=False).encode())
+            elif u.path == "/xlsx":
+                q = urllib.parse.parse_qs(u.query)
+                with zar:
+                    res = allapot["result"]
+                if not res:
+                    self.kuld(404, "text/plain; charset=utf-8", "Előbb számolj!".encode())
+                    return
+                num = lambda k, d: int(round(float(q.get(k, [d])[0] or d)))
+                path = os.path.join(MAPPA, "szallitasi_dijak.xlsx")
+                tablazat(path, res["start"], res["rows"], num("alap", ALAPDIJ), num("kmdij", KM_DIJ), num("ker", KEREKITES) or 100)
+                with open(path, "rb") as f:
+                    self.kuld(200, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", f.read(),
+                              {"Content-Disposition": 'attachment; filename="szallitasi_dijak.xlsx"'})
+            else:
+                self.kuld(404, "text/plain", b"")
+
+        def do_POST(self):
+            if self.path != "/start":
+                return self.kuld(404, "text/plain", b"")
+            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+            lista = olvas_lista(body.get("list", ""))
+            coords = None
+            c = (body.get("coords") or "").replace(";", ",").split(",")
+            if len(c) == 2 and all(x.strip() for x in c):
+                try:
+                    coords = (float(c[0]), float(c[1]))
+                except ValueError:
+                    return self.kuld(200, "application/json", json.dumps({"error": "Az étterem koordinátái hibásak (pl. 46.91289, 17.10685)"}).encode())
+            if not lista:
+                return self.kuld(200, "application/json", json.dumps({"error": "Üres a településlista"}).encode())
+            with zar:
+                if allapot["running"]:
+                    return self.kuld(200, "application/json", b'{"ok":true}')
+                allapot.update(running=True, done=0, total=len(lista), msg="Indul…", error=None, result=None)
+            threading.Thread(target=feldolgoz, args=(lista, coords), daemon=True).start()
+            self.kuld(200, "application/json", b'{"ok":true}')
+
+    srv = None
+    for p in range(port, port + 20):
+        try:
+            srv = http.server.ThreadingHTTPServer(("127.0.0.1", p), H)
+            break
+        except OSError:
+            continue
+    if not srv:
+        sys.exit("Nem találtam szabad portot.")
+    url = f"http://127.0.0.1:{srv.server_address[1]}/"
+    print(f"A kalkulátor megnyílt a böngészőben: {url}\nBezáráshoz: Ctrl+C ebben az ablakban.")
+    threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        print("\nBezárva.")
+
+
+def parancssor():
+    def log(msg, i, n):
+        print(f"  {i:2}/{n}  {msg}")
+    start, sorok = szamol(TELEPULESEK, ETTEREM, log)
+    path = os.path.join(MAPPA, "szallitasi_dijak.xlsx")
+    tablazat(path, start, sorok, ALAPDIJ, KM_DIJ, KEREKITES)
+    print(f"\nKész: {path}")
 
 
 if __name__ == "__main__":
-    main()
+    if "--parancssor" in sys.argv:
+        parancssor()
+    else:
+        ablak()

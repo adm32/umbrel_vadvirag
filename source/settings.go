@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const appVersion = "2.8.3"
+const appVersion = "2.9.0"
 
 // viaFunnel: a kérés a nyilvános interneten (Tailscale Funnel) keresztül érkezett.
 func viaFunnel(r *http.Request) bool { return r.Header.Get("Tailscale-Funnel-Request") != "" }
@@ -177,7 +177,7 @@ func (a *App) handleSetup(w http.ResponseWriter, r *http.Request) {
 	cfg := a.conf()
 	if imp != nil {
 		imp.Port = cfg.Port
-		imp.Dijak, imp.DijakVerzio = cfg.Dijak, cfg.DijakVerzio // költözéskor az új, beépített szállítási díjak érvényesek
+		imp.Dijak, imp.DijakVerzio, imp.Menetidok = cfg.Dijak, cfg.DijakVerzio, cfg.Menetidok // költözéskor az új, beépített szállítási díjak érvényesek
 		cfg = *imp
 	}
 	cfg.Jelszo = in.Password

@@ -66,6 +66,7 @@ type Config struct {
 	Wix            WixConf        `json:"wix"`
 	Dijak          map[string]int `json:"szallitasi_dijak"`
 	DijakVerzio    int            `json:"szallitasi_dijak_verzio"` // ha kisebb, mint a beépített tábla verziója, frissítjük
+	Menetidok      map[string]int `json:"menetidok_perc"`          // autós út percben településenként
 	IdoOpciok      []int          `json:"elkeszulesi_percek"`
 	Okok           []string       `json:"elutasitas_okai"`
 	// Online rendelés szüneteltetése (pl. zárva vagy túl sok a munka) – a vendég ezt látja.
@@ -100,6 +101,7 @@ func defaultConfig() Config {
 		},
 		Dijak:       defaultFees(),
 		DijakVerzio: feeTableVersion,
+		Menetidok:   defaultDriveTimes(),
 		IdoOpciok:   []int{15, 20, 30, 45, 60, 90},
 		Okok: []string{
 			"Sajnos már túl késő van, a konyha bezárt",
@@ -110,31 +112,101 @@ func defaultConfig() Config {
 	}
 }
 
-// Szállítási díjak: az étterem saját, 2026 októberi táblázata (44 település, valódi autós
-// távolság alapján). Csak ezekre a településekre szállítunk.
+// Szállítási díjak és menetidők: az étterem saját táblázata (2026. október 21., 41 település,
+// valódi autós távolság Zalaudvarnokról). Csak ezekre a településekre szállítunk.
 // Ha a táblát módosítod, emeld a feeTableVersion értékét: induláskor a régi tábla lecserélődik.
-const feeTableVersion = 5
+const feeTableVersion = 6
 
 func defaultFees() map[string]int {
 	return map[string]int{
-		"Zalaudvarnok": 200,
-		"Kisszentgrót": 500, "Sénye": 500, "Zalaszentgrót": 500, "Zalaszentlászló": 500,
-		"Aranyod": 700, "Gyülevész": 700, "Zalakoppány": 700,
-		"Barátsziget": 900, "Csáford": 900, "Tüskeszentpéter": 900,
-		"Kisgörbő": 1000,
-		"Kallósd":  1100, "Tekenye": 1100, "Zalaköveskút": 1100,
-		"Türje":  1200,
-		"Kehida": 1300, "Kehidakustány": 1300, "Nagygörbő": 1300, "Zalabér": 1300, "Óhíd": 1300,
-		"Döbröce":  1400,
-		"Nemesbük": 1500, "Vindornyafok": 1500,
-		"Batyk": 1600, "Szalapa": 1600, "Vindornyaszőlős": 1600,
-		"Karmacs": 1700, "Mihályfa": 1700, "Sümegcsehi": 1700,
-		"Pakod": 1800, "Zalacsány": 1800,
-		"Zalavég":      1900,
-		"Kisvásárhely": 2000, "Vindornyalak": 2000,
-		"Bérbaltavár": 2100, "Bókaháza": 2100, "Dötk": 2100, "Felsőpáhok": 2100, "Szentgyörgyvár": 2100,
-		"Ligetfalva": 2200,
-		"Dabronc":    2300, "Gógánfa": 2300, "Tilaj": 2300,
+		"Zalaudvarnok":    200,  // 1.1 km
+		"Zalaszentlászló": 400,  // 3.2 km
+		"Sénye":           400,  // 3.6 km
+		"Zalakoppány":     600,  // 4.8 km
+		"Gyülevész":       600,  // 5 km
+		"Zalaszentgrót":   600,  // 5.2 km
+		"Kisszentgrót":    600,  // 5.5 km
+		"Aranyod":         700,  // 6.5 km
+		"Barátsziget":     800,  // 6.8 km
+		"Tüskeszentpéter": 1000, // 8.3 km
+		"Zalaköveskút":    1000, // 8.3 km
+		"Csáford":         1000, // 8.5 km
+		"Kallósd":         1000, // 8.5 km
+		"Kisgörbő":        1100, // 9.5 km
+		"Kehidakustány":   1100, // 9.8 km
+		"Tekenye":         1100, // 9.9 km
+		"Kehida":          1200, // 10.2 km
+		"Türje":           1300, // 11.3 km
+		"Vindornyafok":    1300, // 11.4 km
+		"Nemesbük":        1300, // 11.5 km
+		"Nagygörbő":       1300, // 11.7 km
+		"Zalabér":         1400, // 11.9 km
+		"Óhíd":            1400, // 11.9 km
+		"Döbröce":         1500, // 12.8 km
+		"Karmacs":         1500, // 12.9 km
+		"Vindornyaszőlős": 1500, // 13.2 km
+		"Zalacsány":       1600, // 13.7 km
+		"Batyk":           1600, // 14.1 km
+		"Szalapa":         1700, // 14.5 km
+		"Mihályfa":        1700, // 15.1 km
+		"Sümegcsehi":      1700, // 15.2 km
+		"Felsőpáhok":      1900, // 16.2 km
+		"Bókaháza":        1900, // 16.3 km
+		"Pakod":           1900, // 16.4 km
+		"Zalavég":         1900, // 16.6 km
+		"Szentgyörgyvár":  1900, // 16.7 km
+		"Ligetfalva":      2000, // 17 km
+		"Vindornyalak":    2000, // 17 km
+		"Tilaj":           2100, // 18 km
+		"Dötk":            2100, // 18.1 km
+		"Kisvásárhely":    2100, // 18.1 km
+	}
+}
+
+// defaultDriveTimes: autós menetidő percben az étteremtől (a futárnak).
+func defaultDriveTimes() map[string]int {
+	return map[string]int{
+		"Zalaudvarnok":    1,
+		"Zalaszentlászló": 4,
+		"Sénye":           5,
+		"Zalakoppány":     9,
+		"Gyülevész":       6,
+		"Zalaszentgrót":   6,
+		"Kisszentgrót":    7,
+		"Aranyod":         8,
+		"Barátsziget":     11,
+		"Tüskeszentpéter": 12,
+		"Zalaköveskút":    9,
+		"Csáford":         10,
+		"Kallósd":         14,
+		"Kisgörbő":        10,
+		"Kehidakustány":   11,
+		"Tekenye":         13,
+		"Kehida":          12,
+		"Türje":           13,
+		"Vindornyafok":    12,
+		"Nemesbük":        13,
+		"Nagygörbő":       12,
+		"Zalabér":         14,
+		"Óhíd":            12,
+		"Döbröce":         14,
+		"Karmacs":         13,
+		"Vindornyaszőlős": 13,
+		"Zalacsány":       14,
+		"Batyk":           17,
+		"Szalapa":         17,
+		"Mihályfa":        18,
+		"Sümegcsehi":      16,
+		"Felsőpáhok":      17,
+		"Bókaháza":        18,
+		"Pakod":           19,
+		"Zalavég":         20,
+		"Szentgyörgyvár":  17,
+		"Ligetfalva":      18,
+		"Vindornyalak":    17,
+		"Tilaj":           20,
+		"Dötk":            22,
+		"Kisvásárhely":    21,
 	}
 }
 
@@ -148,7 +220,7 @@ func loadConfig(path string) (Config, error) {
 		return cfg, err
 	}
 	// a mentett tábla ne keveredjen a beépítettel, és a régi (verzió nélküli) fájl frissüljön
-	cfg.Dijak, cfg.DijakVerzio = nil, 0
+	cfg.Dijak, cfg.DijakVerzio, cfg.Menetidok = nil, 0, nil
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return cfg, fmt.Errorf("a beallitasok.json hibás (%v) – javítsd, vagy töröld, hogy újra létrejöjjön", err)
 	}
@@ -166,7 +238,7 @@ func loadConfig(path string) (Config, error) {
 	}
 	if cfg.DijakVerzio < feeTableVersion || len(cfg.Dijak) == 0 {
 		log.Printf("Szállítási díjak frissítése: %d település (tábla v%d)", len(defaultFees()), feeTableVersion)
-		cfg.Dijak, cfg.DijakVerzio = defaultFees(), feeTableVersion
+		cfg.Dijak, cfg.DijakVerzio, cfg.Menetidok = defaultFees(), feeTableVersion, defaultDriveTimes()
 		if err := saveConfig(path, cfg); err != nil {
 			log.Printf("a frissített díjtábla mentése nem sikerült: %v", err)
 		}
@@ -202,7 +274,8 @@ type Order struct {
 	Items       string            `json:"items"`
 	Note        string            `json:"note,omitempty"`
 	Extra       map[string]string `json:"extra,omitempty"`
-	DeliveryFee int               `json:"delivery_fee"` // -1 = ismeretlen település
+	DeliveryFee int               `json:"delivery_fee"`        // -1 = ismeretlen település
+	DriveMin    int               `json:"drive_min,omitempty"` // autós menetidő percben a futárnak
 	Status      string            `json:"status"`
 	ETA         int               `json:"eta,omitempty"`
 	Reason      string            `json:"reason,omitempty"`
@@ -280,6 +353,7 @@ type feeEntry struct {
 	norm string
 	name string
 	fee  int
+	mins int // autós menetidő percben (0 = nem ismert)
 }
 
 func norm(s string) string {
@@ -290,7 +364,7 @@ func norm(s string) string {
 func newApp(cfg Config, st *Store) *App {
 	a := &App{cfg: cfg, st: st, labels: map[string]map[string]string{}, labelTry: map[string]time.Time{}}
 	for name, fee := range cfg.Dijak {
-		a.feeIx = append(a.feeIx, feeEntry{norm(name), name, fee})
+		a.feeIx = append(a.feeIx, feeEntry{norm(name), name, fee, cfg.Menetidok[name]})
 	}
 	sort.Slice(a.feeIx, func(i, j int) bool { return len(a.feeIx[i].norm) > len(a.feeIx[j].norm) })
 	return a
@@ -318,25 +392,44 @@ func (a *App) updateConf(fn func(c *Config)) error {
 
 func (a *App) needsSetup() bool { return a.conf().Jelszo == "" }
 
+// match: melyik szállítási településre vonatkozik a megadott cím (nil = nincs a listán).
+// A leghosszabb nevek jönnek először, és a megtalált nevet kitöröljük, hogy egy rövidebb
+// név ne találjon bele (Sümegcsehi ≠ Csehi). Ha több település is szerepel
+// („Zalaszentgrót-Csáford”), a messzebbi (drágább) számít.
+func (a *App) match(city string) *feeEntry {
+	c := norm(city)
+	var best *feeEntry
+	for i := range a.feeIx {
+		f := &a.feeIx[i]
+		if strings.Contains(c, f.norm) {
+			c = strings.ReplaceAll(c, f.norm, "|")
+			if best == nil || f.fee > best.fee {
+				best = f
+			}
+		}
+	}
+	return best
+}
+
 func (a *App) fee(mode, city string) int {
 	if mode != modeDelivery {
 		return 0
 	}
-	c := norm(city)
-	if c == "" {
-		return -1
+	if f := a.match(city); f != nil {
+		return f.fee
 	}
-	// A leghosszabb nevek jönnek először, és a megtalált nevet kitöröljük, hogy egy rövidebb
-	// név ne találjon bele (Sümegcsehi ≠ Csehi, Nagytilaj ≠ Tilaj). Ha több település is
-	// szerepel („Zalaszentgrót-Csáford”), a messzebbi (drágább) számít.
-	best := -1
-	for _, f := range a.feeIx {
-		if strings.Contains(c, f.norm) {
-			c = strings.ReplaceAll(c, f.norm, "|")
-			best = max(best, f.fee)
-		}
+	return -1
+}
+
+// driveMins: hány perc az út autóval a településig (0 = nem tudjuk).
+func (a *App) driveMins(mode, city string) int {
+	if mode != modeDelivery {
+		return 0
 	}
-	return best
+	if f := a.match(city); f != nil {
+		return f.mins
+	}
+	return 0
 }
 
 // ingest: új rendelés felvétele. Visszatér: felvettük-e (false = már megvolt).
@@ -358,6 +451,7 @@ func (a *App) ingest(o *Order) bool {
 	o.Status = StNew
 	o.StatusAt = time.Now()
 	o.DeliveryFee = a.fee(o.Mode, o.City)
+	o.DriveMin = a.driveMins(o.Mode, o.City)
 	a.st.Orders = append(a.st.Orders, o)
 	a.st.saveLocked()
 	log.Printf("Új rendelés #%d (%s, %s)", o.ID, o.Name, o.Source)

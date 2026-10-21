@@ -7,19 +7,30 @@ import (
 )
 
 func TestFeeMatching(t *testing.T) {
-	a := newApp(Config{Dijak: defaultFees()}, &Store{})
+	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
 	cases := map[string]int{
-		"Zalaudvarnok": 200, "zalaszentgrot": 500, "Sümegcsehi": 1700, "Kehida": 1300,
-		"Kehidakustány": 1300, "Zalaszentgrót-Csáford": 900, "Kiscsáford": 900, "Felsőaranyod": 700,
-		"Budapest": -1, "Hévíz": -1, "Pókaszepetk": -1, "8790 Zalaszentgrót": 500, "Dabronc": 2300,
+		"Zalaudvarnok": 200, "zalaszentgrot": 600, "Sümegcsehi": 1700, "Kehida": 1200,
+		"Kehidakustány": 1100, "Zalaszentgrót-Csáford": 1000, "Kiscsáford": 1000, "Felsőaranyod": 700,
+		"Budapest": -1, "Hévíz": -1, "Dabronc": -1, "Gógánfa": -1, "8790 Zalaszentgrót": 600, "Kisvásárhely": 2100,
 	}
 	for in, want := range cases {
 		if got := a.fee(modeDelivery, in); got != want {
 			t.Errorf("fee(%q)=%d, want %d", in, got, want)
 		}
 	}
-	if n := len(defaultFees()); n != 44 {
-		t.Errorf("want 44 towns, got %d", n)
+	for in, want := range map[string]int{"Csáford": 10, "Dötk": 22, "Zalaudvarnok": 1, "Hévíz": 0} {
+		if got := a.driveMins(modeDelivery, in); got != want {
+			t.Errorf("driveMins(%q)=%d, want %d", in, got, want)
+		}
+	}
+	if a.driveMins(modePickup, "Csáford") != 0 {
+		t.Error("pickup should have no drive time")
+	}
+	if len(defaultDriveTimes()) != len(defaultFees()) {
+		t.Error("every village needs a drive time")
+	}
+	if n := len(defaultFees()); n != 41 {
+		t.Errorf("want 41 towns, got %d", n)
 	}
 }
 
@@ -60,11 +71,11 @@ func TestFeeMigration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 44 || cfg.Dijak["Türje"] != 1200 {
+	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 41 || cfg.Dijak["Türje"] != 1300 || cfg.Menetidok["Türje"] != 13 {
 		t.Fatalf("not migrated: v%d %d towns", cfg.DijakVerzio, len(cfg.Dijak))
 	}
 	again, _ := loadConfig(p) // a mentett v2 fájl változatlan marad
-	if len(again.Dijak) != 44 || again.DijakVerzio != feeTableVersion {
+	if len(again.Dijak) != 41 || again.DijakVerzio != feeTableVersion {
 		t.Fatal("saved file not v2")
 	}
 }

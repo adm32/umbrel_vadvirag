@@ -315,6 +315,7 @@ const I={
   info:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-1 8v7h2v-7Zm0-4v2h2V6Z"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
   x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   print:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 3h10v4H7Zm-2 5h14a3 3 0 0 1 3 3v6h-4v4H6v-4H2v-6a3 3 0 0 1 3-3Zm3 8v3h8v-3Z"/></svg>',
   undo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
   bell:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg>',
@@ -377,6 +378,7 @@ function card(o){
   if(deliv){
     const fee=o.delivery_fee>0?huf(o.delivery_fee)+' Ft':o.delivery_fee<0?'egyeztetni':'';
     rows.push(row(I.car,'var(--purple)',`Kiszállítás<small>${esc([o.city,o.street].filter(Boolean).join(', '))||'nincs cím'}</small>`,fee,o.delivery_fee<0?'warn':''));
+    if(o.drive_min>0)rows.push(row(I.clock,'var(--indigo,#5856d6)',`Út a futárnak<small>autóval, az étteremtől</small>`,`kb. ${o.drive_min} perc`));
   }else rows.push(row(I.bag,'var(--teal)','Személyes átvétel',''));
   let extras=o.extra?Object.entries(o.extra):[];
   const pay=extras.find(([k])=>/fizet|pay/i.test(k));
@@ -446,7 +448,7 @@ async function saveManual(){
 function printOrder(id){
   const o=orders.find(x=>x.id===id);const w=window.open('','_blank','width=420,height=640');
   const ex=o.extra?Object.entries(o.extra).map(([k,v])=>esc(k)+': '+esc(v)).join('<br>'):'';
-  w.document.write(`<html><meta charset="utf-8"><title>Rendelés #${o.id}</title><body style="font:16px/1.4 -apple-system,system-ui,sans-serif;max-width:300px"><h2 style="margin:0 0 4px">#${o.id} · ${esc(info.restaurant)}</h2><div>${fmtDay(o.created)} ${fmtTime(o.created)}</div><hr><b>${esc(o.name)}</b><br>${esc(o.phone)}<br>${o.mode==='Kiszállítás'?'<b>KISZÁLLÍTÁS</b><br>'+esc([o.city,o.street].filter(Boolean).join(', '))+(o.delivery_fee>0?'<br>Díj: '+huf(o.delivery_fee)+' Ft':''):'<b>SZEMÉLYES ÁTVÉTEL</b>'}${ex?'<br>'+ex:''}<hr><div style="white-space:pre-wrap;font-size:18px">${esc(o.items)}</div>${o.note?'<hr>'+esc(o.note):''}${o.eta?'<hr>Elkészülés: kb. '+o.eta+' perc':''}</body></html>`);
+  w.document.write(`<html><meta charset="utf-8"><title>Rendelés #${o.id}</title><body style="font:16px/1.4 -apple-system,system-ui,sans-serif;max-width:300px"><h2 style="margin:0 0 4px">#${o.id} · ${esc(info.restaurant)}</h2><div>${fmtDay(o.created)} ${fmtTime(o.created)}</div><hr><b>${esc(o.name)}</b><br>${esc(o.phone)}<br>${o.mode==='Kiszállítás'?'<b>KISZÁLLÍTÁS</b><br>'+esc([o.city,o.street].filter(Boolean).join(', '))+(o.drive_min>0?'<br>Út: kb. '+o.drive_min+' perc':'')+(o.delivery_fee>0?'<br>Díj: '+huf(o.delivery_fee)+' Ft':''):'<b>SZEMÉLYES ÁTVÉTEL</b>'}${ex?'<br>'+ex:''}<hr><div style="white-space:pre-wrap;font-size:18px">${esc(o.items)}</div>${o.note?'<hr>'+esc(o.note):''}${o.eta?'<hr>Elkészülés: kb. '+o.eta+' perc':''}</body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 

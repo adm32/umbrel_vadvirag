@@ -9,16 +9,17 @@ import (
 func TestFeeMatching(t *testing.T) {
 	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
 	cases := map[string]int{
-		"Zalaudvarnok": 200, "zalaszentgrot": 600, "Sümegcsehi": 1700, "Kehida": 1200,
-		"Kehidakustány": 1100, "Zalaszentgrót-Csáford": 1000, "Kiscsáford": 1000, "Felsőaranyod": 700,
-		"Budapest": -1, "Hévíz": -1, "Dabronc": -1, "Gógánfa": -1, "8790 Zalaszentgrót": 600, "Kisvásárhely": 2100,
+		"Zalaudvarnok": 200, "zalaszentgrot": 600, "Sümegcsehi": 2500, "Kehida": 1400,
+		"Kehidakustány": 1400, "Zalaszentgrót-Csáford": 1200, "Kiscsáford": 1200, "Felsőaranyod": 900,
+		"Budapest": -1, "Hévíz": -1, "Dabronc": -1, "Gógánfa": -1, "8790 Zalaszentgrót": 600, "Kisvásárhely": 2600,
+		"Pókaszepetk": 3000, "Bérbaltavár": 3000, "Zalabér": 1600, "Sénye": 600,
 	}
 	for in, want := range cases {
 		if got := a.fee(modeDelivery, in); got != want {
 			t.Errorf("fee(%q)=%d, want %d", in, got, want)
 		}
 	}
-	for in, want := range map[string]int{"Csáford": 10, "Dötk": 22, "Zalaudvarnok": 1, "Hévíz": 0} {
+	for in, want := range map[string]int{"Csáford": 10, "Dötk": 22, "Zalaudvarnok": 1, "Hévíz": 0, "Pókaszepetk": 25} {
 		if got := a.driveMins(modeDelivery, in); got != want {
 			t.Errorf("driveMins(%q)=%d, want %d", in, got, want)
 		}
@@ -29,8 +30,8 @@ func TestFeeMatching(t *testing.T) {
 	if len(defaultDriveTimes()) != len(defaultFees()) {
 		t.Error("every village needs a drive time")
 	}
-	if n := len(defaultFees()); n != 41 {
-		t.Errorf("want 41 towns, got %d", n)
+	if n := len(defaultFees()); n != 43 {
+		t.Errorf("want 43 towns, got %d", n)
 	}
 }
 
@@ -71,11 +72,11 @@ func TestFeeMigration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 41 || cfg.Dijak["Türje"] != 1300 || cfg.Menetidok["Türje"] != 13 {
+	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 43 || cfg.Dijak["Türje"] != 1600 || cfg.Menetidok["Türje"] != 13 {
 		t.Fatalf("not migrated: v%d %d towns", cfg.DijakVerzio, len(cfg.Dijak))
 	}
 	again, _ := loadConfig(p) // a mentett v2 fájl változatlan marad
-	if len(again.Dijak) != 41 || again.DijakVerzio != feeTableVersion {
+	if len(again.Dijak) != 43 || again.DijakVerzio != feeTableVersion {
 		t.Fatal("saved file not v2")
 	}
 }

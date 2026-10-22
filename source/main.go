@@ -112,54 +112,57 @@ func defaultConfig() Config {
 	}
 }
 
-// Szállítási díjak és menetidők: az étterem saját táblázata (2026. október 21., 41 település,
-// valódi autós távolság Zalaudvarnokról). Csak ezekre a településekre szállítunk.
+// Szállítási díjak és menetidők: az étterem saját táblázata (2026. október 22., kézzel javított
+// díjakkal, 43 település). A km és a perc valódi autós adat Zalaudvarnokról; Pókaszepetk és
+// Bérbaltavár menetideje becsült. Csak ezekre a településekre szállítunk.
 // Ha a táblát módosítod, emeld a feeTableVersion értékét: induláskor a régi tábla lecserélődik.
-const feeTableVersion = 6
+const feeTableVersion = 7
 
 func defaultFees() map[string]int {
 	return map[string]int{
 		"Zalaudvarnok":    200,  // 1.1 km
 		"Zalaszentlászló": 400,  // 3.2 km
-		"Sénye":           400,  // 3.6 km
-		"Zalakoppány":     600,  // 4.8 km
+		"Sénye":           600,  // 3.6 km
+		"Zalakoppány":     800,  // 4.8 km
 		"Gyülevész":       600,  // 5 km
 		"Zalaszentgrót":   600,  // 5.2 km
 		"Kisszentgrót":    600,  // 5.5 km
-		"Aranyod":         700,  // 6.5 km
-		"Barátsziget":     800,  // 6.8 km
+		"Aranyod":         900,  // 6.5 km
+		"Barátsziget":     1300, // 6.8 km
 		"Tüskeszentpéter": 1000, // 8.3 km
-		"Zalaköveskút":    1000, // 8.3 km
-		"Csáford":         1000, // 8.5 km
-		"Kallósd":         1000, // 8.5 km
-		"Kisgörbő":        1100, // 9.5 km
-		"Kehidakustány":   1100, // 9.8 km
-		"Tekenye":         1100, // 9.9 km
-		"Kehida":          1200, // 10.2 km
-		"Türje":           1300, // 11.3 km
-		"Vindornyafok":    1300, // 11.4 km
-		"Nemesbük":        1300, // 11.5 km
-		"Nagygörbő":       1300, // 11.7 km
-		"Zalabér":         1400, // 11.9 km
-		"Óhíd":            1400, // 11.9 km
-		"Döbröce":         1500, // 12.8 km
-		"Karmacs":         1500, // 12.9 km
-		"Vindornyaszőlős": 1500, // 13.2 km
-		"Zalacsány":       1600, // 13.7 km
-		"Batyk":           1600, // 14.1 km
-		"Szalapa":         1700, // 14.5 km
-		"Mihályfa":        1700, // 15.1 km
-		"Sümegcsehi":      1700, // 15.2 km
-		"Felsőpáhok":      1900, // 16.2 km
-		"Bókaháza":        1900, // 16.3 km
-		"Pakod":           1900, // 16.4 km
-		"Zalavég":         1900, // 16.6 km
-		"Szentgyörgyvár":  1900, // 16.7 km
-		"Ligetfalva":      2000, // 17 km
-		"Vindornyalak":    2000, // 17 km
-		"Tilaj":           2100, // 18 km
-		"Dötk":            2100, // 18.1 km
-		"Kisvásárhely":    2100, // 18.1 km
+		"Zalaköveskút":    1400, // 8.3 km
+		"Csáford":         1200, // 8.5 km
+		"Kallósd":         1400, // 8.5 km
+		"Kisgörbő":        1400, // 9.5 km
+		"Kehidakustány":   1400, // 9.8 km
+		"Tekenye":         1400, // 9.9 km
+		"Kehida":          1400, // 10.2 km
+		"Türje":           1600, // 11.3 km
+		"Vindornyafok":    1800, // 11.4 km
+		"Nemesbük":        1800, // 11.5 km
+		"Nagygörbő":       1600, // 11.7 km
+		"Zalabér":         1600, // 11.9 km
+		"Óhíd":            1800, // 11.9 km
+		"Döbröce":         1800, // 12.8 km
+		"Karmacs":         1900, // 12.9 km
+		"Vindornyaszőlős": 1800, // 13.2 km
+		"Zalacsány":       2000, // 13.7 km
+		"Batyk":           1900, // 14.1 km
+		"Szalapa":         2300, // 14.5 km
+		"Mihályfa":        2400, // 15.1 km
+		"Sümegcsehi":      2500, // 15.2 km
+		"Felsőpáhok":      2500, // 16.2 km
+		"Bókaháza":        2500, // 16.3 km
+		"Pakod":           2600, // 16.4 km
+		"Zalavég":         2400, // 16.6 km
+		"Szentgyörgyvár":  2500, // 16.7 km
+		"Ligetfalva":      2500, // 17 km
+		"Vindornyalak":    2500, // 17 km
+		"Tilaj":           2600, // 18 km
+		"Dötk":            2600, // 18.1 km
+		"Kisvásárhely":    2600, // 18.1 km
+		"Bérbaltavár":     3000, // 19 km (becsült)
+		"Pókaszepetk":     3000, // 21 km (becsült)
 	}
 }
 
@@ -207,6 +210,8 @@ func defaultDriveTimes() map[string]int {
 		"Tilaj":           20,
 		"Dötk":            22,
 		"Kisvásárhely":    21,
+		"Bérbaltavár":     23, // becsült
+		"Pókaszepetk":     25, // becsült
 	}
 }
 

@@ -3,6 +3,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4efe4">
 <title>Online rendelés – Vadvirág Étterem</title>
+<meta name="description" content="Rendelj online a Vadvirág Étteremből: válassz az étlapról, vagy írd le, mit kérsz. Elvitel vagy kiszállítás a környék településeire.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Online rendelés – Vadvirág Étterem">
+<meta property="og:description" content="Válassz az étlapról, vagy írd le, mit kérsz – elvitel vagy kiszállítás.">
+<meta property="og:image" content="https://www.vadviragetterem.com/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="628">
+<meta property="og:url" content="https://www.vadviragetterem.com/rendeles">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
@@ -25,6 +34,11 @@ header h1{font:italic 600 26px Lora,serif;margin-top:6px}
 .info{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:12px auto 0;color:var(--ink2);font-size:14px;max-width:560px}
 .info span{display:inline-flex;align-items:center;gap:6px}
 .info svg{width:16px;height:16px;color:var(--red)}
+.quick{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:14px auto 0;padding:13px 16px;border:1.5px dashed var(--red);border-radius:16px;background:var(--card);color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+.quick svg{flex:none;width:26px;height:26px;color:var(--red)}
+.quick b{display:block;font-size:16px}.quick small{display:block;color:var(--ink2);font-size:13.5px;line-height:1.35;margin-top:2px}
+.quick .go{margin-left:auto;color:var(--red);font-weight:700;white-space:nowrap}
+#quickBox textarea{width:100%;border:0;outline:0;background:transparent;resize:vertical;min-height:120px;padding:14px 16px;font-size:16px;line-height:1.45}
 .call{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--red);font-weight:600;text-decoration:none;font-size:15px}
 
 /* kereső + kategóriák */
@@ -168,6 +182,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
     <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Fizetés átvételkor: kártya vagy készpénz</span>
   </div>
   <div id="notices"></div>
+  <button class="quick" id="quickBtn" onclick="openQuick()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span><b>Egyszerűbb leírni?</b><small>Írd le a saját szavaiddal, mit kérsz – mi összerakjuk, és visszaigazoljuk.</small></span><span class="go">Írok ›</span></button>
   <a class="call" id="callTop" href="tel:+36203395099"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3h3l1.5 4.5-2 1.4a12 12 0 0 0 6 6l1.4-2 4.5 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.6 5.2 2 2 0 0 1 6.6 3z"/></svg>Inkább telefonálnál? <span id="phoneTop">06 20 339 5099</span></a>
 </header>
 <div class="bar" id="bar"><div class="wrap">
@@ -183,8 +198,10 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 <div class="sheet" id="checkout">
   <div class="shd"><button class="bk" onclick="closeCheckout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Étlap</button><h2>Rendelés</h2><span class="sp"></span></div>
   <div class="wrap" style="padding-bottom:40px">
-    <div class="lbl">A kosarad</div>
+    <div class="lbl" id="cartLbl">A kosarad</div>
     <div class="box" id="lines"></div>
+    <div class="box" id="quickBox" style="display:none"><textarea id="qtext" rows="5" placeholder="pl. 2 gulyásleves, 1 nagy (50 cm) Vadvirág pizza, 2 rántott szelet hasábburgonyával, 1 kóla"></textarea></div>
+    <div class="hint" id="quickHint" style="display:none">Írd le nyugodtan a saját szavaiddal. Ha valami nem egyértelmű, visszahívunk. A végösszeget visszaigazoláskor közöljük.</div>
 
     <div class="lbl">Átvétel</div>
     <div class="seg" id="modeSeg">
@@ -263,7 +280,7 @@ function setConsent(yes){setCookie('vv_consent',yes?'1':'0',390);
 function showConsent(){if(getCookie('vv_consent'))return;const d=document.createElement('div');d.id='consent';d.className='consent';
   d.innerHTML='<p><b>Megjegyezzük az adataidat?</b> Ha elfogadod a sütit, legközelebb nem kell újra beírnod a nevedet, telefonszámodat és címedet. Enélkül is ugyanúgy rendelhetsz.</p><div class="cb"><button class="no">Nem kérem</button><button class="yes">Elfogadom</button></div>';
   d.querySelector('.yes').onclick=()=>setConsent(true);d.querySelector('.no').onclick=()=>setConsent(false);document.body.appendChild(d)}
-let M=null, idx={}, cart=store.get('vv_cart',{}), mode='pickup', pay='Készpénz', phone='06 20 339 5099', isOpen=true;
+let M=null, idx={}, cart=store.get('vv_cart',{}), mode='pickup', quick=false, pay='Készpénz', phone='06 20 339 5099', isOpen=true;
 const telHref=()=>'tel:'+phone.replace(/[^+\d]/g,'');
 const key=(id,v)=>id+'|'+(v||'');
 function price(id,v){const it=idx[id];if(!it)return 0;if(it.variants){const x=it.variants.find(z=>z.label===v);return x?x.price:0}return it.price}
@@ -287,6 +304,7 @@ async function load(){
   const tok=(location.hash.match(/r=([a-z0-9]+)/)||[])[1];
   if(tok)showStatus(tok);else checkActive();
   fromSite();setTimeout(showConsent,1500);
+  if((location.hash==='#leiras'||new URLSearchParams(location.search).has('leiras'))&&isOpen)setTimeout(openQuick,300);
 }
 // A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
 // névtelen látogatottsági jelzés a weboldalnak (csak ha a weboldalon keresztül nyitották meg)
@@ -348,7 +366,8 @@ addEventListener('scroll',spy,{passive:true});
 $('q').addEventListener('input',()=>renderMenu());
 
 // ---- fizetés
-function openCheckout(){renderCheckout();$('toast').classList.remove('show');$('checkout').classList.add('open');pushSheet();$('cartbar').classList.remove('show');document.body.style.overflow='hidden';
+function openQuick(){quick=true;siteTrack('ev',{n:'quick_open'});openCheckout(true);setTimeout(()=>$('qtext').focus(),350)}
+function openCheckout(q){quick=!!q;renderCheckout();$('toast').classList.remove('show');$('checkout').classList.add('open');pushSheet();$('cartbar').classList.remove('show');document.body.style.overflow='hidden';
   const saved=meGet();['name','phone','email','street'].forEach(f=>{if(saved[f]&&!$(f).value)$(f).value=saved[f]});if(saved.city&&!$('city').value){$('city').value=saved.city}if(saved.mode)setMode(saved.mode);renderSum()}
 function closeCheckout(fromPop){$('checkout').classList.remove('open');document.body.style.overflow='';updateCart();if(!fromPop)popSheet()}
 // A telefon „vissza” gombja zárja be a kosarat/állapotot, ne lépjen ki az oldalról
@@ -357,17 +376,24 @@ function pushSheet(){if(!sheetPushed){history.pushState({sheet:1},'',location.hr
 function popSheet(){if(sheetPushed){sheetPushed=false;history.back()}}
 addEventListener('popstate',()=>{sheetPushed=false;if($('checkout').classList.contains('open'))closeCheckout(true);else if($('status').classList.contains('open'))backToMenu(true)});
 function renderCheckout(){
+  $('cartLbl').textContent=quick?'Mit kérsz?':'A kosarad';$('lines').style.display=quick?'none':'';$('quickBox').style.display=quick?'':'none';$('quickHint').style.display=quick?'':'none';
   const ks=Object.keys(cart);
   if(!ks.length){$('lines').innerHTML='<div class="ln"><span class="tx">A kosár üres.</span></div>';}
   else $('lines').innerHTML=ks.map(k=>{const [id,v]=k.split('|');const q=cart[k];return `<div class="ln"><span class="tx">${esc(label(id,v))}<small>${huf(price(id,v))} Ft / db · ${huf(price(id,v)*q)} Ft${pack(id,v)?` <span style="white-space:nowrap">+ ${huf(pack(id,v))} Ft doboz / db</span>`:''}</small></span><div class="step"><button onclick="chg('${k}',-1)">${q===1?SVG.trash:SVG.minus}</button><b>${q}</b><button onclick="chg('${k}',1)">${SVG.plus}</button></div></div>`}).join('');
   renderSum();
 }
-function renderSum(){const t=totals();let feeTxt='';
+function renderSum(){if(quick)return renderQuickSum();const t=totals();let feeTxt='';
   if(mode==='delivery'){feeTxt=t.fee===null?'válassz települést':t.fee<0?'egyeztetjük telefonon':huf(t.fee)+' Ft'}
   const tot=t.sub+t.pk+(t.fee>0?t.fee:0);
   $('sum').innerHTML=`<div><span>Ételek</span><span>${huf(t.sub)} Ft</span></div>${t.pk?`<div><span>Csomagolás (elviteles dobozok)</span><span>${huf(t.pk)} Ft</span></div>`:''}${mode==='delivery'?`<div><span>Szállítás</span><span>${feeTxt}</span></div>`:''}<div class="tot"><span>Végösszeg</span><span>${huf(tot)} Ft</span></div>`;
   $('send').textContent=!isOpen?'Az online rendelés most szünetel':t.n?`Rendelés elküldése · ${huf(tot)}${mode==='delivery'&&t.fee<0?' Ft + szállítás':' Ft'}`:'A kosár üres';$('send').disabled=!t.n||!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':t.fee<0?'Erre a településre egyedileg egyeztetjük a díjat – visszahívunk.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
+}
+function renderQuickSum(){const t=totals();
+  const fee=mode==='delivery'?(t.fee===null?'válassz települést':huf(t.fee)+' Ft'):'';
+  $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>`;
+  $('send').textContent=!isOpen?'Az online rendelés most szünetel':'Rendelés elküldése';$('send').disabled=!isOpen;
+  $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
 function setMode(v){mode=v;document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('addr').style.display=v==='delivery'?'block':'none';$('pickupHint').style.display=v==='delivery'?'none':'block';renderSum()}
 document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.v));
@@ -378,6 +404,7 @@ $('city').addEventListener('change',()=>$('fCity').classList.remove('err'));
 
 async function submitOrder(){
   const bad=[];const v=id=>$(id).value.trim();
+  if(quick&&v('qtext').length<3){$('msg').textContent='Írd le, mit szeretnél rendelni.';$('qtext').focus();return}
   if(!v('name'))bad.push('fName');
   if((v('phone').match(/\d/g)||[]).length<8)bad.push('fPhone');
   if(v('email')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('email')))bad.push('fEmail');
@@ -385,14 +412,14 @@ async function submitOrder(){
   if(mode==='delivery'){if(!city)bad.push('fCity');if(!v('street'))bad.push('fStreet')}
   bad.forEach(f=>$(f).classList.add('err'));
   if(bad.length){$('msg').textContent={fName:'Add meg a neved.',fPhone:'Adj meg egy telefonszámot, amin elérünk.',fEmail:'Az e-mail cím nem tűnik helyesnek.',fCity:'Válaszd ki a települést.',fStreet:'Add meg a címet.'}[bad[0]];$(bad[0]).scrollIntoView({behavior:'smooth',block:'center'});return}
-  const items=Object.keys(cart).map(k=>{const [id,vv]=k.split('|');return {id,variant:vv,qty:cart[k]}});
+  const items=quick?[]:Object.keys(cart).map(k=>{const [id,vv]=k.split('|');return {id,variant:vv,qty:cart[k]}});
   $('send').disabled=true;$('send').textContent='Küldés…';$('msg').textContent='';
   try{
-    const r=await fetch('/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,mode,city:mode==='delivery'?city:'',street:mode==='delivery'?v('street'):'',name:v('name'),phone:v('phone'),email:v('email'),note:v('note'),payment:pay,website:$('website').value})});
+    const r=await fetch(quick?'/api/public/quick':'/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,text:quick?v('qtext'):'',mode,city:mode==='delivery'?city:'',street:mode==='delivery'?v('street'):'',name:v('name'),phone:v('phone'),email:v('email'),note:v('note'),payment:pay,website:$('website').value})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Nem sikerült elküldeni. Próbáld újra, vagy hívj minket!');
     meSet({name:v('name'),phone:v('phone'),email:v('email'),street:v('street'),city:v('city'),mode});
-    cart={};store.set('vv_cart',cart);store.set('vv_last',d.token);
+    if(quick){$('qtext').value='';quick=false}else{cart={};store.set('vv_cart',cart)}store.set('vv_last',d.token);
     history.replaceState(null,'',location.pathname+'#r='+d.token);
     $('note').value='';renderMenu();updateCart();
     $('checkout').classList.remove('open');sheetPushed=false;siteTrack('ev',{n:'order_sent'});showStatus(d.token,true);
@@ -423,7 +450,7 @@ function renderStatus(o,stale){
   else h=`<div class="ic no">${SVG.x}</div><h3>Sajnos most nem tudjuk teljesíteni</h3><p>Rendelésszám: <b>#${o.id}</b></p>${track(o)}${o.reason?`<p><b>${esc(o.reason)}</b></p>`:''}<p>Elnézést kérünk! Nem kell fizetned semmit. Hívj minket, és megoldjuk:</p>`;
   if(stale)h+=`<div class="nudge">Most nem érjük el a rendszert, az állapot pár perce frissült utoljára. Próbálkozunk tovább…</div>`;
   const fee=o.delivery_fee>0?`\nSzállítás – ${huf(o.delivery_fee)} Ft`:deliv&&o.delivery_fee<0?'\nSzállítás – telefonon egyeztetjük':'';
-  const sum=`${o.items}${fee}\n\nVégösszeg: ${huf(o.total)} Ft${deliv&&o.delivery_fee<0?' + szállítás':''}`;
+  const sum=o.quick?`${o.items.replace(/^Szabadon leírt rendelés:\n/,'')}${fee}\n\nA végösszeget visszaigazoláskor közöljük.`:`${o.items}${fee}\n\nVégösszeg: ${huf(o.total)} Ft${deliv&&o.delivery_fee<0?' + szállítás':''}`;
   $('stBody').innerHTML=h+`<div class="box recap">${esc(sum)}</div>${call}<br><button class="btn2" style="color:var(--ink2)" onclick="backToMenu()">${o.status==='rejected'?'Új rendelés':'Vissza az étlapra'}</button>`;
 }
 function backToMenu(){clearInterval(poll);$('status').classList.remove('open');document.body.style.overflow='';history.replaceState(null,'',location.pathname);updateCart();active=null;renderNotices();checkActive()}

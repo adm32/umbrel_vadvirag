@@ -1427,6 +1427,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("GET /rendeles", a.servePublicPage)
 	mux.HandleFunc("GET /api/public/menu", a.handlePublicMenu)
 	mux.HandleFunc("POST /api/public/order", a.handlePublicOrder)
+	mux.HandleFunc("POST /api/public/quick", a.handlePublicQuick)
 	mux.HandleFunc("GET /api/public/order/{token}", a.handlePublicStatus)
 	mux.HandleFunc("POST /api/public/message", a.handlePublicMessage)
 	mux.HandleFunc("GET /api/messages", a.requireAuth(a.handleMessages))

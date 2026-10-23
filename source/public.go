@@ -112,6 +112,7 @@ type publicLine struct {
 
 type publicOrderReq struct {
 	Items   []publicLine `json:"items"`
+	Text    string       `json:"text"` // szabadon leírt rendelés (gyors rendelés)
 	Mode    string       `json:"mode"` // pickup | delivery
 	City    string       `json:"city"`
 	Street  string       `json:"street"`
@@ -142,6 +143,92 @@ func publicErr(w http.ResponseWriter, code int, msg string) {
 	writeJSON(w, code, map[string]string{"error": msg})
 }
 
+// quickPrefix: a szabadon leírt rendelések első sora (így a felületek felismerik).
+const quickPrefix = "Szabadon leírt rendelés:"
+
+// POST /api/public/quick – „írd le, mit kérsz”: a régi Wix-űrlaphoz hasonló, egyszerű rendelés.
+// Az árat a személyzet számolja ki, és visszaigazoláskor vagy átvételkor közli.
+func (a *App) handlePublicQuick(w http.ResponseWriter, r *http.Request) {
+	var in publicOrderReq
+	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&in); err != nil {
+		publicErr(w, 400, "Hibás kérés.")
+		return
+	}
+	if c := a.conf(); c.OnlineSzunetel {
+		msg := "Az online rendelés most szünetel."
+		if c.OnlineUzenet != "" {
+			msg += " " + c.OnlineUzenet
+		}
+		publicErr(w, 503, msg+" Telefonon szívesen felvesszük: "+c.EtteremTelefon)
+		return
+	}
+	if in.Website != "" {
+		writeJSON(w, 200, map[string]any{"ok": true, "id": 0, "token": "x"})
+		return
+	}
+	in.Text = clip(in.Text, 1500)
+	if len([]rune(in.Text)) < 3 {
+		publicErr(w, 400, "Írd le, mit szeretnél rendelni.")
+		return
+	}
+	mode, payment, ok := a.checkContact(w, &in)
+	if !ok {
+		return
+	}
+	itemsText := quickPrefix + "\n" + in.Text
+	if a.rateGate(w, norm(in.Phone)+"|"+itemsText) {
+		return
+	}
+	o := &Order{
+		Source: "web", Visitor: visitorKey(r), Name: in.Name, Phone: in.Phone, Email: in.Email, Mode: mode,
+		Items: itemsText, Note: in.Note, Payment: payment,
+		Token: randStr(22, "abcdefghjkmnpqrstuvwxyz23456789"),
+		Extra: map[string]string{"Fizetés módja": payment, "Végösszeg": "az árat egyeztetni kell (szabadon leírt rendelés)"},
+	}
+	if mode == modeDelivery {
+		o.City, o.Street = in.City, in.Street
+	}
+	o.ExtID = "web:" + o.Token
+	a.ingest(o)
+	log.Printf("Weboldali gyors rendelés #%d", o.ID)
+	writeJSON(w, 200, map[string]any{"ok": true, "id": o.ID, "token": o.Token})
+}
+
+// checkContact: név, telefon, e-mail, cím és fizetés ellenőrzése (mindkét rendeléstípushoz).
+func (a *App) checkContact(w http.ResponseWriter, in *publicOrderReq) (mode, payment string, ok bool) {
+	in.Name, in.Phone, in.Email = clip(in.Name, 80), clip(in.Phone, 30), clip(in.Email, 120)
+	in.City, in.Street, in.Note = clip(in.City, 80), clip(in.Street, 160), clip(in.Note, 600)
+	if in.Name == "" {
+		publicErr(w, 400, "Kérjük, add meg a neved.")
+		return
+	}
+	if len(digitsRe.FindAllString(in.Phone, -1)) < 8 {
+		publicErr(w, 400, "Kérjük, adj meg egy telefonszámot, amin elérünk.")
+		return
+	}
+	if in.Email != "" && !emailRe.MatchString(in.Email) {
+		publicErr(w, 400, "Az e-mail cím nem tűnik helyesnek.")
+		return
+	}
+	mode = modePickup
+	if in.Mode == "delivery" {
+		mode = modeDelivery
+		if in.City == "" || in.Street == "" {
+			publicErr(w, 400, "Kiszállításhoz add meg a települést és a címet.")
+			return
+		}
+		if a.fee(modeDelivery, in.City) < 0 {
+			publicErr(w, 400, "Erre a településre sajnos nem szállítunk ki. Válaszd az elvitelt, vagy hívj minket: "+a.conf().EtteremTelefon)
+			return
+		}
+	}
+	payment = "Készpénz"
+	if strings.HasPrefix(norm(in.Payment), "kart") {
+		payment = "Kártya"
+	}
+	return mode, payment, true
+}
+
 // POST /api/public/order
 func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 	var in publicOrderReq
@@ -161,35 +248,9 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]any{"ok": true, "id": 0, "token": "x"})
 		return
 	}
-	in.Name, in.Phone, in.Email = clip(in.Name, 80), clip(in.Phone, 30), clip(in.Email, 120)
-	in.City, in.Street, in.Note = clip(in.City, 80), clip(in.Street, 160), clip(in.Note, 600)
-	if in.Name == "" {
-		publicErr(w, 400, "Kérjük, add meg a neved.")
+	mode, payment, ok := a.checkContact(w, &in)
+	if !ok {
 		return
-	}
-	if len(digitsRe.FindAllString(in.Phone, -1)) < 8 {
-		publicErr(w, 400, "Kérjük, adj meg egy telefonszámot, amin elérünk.")
-		return
-	}
-	if in.Email != "" && !emailRe.MatchString(in.Email) {
-		publicErr(w, 400, "Az e-mail cím nem tűnik helyesnek.")
-		return
-	}
-	mode := modePickup
-	if in.Mode == "delivery" {
-		mode = modeDelivery
-		if in.City == "" || in.Street == "" {
-			publicErr(w, 400, "Kiszállításhoz add meg a települést és a címet.")
-			return
-		}
-		if a.fee(modeDelivery, in.City) < 0 {
-			publicErr(w, 400, "Erre a településre sajnos nem szállítunk ki. Válaszd az elvitelt, vagy hívj minket: "+a.conf().EtteremTelefon)
-			return
-		}
-	}
-	payment := "Készpénz"
-	if strings.HasPrefix(norm(in.Payment), "kart") {
-		payment = "Kártya"
 	}
 	if len(in.Items) == 0 || len(in.Items) > 60 {
 		publicErr(w, 400, "A kosár üres.")
@@ -228,38 +289,9 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 	itemsText := strings.Join(lines, "\n")
 
 	// védelem: túl sok rendelés rövid idő alatt, illetve dupla küldés
-	key := norm(in.Phone) + "|" + itemsText
-	rlMu.Lock()
-	now := time.Now()
-	keep := rlTimes[:0]
-	for _, t := range rlTimes {
-		if now.Sub(t) < 10*time.Minute {
-			keep = append(keep, t)
-		}
-	}
-	rlTimes = keep
-	if t, ok := rlRecent[key]; ok && now.Sub(t) < 3*time.Minute {
-		rlMu.Unlock()
-		if o := a.findByKey(key); o != nil {
-			writeJSON(w, 200, map[string]any{"ok": true, "id": o.ID, "token": o.Token})
-			return
-		}
-		publicErr(w, 429, "Ezt a rendelést már megkaptuk.")
+	if a.rateGate(w, norm(in.Phone)+"|"+itemsText) {
 		return
 	}
-	if len(rlTimes) >= 30 {
-		rlMu.Unlock()
-		publicErr(w, 429, "Most nagyon sok rendelés érkezik – kérjük, hívj minket telefonon!")
-		return
-	}
-	rlTimes = append(rlTimes, now)
-	rlRecent[key] = now
-	for k, t := range rlRecent {
-		if now.Sub(t) > 10*time.Minute {
-			delete(rlRecent, k)
-		}
-	}
-	rlMu.Unlock()
 
 	o := &Order{
 		Source: "web", Visitor: visitorKey(r), Name: in.Name, Phone: in.Phone, Email: in.Email, Mode: mode,
@@ -296,6 +328,42 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 	a.st.mu.Unlock()
 	log.Printf("Weboldali rendelés #%d: %s Ft", o.ID, formatHUF(total))
 	writeJSON(w, 200, map[string]any{"ok": true, "id": o.ID, "token": o.Token})
+}
+
+// rateGate: dupla küldés és túl sok rendelés elleni védelem. true = a választ már megírta, ne folytasd.
+func (a *App) rateGate(w http.ResponseWriter, key string) bool {
+	rlMu.Lock()
+	now := time.Now()
+	keep := rlTimes[:0]
+	for _, t := range rlTimes {
+		if now.Sub(t) < 10*time.Minute {
+			keep = append(keep, t)
+		}
+	}
+	rlTimes = keep
+	if t, ok := rlRecent[key]; ok && now.Sub(t) < 3*time.Minute {
+		rlMu.Unlock()
+		if o := a.findByKey(key); o != nil {
+			writeJSON(w, 200, map[string]any{"ok": true, "id": o.ID, "token": o.Token})
+			return true
+		}
+		publicErr(w, 429, "Ezt a rendelést már megkaptuk.")
+		return true
+	}
+	if len(rlTimes) >= 30 {
+		rlMu.Unlock()
+		publicErr(w, 429, "Most nagyon sok rendelés érkezik – kérjük, hívj minket telefonon!")
+		return true
+	}
+	rlTimes = append(rlTimes, now)
+	rlRecent[key] = now
+	for k, t := range rlRecent {
+		if now.Sub(t) > 10*time.Minute {
+			delete(rlRecent, k)
+		}
+	}
+	rlMu.Unlock()
+	return false
 }
 
 func (a *App) findByKey(key string) *Order {
@@ -338,6 +406,7 @@ func (a *App) handlePublicStatus(w http.ResponseWriter, r *http.Request) {
 				"id": o.ID, "status": st, "eta": eta, "reason": o.Reason,
 				"status_at": at, "created": o.Created, "mode": o.Mode,
 				"total": o.Total, "delivery_fee": o.DeliveryFee, "items": o.Items, "payment": o.Payment,
+				"quick": strings.HasPrefix(o.Items, quickPrefix),
 			})
 			return
 		}

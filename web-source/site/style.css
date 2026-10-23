@@ -84,6 +84,8 @@ h3{font:600 22px/1.25 var(--serif)}
 .status.closed .dot{background:var(--red)}
 @keyframes ping{70%{box-shadow:0 0 0 8px #2f9e5800}100%{box-shadow:0 0 0 0 #2f9e5800}}
 .hero-cta{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.hero-quick{margin-top:14px;font-size:15.5px}
+.hero-quick a{color:var(--red);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 .hero-small{margin-top:18px;color:var(--ink2);font-size:15px}
 .hero-small a{font-weight:600;color:var(--ink);text-decoration:none}
 .hero-art{position:relative;margin:0;aspect-ratio:4/5;max-height:76vh;max-height:76svh;justify-self:center;width:100%;max-width:520px;box-shadow:0 30px 60px -30px #4a1a0f70}
@@ -331,6 +333,7 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
   .hero-logo{margin:0 auto;width:min(420px,88vw)}
   .hero-lead{margin-left:auto;margin-right:auto}
   .hero-cta{justify-content:center}
+  .hero-quick{text-align:center}
   .hero-cta .btn{flex:1;min-width:150px}
   .hero-art{max-width:400px;width:84vw;aspect-ratio:5/6}
   .hero-hint{left:0;right:0;text-align:center;bottom:10px}

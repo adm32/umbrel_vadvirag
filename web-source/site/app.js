@@ -47,7 +47,7 @@ function setLang(l, push) {
   if (push) { const path = lang === 'hu' ? '/' : '/' + lang; history.replaceState(null, '', path + location.hash); }
   renderStatus(); renderHours(); renderFacts(); setKind(kind);
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
-  renderDrinks(); renderAlg();
+  renderDrinks(); renderAlg(); renderOffers();
 }
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
 
@@ -108,10 +108,90 @@ setInterval(renderStatus, 60000);
 /* ---------------------------------------------------------------- étlap */
 const trSec = s => (lang !== 'hu' && TR.sections[s.id] && TR.sections[s.id][lang]) || s.name;
 const trSecShort = s => (lang !== 'hu' && TR.sections[s.id] && TR.sections[s.id][lang]) || s.short || s.name;
+const trVar = l => (lang !== 'hu' && TR.variants && TR.variants[l] && TR.variants[l][lang]) || l;
 const trItem = it => { const t = lang !== 'hu' && TR.items[it.id] && TR.items[it.id][lang]; return { name: (t && t[0]) || it.name, desc: (t && t[0]) ? (t[1] || '') : (it.desc || '') }; };
 const variants = it => it.variants && it.variants.length ? it.variants : [{ label: '', price: it.price }];
 const orderHref = (id, v) => '/rendeles?add=' + encodeURIComponent(id) + (v ? '&v=' + encodeURIComponent(v) : '');
 const plus = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+
+/* ---------------------------------------------------------------- ajánlatok
+   A szerver (/api/ajanlat) csak azt küldi, ami ma érvényes: a hétvégi ajánlat hétfőtől
+   magától eltűnik, a heti menü a saját hetén (és az előtte lévő hétvégén) látszik. */
+let OFF = null, wkDay = null, wkCourses = 2, wkSoup = 0, wkMain = 0;
+const L10 = o => (o && (o[lang] || o.hu)) || '';
+const LOC = () => (lang === 'hu' ? 'hu-HU' : lang === 'de' ? 'de-DE' : 'en-GB');
+const isoDay = iso => new Date(iso + 'T12:00:00');
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const fmtDay = (iso, opts, loc) => cap(isoDay(iso).toLocaleDateString(loc || LOC(), opts));
+const quickHref = text => '/rendeles?leiras=' + encodeURIComponent(text);
+async function loadOffers() {
+  try { const r = await fetch('/api/ajanlat', { cache: 'no-store' }); if (!r.ok) throw 0; OFF = await r.json(); } catch (e) { OFF = {}; }
+  renderOffers();
+}
+function renderOffers() {
+  if (!OFF) return;
+  const w = OFF.weekend, el = $('offWeekend');
+  if (w) {
+    const tag = w.days_left <= 0 ? T('wkendToday') : w.days_left === 1 ? T('wkendTomorrow') : T('wkendSunday');
+    const dz = w.dessert;
+    const base = 'Hétvégi ajánlat: ' + w.courses.map(c => c.name.hu).join(' + ') + ' (' + huf(w.price) + ' Ft)';
+    const course = (k, c, extra) => `<div class="course${k === 'cDessert' ? ' dessert' : ''}"><span class="k">${esc(T(k))}</span><span class="n">${esc(L10(c.name))}</span>${L10(c.desc) ? `<span class="d">${esc(L10(c.desc))}</span>` : ''}${extra || ''}</div>`;
+    el.innerHTML = `<span class="off-tag hot">${esc(tag)}</span><h3>${esc(L10(w.title))}</h3>` +
+      w.courses.map(c => course(c.kind === 'soup' ? 'cSoup' : 'cMain', c)).join('') +
+      `<div class="off-price"><span>${esc(T('wkendBoth'))}</span><b>${huf(w.price)} Ft</b></div>` +
+      (dz ? course('cDessert', dz, `<span class="p">${huf(dz.price)} Ft</span>`) : '') +
+      `<div class="off-btns"><a class="btn btn-red btn-lg" href="${esc(quickHref(base))}">${esc(T('wkendOrder', { p: huf(w.price) }))}</a>` +
+      (dz ? `<a class="btn btn-ghost btn-lg" href="${esc(quickHref(base + '\n+ desszert: ' + dz.name.hu + ' (' + huf(dz.price) + ' Ft)'))}">${esc(T('wkendOrderDessert', { p: huf(w.price + dz.price) }))}</a>` : '') + '</div>';
+  }
+  el.hidden = !w;
+  renderWeekly();
+}
+function weekRange(m) {
+  try { return new Intl.DateTimeFormat(LOC(), { month: 'long', day: 'numeric' }).formatRange(isoDay(m.from), isoDay(m.to)); }
+  catch (e) { return fmtDay(m.from, { month: 'long', day: 'numeric' }) + ' – ' + fmtDay(m.to, { month: 'long', day: 'numeric' }); }
+}
+function renderWeekly() {
+  const m = OFF && OFF.weekly, el = $('offWeekly');
+  el.hidden = !m;
+  if (!m) return;
+  if (!wkDay || !m.days.some(d => d.date === wkDay)) wkDay = (m.days.find(d => d.date === OFF.today) || m.days[0]).date;
+  const d = m.days.find(x => x.date === wkDay);
+  if (wkSoup >= d.soups.length) wkSoup = 0;
+  if (wkMain >= d.mains.length) wkMain = 0;
+  const letter = i => String.fromCharCode(65 + i);
+  const price = (n, p, sub) => `<button class="wk-price" data-courses="${n}" aria-pressed="${wkCourses === n}"><small>${esc(T(n === 2 ? 'weeklyTwo' : 'weeklyThree'))} · ${esc(T(sub))}</small><b>${huf(p)} Ft</b></button>`;
+  const opt = (name, i, mk, txt) => `<label class="wk-opt"><input type="radio" name="${name}" value="${i}"${(name === 'wkSoup' ? wkSoup : wkMain) === i ? ' checked' : ''}><span class="mk">${mk}</span><span>${esc(txt)}</span></label>`;
+  el.innerHTML = `<div class="wk-head"><div><h3>${esc(T(m.upcoming ? 'weeklyNext' : 'weeklyTitle'))}</h3><div class="dates">${esc(weekRange(m))}</div></div>
+    <div class="wk-prices" role="group">${price(2, m.two, 'weeklyTwoSub')}${price(3, m.three, 'weeklyThreeSub')}</div></div>
+    <div class="wk-days" role="tablist">${m.days.map(x => `<button class="wk-day" role="tab" data-day="${x.date}" aria-selected="${x.date === wkDay}">${esc(fmtDay(x.date, { weekday: 'long' }))}<small>${esc(isoDay(x.date).toLocaleDateString(LOC(), { month: 'short', day: 'numeric' }))}</small>${x.date === OFF.today ? `<small class="today">${esc(T('weeklyToday'))}</small>` : ''}</button>`).join('')}</div>
+    <div class="wk-cols" role="tabpanel">
+      <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklySoups'))}</h4></legend>${d.soups.map((s, i) => opt('wkSoup', i, '•', L10(s))).join('')}</fieldset>
+      <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklyMains'))}</h4></legend>${d.mains.map((s, i) => opt('wkMain', i, letter(i), L10(s))).join('')}</fieldset>
+    </div>
+    <div class="wk-foot"><p>${esc(T('weeklyHint'))}</p><a class="btn btn-red btn-lg" id="wkOrder" href="#">${esc(T('weeklyOrder'))} · ${huf(wkCourses === 3 ? m.three : m.two)} Ft</a></div>`;
+  $('wkOrder').href = quickHref(weeklyText(m, d));
+}
+function weeklyText(m, d) {
+  const three = wkCourses === 3;
+  const dd = isoDay(d.date);
+  return 'Heti menü – ' + dd.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + dd.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) + '), ' +
+    (three ? 'háromfogásos (' + huf(m.three) + ' Ft)' : 'kétfogásos (' + huf(m.two) + ' Ft)') +
+    '\nLeves: ' + d.soups[wkSoup].hu + '\nFőétel: ' + String.fromCharCode(65 + wkMain) + ') ' + d.mains[wkMain].hu +
+    (three ? '\nDesszert: a háromfogásos menü desszertje' : '');
+}
+$('offWeekly').addEventListener('click', e => {
+  const t = tgt(e); if (!t) return;
+  const dayB = t.closest('[data-day]'), pr = t.closest('[data-courses]');
+  if (dayB) { wkDay = dayB.dataset.day; wkSoup = 0; wkMain = 0; renderWeekly(); $('offWeekly').querySelector(`[data-day="${wkDay}"]`)?.focus(); }
+  else if (pr) { wkCourses = +pr.dataset.courses; renderWeekly(); }
+  else if (t.closest('#wkOrder')) track('ev', { n: 'weekly_order' });
+});
+$('offWeekly').addEventListener('change', e => {
+  const t = tgt(e); if (!t || t.type !== 'radio') return;
+  if (t.name === 'wkSoup') wkSoup = +t.value; else wkMain = +t.value;
+  const m = OFF.weekly; $('wkOrder').href = quickHref(weeklyText(m, m.days.find(x => x.date === wkDay)));
+});
+$('offWeekend').addEventListener('click', e => { if (tgt(e)?.closest('a')) track('ev', { n: 'weekend_order' }); });
 
 async function loadMenu() {
   try {
@@ -150,8 +230,8 @@ function itemHTML(it) {
   const sup = it.alg ? `<span class="als">${it.alg.split(/\s*,\s*/).map(n => `<button data-alg="${esc(n)}" aria-label="${esc(T('allergens'))} ${esc(n)}">${esc(n)}</button>`).join('')}</span>` : '';
   if (vs.length > 1) {
     const pills = vs.map(v => paused
-      ? `<span class="var">${esc(v.label)} <b>${huf(v.price)} Ft</b></span>`
-      : `<a class="var add-v" href="${orderHref(it.id, v.label)}" aria-label="${esc(T('addToCart', { n: name + ' ' + v.label }))}">${esc(v.label)} <b>${huf(v.price)} Ft</b>${plus}</a>`).join('');
+      ? `<span class="var">${esc(trVar(v.label))} <b>${huf(v.price)} Ft</b></span>`
+      : `<a class="var add-v" href="${orderHref(it.id, v.label)}" aria-label="${esc(T('addToCart', { n: name + ' ' + trVar(v.label) }))}">${esc(trVar(v.label))} <b>${huf(v.price)} Ft</b>${plus}</a>`).join('');
     return `<div class="mi mv" id="i-${esc(it.id)}"><div class="nm"><span>${esc(name)}${sup}</span></div>${ds}<div class="vars">${pills}</div>${al}</div>`;
   }
   const btn = paused ? '' : `<a class="add" href="${orderHref(it.id, vs[0].label)}" aria-label="${esc(T('addToCart', { n: name }))}">${plus}</a>`;
@@ -506,5 +586,6 @@ document.addEventListener('click', e => {
   if (a.closest('.quick')) track('ev', { n: 'quick', v: h });
 }, true);
 loadMenu();
+loadOffers();
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
 })();

@@ -35,7 +35,8 @@ type MenuItem struct {
 	Alg      string        `json:"alg,omitempty"`
 	Price    int           `json:"price,omitempty"`
 	Variants []MenuVariant `json:"variants,omitempty"`
-	Pack     int           `json:"pack"` // csomagolás díja darabonként (a szerver tölti ki)
+	Pack     int           `json:"pack"`           // csomagolás díja darabonként (a szerver tölti ki)
+	Role     string        `json:"role,omitempty"` // "main": köretre szoruló főétel, "side": köret (közös doboz)
 }
 
 type MenuSection struct {
@@ -62,6 +63,7 @@ func init() {
 		for ii := range menuSections[si].Items {
 			it := &menuSections[si].Items[ii]
 			it.Pack = packFor(menuSections[si].ID, it, "")
+			it.Role = roleFor(menuSections[si].ID, it)
 			for vi := range it.Variants {
 				it.Variants[vi].Pack = packFor(menuSections[si].ID, it, it.Variants[vi].Label)
 			}
@@ -259,7 +261,8 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 
 	// árak a szerver saját étlapjából
 	var lines []string
-	sub, pack := 0, 0
+	sub := 0
+	var packs []packLine
 	for _, l := range in.Items {
 		it := menuIdx[l.ID]
 		if it == nil || l.Qty < 1 || l.Qty > 50 {
@@ -280,9 +283,10 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		sub += price * l.Qty
-		pack += pk * l.Qty
+		packs = append(packs, packLine{it.Role, pk, l.Qty})
 		lines = append(lines, fmt.Sprintf("%d× %s – %s Ft", l.Qty, label, formatHUF(price*l.Qty)))
 	}
+	pack := packTotal(packs)
 	if pack > 0 {
 		lines = append(lines, fmt.Sprintf("Csomagolás (elviteles dobozok) – %s Ft", formatHUF(pack)))
 	}

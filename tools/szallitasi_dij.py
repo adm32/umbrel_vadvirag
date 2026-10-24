@@ -44,7 +44,6 @@ TELEPULESEK = [
     ("Sénye", 5.5),
     ("Tekenye", 5.5),
     ("Tilaj", 5.5),
-    ("Kehida", 6),
     ("Kisszentgrót", 6),
     ("Kehidakustány", 6.5),
     ("Zalakoppány", 7),
@@ -119,7 +118,6 @@ TELEPULESEK = [
 
 # Településrészek: így a térképkereső biztosan a jót találja meg
 KERESES = {
-    "Kehida": "Kehida, Kehidakustány",
     "Barátsziget": "Barátsziget, Kehidakustány",
     "Gyülevész": "Gyülevész, Zalaszentlászló",
     "Aranyod": "Aranyod, Zalaszentgrót",

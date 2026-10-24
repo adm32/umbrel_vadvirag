@@ -59,6 +59,10 @@
 "burger-extrak-es-udito": {
 "en": "Burger extras & drinks",
 "de": "Burger-Extras & Getränke"
+},
+"kocsonya": {
+"en": "Aspic (kocsonya)",
+"de": "Sülze (Kocsonya)"
 }
 },
 "items": {
@@ -1161,6 +1165,26 @@
 "Coca-Cola (Dose)",
 ""
 ]
+},
+"kocsonya-hazi-kocsonya": {
+"en": [
+"Homemade aspic (kocsonya)",
+"Seasonal special, packed to take away."
+],
+"de": [
+"Hausgemachte Sülze (Kocsonya)",
+"Saisonangebot, zum Mitnehmen verpackt."
+]
+}
+},
+"variants": {
+"kis doboz (0,5 l)": {
+"en": "small box (0.5 l)",
+"de": "kleine Box (0,5 l)"
+},
+"nagy doboz (0,75 l)": {
+"en": "large box (0.75 l)",
+"de": "große Box (0,75 l)"
 }
 }
 }

@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.4.0"
+const version = "1.5.0"
 
 var (
 	site    fs.FS
@@ -124,6 +124,7 @@ func routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("GET /api/menu", handleMenu)
+	mux.HandleFunc("GET /api/ajanlat", handleOffers)
 	mux.HandleFunc("POST /api/t", handleBeacon)
 	mux.HandleFunc("GET /robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")

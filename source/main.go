@@ -113,10 +113,10 @@ func defaultConfig() Config {
 }
 
 // Szállítási díjak és menetidők: az étterem saját táblázata (2026. október 22., kézzel javított
-// díjakkal, 43 település). A km és a perc valódi autós adat Zalaudvarnokról; Pókaszepetk és
+// díjakkal, 42 település). A km és a perc valódi autós adat Zalaudvarnokról; Pókaszepetk és
 // Bérbaltavár menetideje becsült. Csak ezekre a településekre szállítunk.
 // Ha a táblát módosítod, emeld a feeTableVersion értékét: induláskor a régi tábla lecserélődik.
-const feeTableVersion = 7
+const feeTableVersion = 8
 
 func defaultFees() map[string]int {
 	return map[string]int{
@@ -136,7 +136,6 @@ func defaultFees() map[string]int {
 		"Kisgörbő":        1400, // 9.5 km
 		"Kehidakustány":   1400, // 9.8 km
 		"Tekenye":         1400, // 9.9 km
-		"Kehida":          1400, // 10.2 km
 		"Türje":           1600, // 11.3 km
 		"Vindornyafok":    1800, // 11.4 km
 		"Nemesbük":        1800, // 11.5 km
@@ -185,7 +184,6 @@ func defaultDriveTimes() map[string]int {
 		"Kisgörbő":        10,
 		"Kehidakustány":   11,
 		"Tekenye":         13,
-		"Kehida":          12,
 		"Türje":           13,
 		"Vindornyafok":    12,
 		"Nemesbük":        13,

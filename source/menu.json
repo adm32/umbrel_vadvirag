@@ -399,6 +399,28 @@
    "short": "Levesek"
   },
   {
+   "id": "kocsonya",
+   "name": "Kocsonya",
+   "short": "Kocsonya",
+   "items": [
+    {
+     "id": "kocsonya-hazi-kocsonya",
+     "name": "Házi kocsonya",
+     "desc": "Szezonális ajánlatunk, elvitelre dobozban.",
+     "variants": [
+      {
+       "label": "kis doboz (0,5 l)",
+       "price": 1500
+      },
+      {
+       "label": "nagy doboz (0,75 l)",
+       "price": 1800
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "szarnyasbol-keszult-etelek",
    "name": "Szárnyasból készült ételek",
    "items": [

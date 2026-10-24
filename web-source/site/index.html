@@ -35,6 +35,7 @@
   <div class="top-in">
     <a class="brand" href="#" aria-label="Vadvirág – kezdőlap"><img src="/img/logo.webp" alt="Vadvirág" width="1200" height="406"></a>
     <nav class="nav" aria-label="Fő menü" data-ta="navLabel">
+      <a href="#ajanlat" data-t="navOffers">Ajánlat</a>
       <a href="#etlap" data-t="navMenu">Étlap</a>
       <a href="#rendezvenyek" data-t="navEvents">Rendezvények</a>
       <a href="#kiszallitas" data-t="navDelivery">Kiszállítás</a>
@@ -51,6 +52,7 @@
 
 <div class="drawer" id="drawer" hidden>
   <nav aria-label="Menü">
+    <a href="#ajanlat" data-t="navOffers">Ajánlat</a>
     <a href="#etlap" data-t="navMenu">Étlap</a>
     <a href="#rendezvenyek" data-t="navEvents">Rendezvények</a>
     <a href="#kiszallitas" data-t="navDelivery">Kiszállítás</a>
@@ -92,6 +94,32 @@
     </figure>
   </div>
   <p class="hero-hint" data-t="petalHint" aria-hidden="true">Koppints a pipacsok közé!</p>
+</section>
+
+<!-- ============ AJÁNLATOK ============ -->
+<!-- A hétvégi ajánlatot és a heti menüt az /api/ajanlat tölti ki (adatok: ajanlatok.json). -->
+<section class="offers wrap" id="ajanlat">
+  <div class="sec-head">
+    <h2 data-t="offersTitle">Ajánlataink</h2>
+    <p class="sec-sub" data-t="offersSub">Hétvégi ajánlat, heti menü és szezonális finomságok – rendeld meg pár koppintással.</p>
+  </div>
+  <div class="off-grid">
+    <article class="off-card off-weekend" id="offWeekend" hidden></article>
+    <article class="off-card off-kocs" id="kocsonya">
+      <img class="kocs-img" src="/img/kocsonya-s.webp" srcset="/img/kocsonya-s.webp 560w, /img/kocsonya.webp 1000w" sizes="(max-width:860px) 100vw, 360px" alt="Házi kocsonya tányéron, mellette elviteles dobozok" data-ta="altKocs" loading="lazy" width="560" height="700">
+      <div class="kocs-body">
+        <span class="off-tag" data-t="kocsTag">Szezonális</span>
+        <h3 data-t="kocsTitle">Házi kocsonya</h3>
+        <p data-t="kocsText">Itt a kocsonyaszezon! Házi kocsonya elvitelre, jól záródó dobozban.</p>
+        <div class="kocs-opts">
+          <a class="kocs-opt" href="/rendeles?add=kocsonya-hazi-kocsonya&amp;v=kis%20doboz%20(0%2C5%20l)"><span data-t="kocsSmall">Kis doboz (0,5 l)</span><b>1 500 Ft</b></a>
+          <a class="kocs-opt" href="/rendeles?add=kocsonya-hazi-kocsonya&amp;v=nagy%20doboz%20(0%2C75%20l)"><span data-t="kocsLarge">Nagy doboz (0,75 l)</span><b>1 800 Ft</b></a>
+        </div>
+        <p class="kocs-note" data-t="kocsNote">A doboz díját (150 / 200 Ft) a kosárban látod.</p>
+      </div>
+    </article>
+  </div>
+  <div class="weekly" id="offWeekly" hidden></div>
 </section>
 
 <!-- ============ RÓLUNK ============ -->

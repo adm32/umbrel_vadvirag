@@ -9,7 +9,7 @@ import (
 func TestFeeMatching(t *testing.T) {
 	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
 	cases := map[string]int{
-		"Zalaudvarnok": 200, "zalaszentgrot": 600, "Sümegcsehi": 2500, "Kehida": 1400,
+		"Zalaudvarnok": 200, "zalaszentgrot": 600, "Sümegcsehi": 2500, "Kehida": -1,
 		"Kehidakustány": 1400, "Zalaszentgrót-Csáford": 1200, "Kiscsáford": 1200, "Felsőaranyod": 900,
 		"Budapest": -1, "Hévíz": -1, "Dabronc": -1, "Gógánfa": -1, "8790 Zalaszentgrót": 600, "Kisvásárhely": 2600,
 		"Pókaszepetk": 3000, "Bérbaltavár": 3000, "Zalabér": 1600, "Sénye": 600,
@@ -30,8 +30,8 @@ func TestFeeMatching(t *testing.T) {
 	if len(defaultDriveTimes()) != len(defaultFees()) {
 		t.Error("every village needs a drive time")
 	}
-	if n := len(defaultFees()); n != 43 {
-		t.Errorf("want 43 towns, got %d", n)
+	if n := len(defaultFees()); n != 42 {
+		t.Errorf("want 42 towns, got %d", n)
 	}
 }
 
@@ -41,7 +41,7 @@ func TestPack(t *testing.T) {
 		"levese-gulyasleves-csipetkevel|": 200, "levese-halaszle-harcsafilevel|": 200, "levese-fokhagymakremleves-krutonnal|": 150,
 		"talak-udvarnok-tal-2-fos|": 450, "talak-vadvirag-tal-4-fos|": 550, "talak-parasztos-fatal-2-fore|": 450,
 		"talak-erdelyi-fatanyeros-1-fore|": 200, "sertes-rantott-sertesszelet|": 200, "burger-smash-burger|": 200,
-		"szoszo-ketchup|": 0, "burger-dobozos-coca-cola|": 0, "korete-hasabburgonya|": 200,
+		"szoszo-ketchup|": 0, "burger-dobozos-coca-cola|": 0, "korete-hasabburgonya|": 200, "kocsonya-hazi-kocsonya|kis doboz (0,5 l)": 150, "kocsonya-hazi-kocsonya|nagy doboz (0,75 l)": 200,
 	}
 	for k, w := range want {
 		id, v, _ := strings.Cut(k, "|")
@@ -72,11 +72,34 @@ func TestFeeMigration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 43 || cfg.Dijak["Türje"] != 1600 || cfg.Menetidok["Türje"] != 13 {
+	if cfg.DijakVerzio != feeTableVersion || len(cfg.Dijak) != 42 || cfg.Dijak["Türje"] != 1600 || cfg.Menetidok["Türje"] != 13 {
 		t.Fatalf("not migrated: v%d %d towns", cfg.DijakVerzio, len(cfg.Dijak))
 	}
 	again, _ := loadConfig(p) // a mentett v2 fájl változatlan marad
-	if len(again.Dijak) != 43 || again.DijakVerzio != feeTableVersion {
+	if len(again.Dijak) != 42 || again.DijakVerzio != feeTableVersion {
 		t.Fatal("saved file not v2")
+	}
+}
+
+func TestSideSharesBox(t *testing.T) {
+	m, s, soup := packLine{roleMain, 200, 1}, packLine{roleSide, 200, 1}, packLine{"", 150, 1}
+	cases := []struct {
+		in   []packLine
+		want int
+	}{
+		{[]packLine{m, s}, 200},                                   // rántott hús + hasáb: egy doboz
+		{[]packLine{{roleMain, 200, 2}, {roleSide, 200, 3}}, 600}, // 2 főétel, 3 köret: 2 köret ingyen
+		{[]packLine{s}, 200},                                      // csak köret: saját doboz
+		{[]packLine{m, soup}, 350},
+		{[]packLine{m, {roleSide, 200, 1}, {roleSide, 200, 1}}, 400},
+	}
+	for i, c := range cases {
+		if got := packTotal(c.in); got != c.want {
+			t.Errorf("case %d: %d want %d", i, got, c.want)
+		}
+	}
+	if menuIdx["sertes-rantott-sertesszelet"].Role != roleMain || menuIdx["korete-hasabburgonya"].Role != roleSide ||
+		menuIdx["teszta-bolognai-spagetti"].Role != "" || menuIdx["teszta-rantott-trappista-sajt-tartarral"].Role != roleMain {
+		t.Error("roles wrong")
 	}
 }

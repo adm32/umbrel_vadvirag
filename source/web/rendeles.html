@@ -34,6 +34,10 @@ header h1{font:italic 600 26px Lora,serif;margin-top:6px}
 .info{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:12px auto 0;color:var(--ink2);font-size:14px;max-width:560px}
 .info span{display:inline-flex;align-items:center;gap:6px}
 .info svg{width:16px;height:16px;color:var(--red)}
+.offer{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:14px auto 0;padding:13px 16px;border-radius:16px;background:var(--red);color:#fff;text-align:left;text-decoration:none;cursor:pointer;font:inherit;border:0;box-shadow:0 10px 24px -14px #c4140acc}
+.offer.wk{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.offer b{display:block;font-size:16px}.offer small{display:block;font-size:13.5px;line-height:1.35;margin-top:2px;opacity:.9}
+.offer .go{margin-left:auto;font-weight:700;white-space:nowrap}.offer.wk .go{color:var(--red)}
 .quick{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:14px auto 0;padding:13px 16px;border:1.5px dashed var(--red);border-radius:16px;background:var(--card);color:var(--ink);text-align:left;cursor:pointer;font:inherit}
 .quick svg{flex:none;width:26px;height:26px;color:var(--red)}
 .quick b{display:block;font-size:16px}.quick small{display:block;color:var(--ink2);font-size:13.5px;line-height:1.35;margin-top:2px}
@@ -182,6 +186,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
     <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Fizetés átvételkor: kártya vagy készpénz</span>
   </div>
   <div id="notices"></div>
+  <div id="offers"></div>
   <button class="quick" id="quickBtn" onclick="openQuick()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span><b>Egyszerűbb leírni?</b><small>Írd le a saját szavaiddal, mit kérsz – mi összerakjuk, és visszaigazoljuk.</small></span><span class="go">Írok ›</span></button>
   <a class="call" id="callTop" href="tel:+36203395099"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3h3l1.5 4.5-2 1.4a12 12 0 0 0 6 6l1.4-2 4.5 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.6 5.2 2 2 0 0 1 6.6 3z"/></svg>Inkább telefonálnál? <span id="phoneTop">06 20 339 5099</span></a>
 </header>
@@ -303,8 +308,9 @@ async function load(){
   renderMenu();updateCart();
   const tok=(location.hash.match(/r=([a-z0-9]+)/)||[])[1];
   if(tok)showStatus(tok);else checkActive();
+  {const lq=new URLSearchParams(location.search);if((location.hash==='#leiras'||lq.has('leiras'))&&isOpen)setTimeout(()=>{openQuick();const t=lq.get('leiras');if(t)$('qtext').value=t.slice(0,1500)},300)}
   fromSite();setTimeout(showConsent,1500);
-  if((location.hash==='#leiras'||new URLSearchParams(location.search).has('leiras'))&&isOpen)setTimeout(openQuick,300);
+  loadOffers();
 }
 // A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
 // névtelen látogatottsági jelzés a weboldalnak (csak ha a weboldalon keresztül nyitották meg)
@@ -352,7 +358,13 @@ function rerenderItem(id){const el=$('i_'+id);if(el){const t=document.createElem
 function add(id,v){const k=key(id,v);cart[k]=(cart[k]||0)+1;afterChange(id);toast(`${label(id,v)} a kosárban`);const b=document.querySelector('.cartbar button');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}
 function chg(k,d){cart[k]=(cart[k]||0)+d;if(cart[k]<=0)delete cart[k];afterChange(k.split('|')[0])}
 function afterChange(id){store.set('vv_cart',cart);rerenderItem(id);updateCart();if($('checkout').classList.contains('open'))renderCheckout()}
-function totals(){let n=0,sub=0,pk=0;for(const k in cart){const [id,v]=k.split('|');n+=cart[k];sub+=cart[k]*price(id,v);pk+=cart[k]*pack(id,v)}
+// Dobozdíj: a köretre szoruló főételek dobozába főételenként egy köret belefér (nincs külön doboz).
+function packCalc(){let pk=0,mains=0;const free={};
+  for(const k in cart){const [id]=k.split('|');if(idx[id]&&idx[id].role==='main')mains+=cart[k]}
+  for(const k in cart){const [id,v]=k.split('|');pk+=cart[k]*pack(id,v);
+    if(idx[id]&&idx[id].role==='side'&&mains>0){const f=Math.min(mains,cart[k]);free[k]=f;mains-=f;pk-=f*pack(id,v)}}
+  return {pk,free}}
+function totals(){let n=0,sub=0;for(const k in cart){const [id,v]=k.split('|');n+=cart[k];sub+=cart[k]*price(id,v)}const pk=packCalc().pk;
   let fee=0;if(mode==='delivery'){const c=$('city').value;{const f=M.fees.find(x=>x.name===c);fee=f?f.fee:null}}
   return {n,sub,pk,fee}}
 function updateCart(){const t=totals();$('cbN').textContent=t.n;$('cbT').textContent=huf(t.sub+t.pk)+' Ft';$('cartbar').classList.toggle('show',t.n>0&&!$('checkout').classList.contains('open'))}
@@ -366,6 +378,12 @@ addEventListener('scroll',spy,{passive:true});
 $('q').addEventListener('input',()=>renderMenu());
 
 // ---- fizetés
+// Ajánlatok (hétvégi ajánlat, heti menü) – a weboldal küldi; a rendeléskezelő saját címén nincs, ilyenkor nem látszik.
+async function loadOffers(){try{const r=await fetch('/api/ajanlat',{cache:'no-store'});if(!r.ok)return;const o=await r.json();let h='';
+  const w=o.weekend;if(w&&isOpen){const names=w.courses.map(c=>c.name.hu).join(' + ');const tag=w.days_left<=0?'csak ma':w.days_left===1?'ma és holnap':'vasárnapig';
+    h+=`<button class="offer" onclick="openQuick();$('qtext').value=this.dataset.t" data-t="${esc('Hétvégi ajánlat: '+names+' ('+huf(w.price)+' Ft)')}"><span><b>${esc(w.title.hu)} · <span style="white-space:nowrap">${huf(w.price)} Ft</span></b><small>${esc(names)} (${tag})</small></span><span class="go">Kérem ›</span></button>`}
+  const m=o.weekly;if(m){h+=`<a class="offer wk" href="/#ajanlat"><span><b>${m.upcoming?'Jövő heti menü':'Heti menü'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>Leves + főétel, minden hétköznap más</small></span><span class="go">Megnézem ›</span></a>`}
+  $('offers').innerHTML=h}catch(e){}}
 function openQuick(){quick=true;siteTrack('ev',{n:'quick_open'});openCheckout(true);setTimeout(()=>$('qtext').focus(),350)}
 function openCheckout(q){quick=!!q;renderCheckout();$('toast').classList.remove('show');$('checkout').classList.add('open');pushSheet();$('cartbar').classList.remove('show');document.body.style.overflow='hidden';
   const saved=meGet();['name','phone','email','street'].forEach(f=>{if(saved[f]&&!$(f).value)$(f).value=saved[f]});if(saved.city&&!$('city').value){$('city').value=saved.city}if(saved.mode)setMode(saved.mode);renderSum()}
@@ -379,7 +397,9 @@ function renderCheckout(){
   $('cartLbl').textContent=quick?'Mit kérsz?':'A kosarad';$('lines').style.display=quick?'none':'';$('quickBox').style.display=quick?'':'none';$('quickHint').style.display=quick?'':'none';
   const ks=Object.keys(cart);
   if(!ks.length){$('lines').innerHTML='<div class="ln"><span class="tx">A kosár üres.</span></div>';}
-  else $('lines').innerHTML=ks.map(k=>{const [id,v]=k.split('|');const q=cart[k];return `<div class="ln"><span class="tx">${esc(label(id,v))}<small>${huf(price(id,v))} Ft / db · ${huf(price(id,v)*q)} Ft${pack(id,v)?` <span style="white-space:nowrap">+ ${huf(pack(id,v))} Ft doboz / db</span>`:''}</small></span><div class="step"><button onclick="chg('${k}',-1)">${q===1?SVG.trash:SVG.minus}</button><b>${q}</b><button onclick="chg('${k}',1)">${SVG.plus}</button></div></div>`}).join('');
+  else{const fr=packCalc().free;$('lines').innerHTML=ks.map(k=>{const [id,v]=k.split('|');const q=cart[k];const f=fr[k]||0;
+    const box=!pack(id,v)?'':f>=q?' <span style="white-space:nowrap">· a főétel dobozában</span>':f>0?` <span style="white-space:nowrap">· ${f} db a főétel dobozában, ${q-f} db + ${huf(pack(id,v))} Ft doboz</span>`:` <span style="white-space:nowrap">+ ${huf(pack(id,v))} Ft doboz / db</span>`;
+    return `<div class="ln"><span class="tx">${esc(label(id,v))}<small>${huf(price(id,v))} Ft / db · ${huf(price(id,v)*q)} Ft${box}</small></span><div class="step"><button onclick="chg('${k}',-1)">${q===1?SVG.trash:SVG.minus}</button><b>${q}</b><button onclick="chg('${k}',1)">${SVG.plus}</button></div></div>`}).join('')}
   renderSum();
 }
 function renderSum(){if(quick)return renderQuickSum();const t=totals();let feeTxt='';

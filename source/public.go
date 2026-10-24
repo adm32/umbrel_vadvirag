@@ -173,6 +173,10 @@ func (a *App) handlePublicQuick(w http.ResponseWriter, r *http.Request) {
 		publicErr(w, 400, "Írd le, mit szeretnél rendelni.")
 		return
 	}
+	if msg := weeklyMenuCheck(in.Text, time.Now()); msg != "" {
+		publicErr(w, 400, msg)
+		return
+	}
 	mode, payment, ok := a.checkContact(w, &in)
 	if !ok {
 		return
@@ -502,4 +506,28 @@ func visitorKey(r *http.Request) string {
 	}
 	h := sha256.Sum256([]byte("vadvirag-visitor|" + c.Value))
 	return hex.EncodeToString(h[:10])
+}
+
+var huDays = []string{"vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"}
+
+// weeklyMenuCheck: a heti menü csak hétköznap, és csak az aznapi menü rendelhető.
+// A weboldal gombja „Heti menü – <nap> (…)” kezdetű szöveget küld; ezt ellenőrizzük.
+func weeklyMenuCheck(text string, now time.Time) string {
+	if !strings.HasPrefix(strings.TrimSpace(text), "Heti menü") {
+		return ""
+	}
+	if loc, err := time.LoadLocation("Europe/Budapest"); err == nil {
+		now = now.In(loc)
+	}
+	today := huDays[now.Weekday()]
+	if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
+		return "A heti menüt csak hétköznap lehet rendelni. Az étlapról vagy a hétvégi ajánlatból most is rendelhetsz!"
+	}
+	first := strings.SplitN(strings.TrimSpace(text), "\n", 2)[0]
+	for _, d := range huDays {
+		if strings.Contains(first, "– "+d) && d != today {
+			return "A heti menüből mindig csak az aznapi menü rendelhető (ma: " + today + ")."
+		}
+	}
+	return ""
 }

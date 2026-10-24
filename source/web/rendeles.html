@@ -382,7 +382,8 @@ $('q').addEventListener('input',()=>renderMenu());
 async function loadOffers(){try{const r=await fetch('/api/ajanlat',{cache:'no-store'});if(!r.ok)return;const o=await r.json();let h='';
   const w=o.weekend;if(w&&isOpen){const names=w.courses.map(c=>c.name.hu).join(' + ');const tag=w.days_left<=0?'csak ma':w.days_left===1?'ma és holnap':'vasárnapig';
     h+=`<button class="offer" onclick="openQuick();$('qtext').value=this.dataset.t" data-t="${esc('Hétvégi ajánlat: '+names+' ('+huf(w.price)+' Ft)')}"><span><b>${esc(w.title.hu)} · <span style="white-space:nowrap">${huf(w.price)} Ft</span></b><small>${esc(names)} (${tag})</small></span><span class="go">Kérem ›</span></button>`}
-  const m=o.weekly;if(m){h+=`<a class="offer wk" href="/#ajanlat"><span><b>${m.upcoming?'Jövő heti menü':'Heti menü'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>Leves + főétel, minden hétköznap más</small></span><span class="go">Megnézem ›</span></a>`}
+  const m=o.weekly;if(m){const td=m.days.some(d=>d.date===o.today);
+    h+=`<a class="offer wk" href="/#ajanlat"><span><b>${td?'Mai menü':m.upcoming?'Jövő heti menü':'Heti menü'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>${td?'Leves + főétel – a mai menü most rendelhető':'Hétköznap rendelhető, mindig az aznapi menü'}</small></span><span class="go">${td?'Kérem ›':'Megnézem ›'}</span></a>`}
   $('offers').innerHTML=h}catch(e){}}
 function openQuick(){quick=true;siteTrack('ev',{n:'quick_open'});openCheckout(true);setTimeout(()=>$('qtext').focus(),350)}
 function openCheckout(q){quick=!!q;renderCheckout();$('toast').classList.remove('show');$('checkout').classList.add('open');pushSheet();$('cartbar').classList.remove('show');document.body.style.overflow='hidden';

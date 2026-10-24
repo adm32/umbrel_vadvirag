@@ -375,6 +375,7 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 .wk-opt:has(input:focus-visible){outline:3px solid #f2b25caa;outline-offset:2px}
 .wk-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
 .wk-foot p{opacity:.8;font-size:14px}
+.wk-later{background:#ffffff14;color:var(--cream);border:1px dashed var(--woodline);cursor:default}
 @media (max-width:860px){
   .off-grid,.wk-cols{grid-template-columns:minmax(0,1fr)}
   .off-grid:has(> .off-weekend[hidden]) .off-kocs{grid-template-columns:minmax(0,1fr)}

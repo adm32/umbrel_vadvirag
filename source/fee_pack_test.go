@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestFeeMatching(t *testing.T) {
@@ -101,5 +102,23 @@ func TestSideSharesBox(t *testing.T) {
 	if menuIdx["sertes-rantott-sertesszelet"].Role != roleMain || menuIdx["korete-hasabburgonya"].Role != roleSide ||
 		menuIdx["teszta-bolognai-spagetti"].Role != "" || menuIdx["teszta-rantott-trappista-sajt-tartarral"].Role != roleMain {
 		t.Error("roles wrong")
+	}
+}
+
+func TestWeeklyMenuCheck(t *testing.T) {
+	loc, _ := time.LoadLocation("Europe/Budapest")
+	sat := time.Date(2026, 10, 24, 18, 0, 0, 0, loc)
+	wed := time.Date(2026, 10, 28, 11, 0, 0, 0, loc)
+	if weeklyMenuCheck("Heti menü – szerda (okt. 28.), kétfogásos", sat) == "" {
+		t.Error("weekend order should be refused")
+	}
+	if weeklyMenuCheck("Heti menü – szerda (okt. 28.), kétfogásos", wed) != "" {
+		t.Error("same-day order should pass")
+	}
+	if weeklyMenuCheck("Heti menü – csütörtök (okt. 29.), kétfogásos", wed) == "" {
+		t.Error("other-day order should be refused")
+	}
+	if weeklyMenuCheck("2 gulyásleves", sat) != "" || weeklyMenuCheck("Hétvégi ajánlat: x", sat) != "" {
+		t.Error("other quick orders must not be affected")
 	}
 }

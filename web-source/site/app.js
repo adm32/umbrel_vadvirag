@@ -168,8 +168,16 @@ function renderWeekly() {
       <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklySoups'))}</h4></legend>${d.soups.map((s, i) => opt('wkSoup', i, '•', L10(s))).join('')}</fieldset>
       <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklyMains'))}</h4></legend>${d.mains.map((s, i) => opt('wkMain', i, letter(i), L10(s))).join('')}</fieldset>
     </div>
-    <div class="wk-foot"><p>${esc(T('weeklyHint'))}</p><a class="btn btn-red btn-lg" id="wkOrder" href="#">${esc(T('weeklyOrder'))} · ${huf(wkCourses === 3 ? m.three : m.two)} Ft</a></div>`;
-  $('wkOrder').href = quickHref(weeklyText(m, d));
+    <div class="wk-foot">${wkFoot(m, d)}</div>`;
+  if ($('wkOrder')) $('wkOrder').href = quickHref(weeklyText(m, d));
+}
+// A heti menü csak hétköznap, az adott nap menüje rendelhető (előre, más napra nem).
+function wkFoot(m, d) {
+  const price = huf(wkCourses === 3 ? m.three : m.two);
+  if (d.date === OFF.today) return `<p>${esc(T('weeklyHint'))}</p><a class="btn btn-red btn-lg" id="wkOrder" href="#">${esc(T('weeklyOrder'))} · ${price} Ft</a>`;
+  const day = isoDay(d.date).toLocaleDateString(LOC(), { weekday: 'long' });
+  const msg = d.date < OFF.today ? T('weeklyPast') : T('weeklyOnDay', { day });
+  return `<p>${esc(T('weeklyRule'))}</p><span class="btn btn-lg wk-later" aria-disabled="true">${esc(msg)}</span>`;
 }
 function weeklyText(m, d) {
   const three = wkCourses === 3;
@@ -189,7 +197,7 @@ $('offWeekly').addEventListener('click', e => {
 $('offWeekly').addEventListener('change', e => {
   const t = tgt(e); if (!t || t.type !== 'radio') return;
   if (t.name === 'wkSoup') wkSoup = +t.value; else wkMain = +t.value;
-  const m = OFF.weekly; $('wkOrder').href = quickHref(weeklyText(m, m.days.find(x => x.date === wkDay)));
+  const m = OFF.weekly; if ($('wkOrder')) $('wkOrder').href = quickHref(weeklyText(m, m.days.find(x => x.date === wkDay)));
 });
 $('offWeekend').addEventListener('click', e => { if (tgt(e)?.closest('a')) track('ev', { n: 'weekend_order' }); });
 

@@ -35,6 +35,13 @@ type dashOrder struct {
 	Reason      string    `json:"reason,omitempty"`
 	EmailState  string    `json:"email_state,omitempty"`
 	EmailErr    string    `json:"email_err,omitempty"`
+	Food        int       `json:"food"`
+	Pack        int       `json:"pack"`
+	TotalEst    bool      `json:"total_est,omitempty"`
+	TotalManual bool      `json:"total_manual,omitempty"`
+	Test        bool      `json:"test,omitempty"`
+	TestAuto    bool      `json:"test_auto,omitempty"`
+	Own         bool      `json:"own,omitempty"`
 	Customer    string    `json:"cust,omitempty"`
 	Visitor     string    `json:"visitor,omitempty"` // a telefonszámból képzett névtelen kód: így látszik, ki rendel újra
 }
@@ -82,6 +89,10 @@ func (a *App) startDash() {
 		}
 		since := time.Now().AddDate(0, 0, -days)
 		salt := a.conf().Titok
+		own := map[string]bool{}
+		for _, k := range a.conf().SajatTelefonok {
+			own[k] = true
+		}
 		a.st.mu.Lock()
 		out := make([]dashOrder, 0, 256)
 		for _, o := range a.st.Orders {
@@ -91,10 +102,82 @@ func (a *App) startDash() {
 			out = append(out, dashOrder{ID: o.ID, Source: o.Source, Created: o.Created, Name: o.Name, Mode: o.Mode, City: o.City,
 				Items: o.Items, Total: o.Total, DeliveryFee: o.DeliveryFee, Payment: o.Payment, Status: o.Status,
 				StatusAt: o.StatusAt, AcceptedAt: o.AcceptedAt, ETA: o.ETA, Reason: o.Reason, EmailState: o.EmailState, EmailErr: o.EmailErr,
-				Customer: custID(salt, o.Phone), Visitor: o.Visitor})
+				Food: o.Food, Pack: o.Pack, TotalEst: o.TotalEst, TotalManual: o.TotalManual, Test: o.Test, TestAuto: o.TestAuto,
+				Own: own[ownKey(o.Phone)], Customer: custID(salt, o.Phone), Visitor: o.Visitor})
 		}
 		a.st.mu.Unlock()
 		writeJSON(w, 200, out)
+	})
+	// POST /dash/orders/{id}/test {"test": true|false} – teszt rendelésnek jelölés (kimarad a statisztikából)
+	mux.HandleFunc("POST /dash/orders/{id}/test", func(w http.ResponseWriter, r *http.Request) {
+		var in struct {
+			Test bool `json:"test"`
+		}
+		id, ok := a.orderID(r)
+		if !ok || readJSON(r, &in, 1<<10) != nil {
+			writeJSON(w, 400, map[string]string{"error": "hibás kérés"})
+			return
+		}
+		a.st.mu.Lock()
+		defer a.st.mu.Unlock()
+		o := a.find(id)
+		if o == nil {
+			writeJSON(w, 404, map[string]string{"error": "nincs ilyen rendelés"})
+			return
+		}
+		o.Test, o.TestAuto, o.TestChecked = in.Test, false, true
+		a.st.saveLocked()
+		writeJSON(w, 200, map[string]bool{"ok": true})
+	})
+	// POST /dash/orders/{id}/own {"own": true|false} – „ez az én telefonszámom”: minden innen jövő
+	// (régi és új) rendelés tesztnek számít, illetve a jelölés visszavonása.
+	mux.HandleFunc("POST /dash/orders/{id}/own", func(w http.ResponseWriter, r *http.Request) {
+		var in struct {
+			Own bool `json:"own"`
+		}
+		id, ok := a.orderID(r)
+		if !ok || readJSON(r, &in, 1<<10) != nil {
+			writeJSON(w, 400, map[string]string{"error": "hibás kérés"})
+			return
+		}
+		a.st.mu.Lock()
+		o := a.find(id)
+		var key string
+		if o != nil {
+			key = ownKey(o.Phone)
+		}
+		a.st.mu.Unlock()
+		if key == "" {
+			writeJSON(w, 400, map[string]string{"error": "ennél a rendelésnél nincs telefonszám"})
+			return
+		}
+		err := a.updateConf(func(c *Config) {
+			var keep []string
+			for _, k := range c.SajatTelefonok {
+				if k != key {
+					keep = append(keep, k)
+				}
+			}
+			if in.Own {
+				keep = append(keep, key)
+			}
+			c.SajatTelefonok = keep
+		})
+		if err != nil {
+			writeJSON(w, 500, map[string]string{"error": err.Error()})
+			return
+		}
+		a.st.mu.Lock()
+		n := 0
+		for _, x := range a.st.Orders {
+			if ownKey(x.Phone) == key {
+				x.Test, x.TestAuto, x.TestChecked = in.Own, false, true
+				n++
+			}
+		}
+		a.st.saveLocked()
+		a.st.mu.Unlock()
+		writeJSON(w, 200, map[string]any{"ok": true, "orders": n})
 	})
 	mux.HandleFunc("GET /dash/messages", func(w http.ResponseWriter, r *http.Request) {
 		ms := a.loadMessages()

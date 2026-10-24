@@ -70,8 +70,10 @@ type Config struct {
 	IdoOpciok      []int          `json:"elkeszulesi_percek"`
 	Okok           []string       `json:"elutasitas_okai"`
 	// Online rendelés szüneteltetése (pl. zárva vagy túl sok a munka) – a vendég ezt látja.
-	OnlineSzunetel bool   `json:"online_szunetel,omitempty"`
-	OnlineUzenet   string `json:"online_uzenet,omitempty"`
+	OnlineSzunetel bool `json:"online_szunetel,omitempty"`
+	// Saját telefonszámok kódja (ownKey): az innen jövő rendelések tesztnek számítanak
+	SajatTelefonok []string `json:"sajat_telefonok,omitempty"`
+	OnlineUzenet   string   `json:"online_uzenet,omitempty"`
 }
 
 func randStr(n int, alphabet string) string {
@@ -291,16 +293,26 @@ type Order struct {
 	Payment     string            `json:"payment,omitempty"` // Készpénz | Kártya
 	Token       string            `json:"token,omitempty"`   // a vendég ezzel követi a rendelése állapotát
 	Visitor     string            `json:"visitor,omitempty"` // a weboldal sütijének hash-e (csak ha a vendég elfogadta) – az irányítópult ebből látja, honnan jött
+	// Ár részletei (lásd pricing.go): Total = Food + Pack + szállítás
+	Food        int  `json:"food,omitempty"`
+	Pack        int  `json:"pack,omitempty"`
+	TotalEst    bool `json:"total_est,omitempty"`    // a szövegből becsült ár
+	TotalManual bool `json:"total_manual,omitempty"` // a személyzet adta meg – nem számoljuk újra
+	// Teszt / saját rendelés: a statisztikákból kimarad
+	Test        bool `json:"test,omitempty"`
+	TestAuto    bool `json:"test_auto,omitempty"`    // automatikusan jelölve (pl. „teszt” a névben)
+	TestChecked bool `json:"test_checked,omitempty"` // kézzel eldöntve – az automatika nem írja felül
 }
 
 const modePickup = "Személyes átvétel"
 const modeDelivery = "Kiszállítás"
 
 type Store struct {
-	mu     sync.Mutex
-	path   string
-	Orders []*Order `json:"orders"`
-	NextID int      `json:"next_id"`
+	mu       sync.Mutex
+	path     string
+	Orders   []*Order `json:"orders"`
+	NextID   int      `json:"next_id"`
+	PriceVer int      `json:"price_ver,omitempty"` // a régi rendelések árát ennyiedik becslővel számoltuk
 }
 
 func openStore(path string) (*Store, error) {
@@ -370,6 +382,9 @@ func newApp(cfg Config, st *Store) *App {
 		a.feeIx = append(a.feeIx, feeEntry{norm(name), name, fee, cfg.Menetidok[name]})
 	}
 	sort.Slice(a.feeIx, func(i, j int) bool { return len(a.feeIx[i].norm) > len(a.feeIx[j].norm) })
+	if st != nil && st.path != "" {
+		a.migrateOrders()
+	}
 	return a
 }
 
@@ -455,6 +470,8 @@ func (a *App) ingest(o *Order) bool {
 	o.StatusAt = time.Now()
 	o.DeliveryFee = a.fee(o.Mode, o.City)
 	o.DriveMin = a.driveMins(o.Mode, o.City)
+	applyPrice(o)
+	a.autoTest(o)
 	a.st.Orders = append(a.st.Orders, o)
 	a.st.saveLocked()
 	log.Printf("Új rendelés #%d (%s, %s)", o.ID, o.Name, o.Source)
@@ -1401,6 +1418,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("POST /api/orders", a.requireAuth(a.handleManual))
 	mux.HandleFunc("POST /api/orders/{id}/accept", a.requireAuth(a.handleAccept))
 	mux.HandleFunc("POST /api/orders/{id}/reject", a.requireAuth(a.handleReject))
+	mux.HandleFunc("POST /api/orders/{id}/total", a.requireAuth(a.handleSetTotal))
 	mux.HandleFunc("POST /api/orders/{id}/done", a.requireAuth(a.handleSimple(StDone)))
 	mux.HandleFunc("POST /api/orders/{id}/reopen", a.requireAuth(a.handleSimple(StNew)))
 	mux.HandleFunc("POST /api/orders/{id}/resend", a.requireAuth(a.handleResend))

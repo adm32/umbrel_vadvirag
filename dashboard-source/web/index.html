@@ -166,6 +166,14 @@ main{max-width:1240px;margin:0 auto;padding:6px 20px 60px}
 .tbl th{text-align:left;font-weight:600;color:var(--label2);font-size:12.5px;padding:8px;border-bottom:.5px solid var(--sep);white-space:nowrap}
 .tbl td{padding:10px 8px;border-bottom:.5px solid var(--sep);vertical-align:top}
 .tbl tr:last-child td{border-bottom:0}
+.tbl tr.test td{opacity:.5}
+.tbl .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.mini{font:600 12px/1 inherit;padding:5px 9px;border-radius:999px;background:var(--fill);color:var(--blue);border:0;cursor:pointer;white-space:nowrap}
+.mini.red{color:var(--red)}
+.tgl{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.staff-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.staff-row code{flex:1 1 260px;min-width:0;overflow-wrap:anywhere;background:var(--fill);padding:10px 12px;border-radius:10px;font-size:13px}
+.det .excl{margin-top:12px}
 .tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tbl .sub{color:var(--label2);font-size:12.5px}
 .tbl-wrap{overflow-x:auto;margin:0 -6px}
@@ -295,12 +303,12 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
       <div class="card"><h3>Legjobb vendégek<small>rendelés · összeg</small></h3><ul class="bl orange" id="topCust"></ul><p class="note">A vendégeket a telefonszámukból képzett névtelen kód alapján ismerjük fel.</p></div>
       <div class="card"><h3>Települések<small>kiszállítás</small></h3><ul class="bl teal" id="topTowns"></ul></div>
       <div class="card"><h3>Átvétel és fizetés</h3><ul class="bl purple" id="modes"></ul></div>
-      <div class="card"><h3>Bevétel átvétel szerint</h3><ul class="bl orange" id="revModes"></ul></div>
+      <div class="card"><h3>Miből jön a bevétel</h3><ul class="bl orange" id="revModes"></ul><p class="note" id="revNote" style="margin:10px 0 0"></p></div>
       <div class="card"><h3>Elutasítás okai</h3><ul class="bl red" id="rejects"></ul></div>
       <div class="card"><h3>Honnan jöttek a rendelők?<small>akik elfogadták a sütit</small></h3><ul class="bl purple" id="ordRefs"></ul></div>
       <div class="card"><h3>Hányadik látogatáson rendeltek?</h3><ul class="bl indigo" id="ordVisits"></ul></div>
     </div>
-    <div class="hdr"><h2>Lista</h2><span class="sp"></span><span class="note" id="ordCount" style="margin:0"></span></div>
+    <div class="hdr"><h2>Lista</h2><span class="sp"></span><span class="note" id="ordCount" style="margin:0"></span><label class="note tgl" style="margin:0 0 0 14px"><input type="checkbox" id="showTests"> tesztek is</label></div>
     <div class="card"><div class="tbl-wrap"><table class="tbl" id="ordTable"></table></div>
       <p class="note">A vendégek telefonszámát, e-mail címét és pontos címét itt szándékosan nem mutatjuk; azokat a Rendelések appban látod.</p></div>
   </section>
@@ -342,7 +350,11 @@ code{background:var(--fill);padding:1px 6px;border-radius:6px;font-size:13px}
   <!-- ========== EGYENKÉNT ========== -->
   <section class="view" id="v-people" hidden>
     <div class="hdr"><h2>Látogatók egyenként</h2><span class="sp"></span><div class="seg small" id="dayPick"></div></div>
-    <p class="note" style="margin:-4px 0 12px">Koppints egy látogatóra, hogy lásd, mit csinált. A részleteket 7 napig őrizzük.</p>
+    <p class="note" style="margin:-4px 0 12px">Koppints egy látogatóra, hogy lásd, mit csinált. A részleteket 7 napig őrizzük. Ha egy látogatás a tiéd vagy teszt volt, a részleteknél kiveheted a statisztikából.</p>
+    <div class="card staff" id="staffCard"><h3>A saját látogatásaid ne számítsanak</h3>
+      <p class="note" style="margin:4px 0 10px">Nyisd meg ezt a linket minden telefonodon és gépeden (minden böngészőben), amelyről a weboldalt nézed. Onnantól azok a látogatások nem kerülnek a statisztikába, és a korábbiak (7 napon belül) is kikerülnek.</p>
+      <div class="staff-row"><code id="staffUrl">betöltés…</code><button class="btn btn-blue" id="staffCopy" type="button">Másolás</button><a class="btn btn-gray" id="staffOpen" target="_blank" rel="noopener">Megnyitás</a></div>
+    </div>
     <div class="list" id="peopleList"></div>
   </section>
 
@@ -476,7 +488,7 @@ const I = {
 };
 const sq = (color, icon) => `<span class="sq" style="background:var(--${color})">${I[icon]}</span>`;
 const STATUS = { new: ['Vár', 'o'], preparing: ['Elfogadva', 'b'], done: ['Kész', 'g'], rejected: ['Elutasítva', 'r'] };
-const EVENTS = { add: 'Kosárba tett egy ételt', order_btn: '„Rendelés” gombra nyomott', order_page: 'Megnyitotta a rendelési oldalt', order_sent: 'Elküldött egy rendelést',
+const EVENTS = { quick_open: 'Megnyitotta a „leírom, mit kérek” rendelést', weekend_order: 'Hétvégi ajánlatot rendelt volna', weekly_order: 'Heti menüt rendelt volna', add: 'Kosárba tett egy ételt', order_btn: '„Rendelés” gombra nyomott', order_page: 'Megnyitotta a rendelési oldalt', order_sent: 'Elküldött egy rendelést',
   wheel: 'Pörgetett a „Mit egyek ma?”-n', wheel_order: '…és rendelt a pörgetésből', town: 'Kiszállítást keresett', form: 'Üzenetet küldött', call: 'Hívás gombra nyomott',
   route: 'Útvonalat kért', fb: 'Facebookra kattintott', lang: 'Nyelvet váltott', drinks: 'Megnézte az itallapot', gallery: 'Képet nagyított a galériában', alg: 'Megnézte az allergéneket', quick: 'Gyors csempét használt', consent_yes: 'Elfogadta a sütit', consent_no: 'Nem kérte a sütit', page: 'Másik oldalt nyitott meg', error: 'Hiba történt a böngészőjében' };
 const SECTIONS = { hero: 'a nyitó rész', rolunk: 'Rólunk', etlap: 'Étlap', rendezvenyek: 'Rendezvények', kiszallitas: 'Kiszállítás', galeria: 'Galéria', kapcsolat: 'Kapcsolat' };
@@ -502,6 +514,7 @@ async function load(manual) {
   $('refresh').classList.remove('spin');
 }
 async function loadPeople() {
+  loadStaffLink();
   const day = peopleDay || dayKey(Date.now());
   try {
     const r = await fetch('/api/sessions?date=' + day, { cache: 'no-store' });
@@ -512,7 +525,10 @@ async function loadPeople() {
 
 /* ---------- segédek ---------- */
 const days = () => (D && D.site && D.site.days) || [];
-const orders = () => (D && D.orders) || [];
+let showTests = false;
+const allOrders = () => (D && D.orders) || [];
+// teszt / saját rendelések nélkül – minden statisztika ebből számol
+const orders = () => allOrders().filter(o => !o.test);
 function periodKeys(n) { const out = []; for (let i = n - 1; i >= 0; i--) out.push(dayKey(Date.now() - i * 864e5)); return out; }
 function sumMap(list, field) { const m = {}; for (const d of list) for (const [k, v] of Object.entries(d[field] || {})) m[k] = (m[k] || 0) + v; return m; }
 function periodDays(n) { const keys = new Set(periodKeys(n)); return days().filter(d => keys.has(d.date)); }
@@ -605,6 +621,7 @@ function personRow(s, live) {
     `<div class="det" data-for="${esc(s.id)}"${open ? '' : ' hidden'}>${personDetail(s)}</div>`;
 }
 function personDetail(s) {
+  const excl = `<div class="excl"><button class="mini red" data-excl="${esc(s.id)}">Ez én voltam / teszt – kivétel a statisztikából</button></div>`;
   const f = [
     ['Eszköz', deviceTitle(s) + (s.device ? ` (${s.device})` : '')], ['Böngésző', s.browser], ['Képernyő', s.screen ? s.screen + ' px' + (s.dark ? ', sötét mód' : '') : ''],
     ['Hely', placeOf(s) || '–'], ['Honnan jött', (s.ref || 'közvetlen') + (s.campaign ? ' · ' + s.campaign : '')], ['Belépett itt', PAGES[s.entry] || s.entry],
@@ -624,7 +641,7 @@ function personDetail(s) {
     return `<li class="${cls}"><time>${fmtHM(e.at)}</time>${esc(t)}${v ? ': <b>' + esc(v) + '</b>' : ''}</li>`;
   });
   return `<div class="facts">${f.map(([k, v]) => `<div>${esc(k)}<b>${esc(v)}</b></div>`).join('')}</div>` +
-    `<ul class="tl"><li><time>${fmtHM(s.first)}</time>Megérkezett: <b>${esc(PAGES[s.entry] || s.entry)}</b></li>${evs.join('')}${s.dur >= 10 ? `<li><time>${fmtHM(s.last)}</time>Utoljára aktív</li>` : ''}</ul>`;
+    `<ul class="tl"><li><time>${fmtHM(s.first)}</time>Megérkezett: <b>${esc(PAGES[s.entry] || s.entry)}</b></li>${evs.join('')}${s.dur >= 10 ? `<li><time>${fmtHM(s.last)}</time>Utoljára aktív</li>` : ''}</ul>` + excl;
 }
 document.addEventListener('click', e => {
   const r = tgt(e)?.closest('.row[data-sid]'); if (!r) return;
@@ -684,8 +701,11 @@ function renderHome() {
 function renderOrders() {
   const n = period, keys = periodKeys(n), first = keys[0], prevFirst = periodKeys(2 * n)[0];
   const all = orders(), list = all.filter(o => dayKey(o.created) >= first).sort((a, b) => new Date(b.created) - new Date(a.created));
+  const tests = allOrders().filter(o => o.test && dayKey(o.created) >= first);
   const prev = all.filter(o => { const k = dayKey(o.created); return k >= prevFirst && k < first; });
-  const ok = list.filter(o => o.status !== 'rejected'), rev = sum(ok, 'total'), withTotal = ok.filter(o => o.total > 0), prevRev = sum(prev.filter(o => o.status !== 'rejected'), 'total');
+  // bevétel: az elfogadott (nem elutasított) rendelések végösszege = étel + doboz + szállítás
+  const ok = list.filter(o => o.status !== 'rejected'), withTotal = ok.filter(o => o.total > 0), rev = sum(withTotal, 'total'), prevRev = sum(prev.filter(o => o.status !== 'rejected'), 'total');
+  const estN = withTotal.filter(o => o.total_est).length, noPrice = ok.length - withTotal.length;
   const acc = list.filter(o => o.accepted_at && !o.accepted_at.startsWith('0001')).map(o => (new Date(o.accepted_at) - new Date(o.created)) / 60000).filter(m => m >= 0 && m < 600);
   const avgAcc = acc.length ? acc.reduce((a, b) => a + b, 0) / acc.length : null;
   // visszatérő vendégek: aki az összes ismert rendelés közül többször rendelt
@@ -694,15 +714,15 @@ function renderOrders() {
   const lbl = n === 1 ? 'tegnaphoz' : 'az előző ' + n + ' naphoz';
   kpis('kpiOrders', [
     { l: 'Rendelések', v: list.length, i: 'cart', c: 'orange', s: delta(list.length, prev.length, lbl) },
-    { l: 'Online bevétel', v: huf(rev) + ' Ft', i: 'coin', c: 'green', s: delta(rev, prevRev, lbl) },
-    { l: 'Átlagos rendelés', v: withTotal.length ? huf(rev / withTotal.length) + ' Ft' : '–', i: 'trend', c: 'indigo', s: withTotal.length ? (sum(withTotal, o => sum(itemsOf(o), x => x[1])) / withTotal.length).toFixed(1).replace('.', ',') + ' tétel / rendelés' : '' },
+    { l: 'Bevétel', v: huf(rev) + ' Ft', i: 'coin', c: 'green', s: delta(rev, prevRev, lbl) + (estN ? ` · ${estN} becsült ár` : '') },
+    { l: 'Átlagos rendelés', v: withTotal.length ? huf(Math.round(rev / withTotal.length)) + ' Ft' : '–', i: 'trend', c: 'indigo', s: withTotal.length ? `${withTotal.length} árazott rendelésből` + (noPrice ? ` · ${noPrice} ár nélkül` : '') : '' },
     { l: 'Elutasítva', v: list.filter(o => o.status === 'rejected').length, i: 'x', c: 'red', s: pct(list.filter(o => o.status === 'rejected').length, list.length) + ' a rendelésekből' },
     { l: 'Elfogadás átlagosan', v: avgAcc != null ? (avgAcc < 1 ? '< 1 perc' : Math.round(avgAcc) + ' perc') : '–', i: 'clock', c: 'teal', s: 'a beérkezéstől' },
     { l: 'Visszatérő vendég', v: custIn.length ? pct(returning, custIn.length) : '–', i: 'repeat', c: 'purple', s: `${returning} / ${custIn.length} vendég rendelt már máskor is` },
     { l: 'Kiszállítás', v: pct(list.filter(o => o.mode === 'Kiszállítás').length, list.length), i: 'truck', c: 'blue', s: 'a rendelések közül' }
   ]);
   const od = Object.fromEntries(keys.map(k => [k, 0])), rd = Object.fromEntries(keys.map(k => [k, 0]));
-  list.forEach(o => { const k = dayKey(o.created); if (k in od) { od[k]++; if (o.status !== 'rejected') rd[k] += o.total || 0; } });
+  list.forEach(o => { const k = dayKey(o.created); if (k in od) { od[k]++; if (o.status !== 'rejected') rd[k] += o.total > 0 ? o.total : 0; } });
   const dayLbl = n === 1 ? ['ma'] : keys.map(shortDay), tips = keys.map(k => `${shortDay(k)} ${dayName(k)}`);
   bars('chOrdDays', dayLbl, keys.map(k => od[k]), { tipLabels: tips, unit: ' rendelés', maxLabels: 8, color: 'orange' });
   bars('chRevDays', dayLbl, keys.map(k => rd[k]), { tipLabels: tips, money: true, maxLabels: 8, color: 'green' });
@@ -720,9 +740,10 @@ function renderOrders() {
   const modes = {}, add = (k, v = 1) => modes[k] = (modes[k] || 0) + v;
   list.forEach(o => { add(o.mode === 'Kiszállítás' ? 'Kiszállítás' : 'Elvitel'); if (o.payment) add('Fizetés: ' + o.payment.toLowerCase()); if (o.source && o.source !== 'web') add('Forrás: ' + o.source); });
   barList('modes', Object.entries(modes), { total: list.length, max: 8, empty: 'Még nincs rendelés.' });
-  const rm = {}; ok.forEach(o => { const k = o.mode === 'Kiszállítás' ? 'Kiszállítás' : 'Elvitel'; rm[k] = (rm[k] || 0) + (o.total || 0); });
-  const fees = sum(ok.filter(o => o.delivery_fee > 0), 'delivery_fee'); if (fees) rm['ebből szállítási díj'] = fees;
-  barList('revModes', Object.entries(rm), { money: true, max: 4, empty: 'Még nincs bevétel.' });
+  // a három rész összege pontosan a bevétel
+  const food = sum(withTotal, o => o.food || Math.max(o.total - o.pack - Math.max(o.delivery_fee, 0), 0)), packs = sum(withTotal, 'pack'), dfee = sum(withTotal, o => Math.max(o.delivery_fee, 0));
+  barList('revModes', [['Ételek', food], ['Elviteles dobozok', packs], ['Szállítási díj', dfee]].filter(x => x[1] > 0), { money: true, keepOrder: true, empty: 'Még nincs bevétel.' });
+  $('revNote').textContent = [estN ? `${estN} rendelés ára becsült (a régi űrlapos, telefonos és szabadon leírt rendeléseknél a szövegből, az étlap alapján).` : '', noPrice ? `${noPrice} rendelésnek nincs ára (a szövegből nem derült ki) – ezek a bevételbe nem számítanak.` : '', 'A teszt és saját rendelések kimaradnak.'].filter(Boolean).join(' ');
   const K = D.known || {}, src = {}, vn = {};
   list.forEach(o => { const k = K[o.visitor]; if (!k) return; const r = (k.ref || 'közvetlen') + (k.campaign ? ' · ' + k.campaign : ''); src[r] = (src[r] || 0) + 1;
     const dn = k.order_day || k.days, b = dn <= 1 ? 'az első napon' : dn <= 3 ? '2–3. napon' : dn <= 10 ? '4–10. napon' : 'törzsvendég (10+ nap)'; vn[b] = (vn[b] || 0) + 1; });
@@ -730,10 +751,13 @@ function renderOrders() {
   barList('ordVisits', ['az első napon', '2–3. napon', '4–10. napon', 'törzsvendég (10+ nap)'].map(k => [k, vn[k] || 0]), { keepOrder: true, empty: 'Még nincs adat.' });
   const rj = {}; list.filter(o => o.status === 'rejected').forEach(o => { const k = o.reason || 'nincs megadva'; rj[k] = (rj[k] || 0) + 1; });
   barList('rejects', Object.entries(rj), { max: 6, empty: 'Nem volt elutasított rendelés.' });
-  $('ordCount').textContent = list.length + ' rendelés';
-  $('ordTable').innerHTML = list.length ? `<thead><tr><th>Idő</th><th>#</th><th>Vendég</th><th class="hide-m">Tételek</th><th>Átvétel</th><th class="num">Összeg</th><th>Állapot</th></tr></thead><tbody>` +
-    list.slice(0, 200).map(o => { const s = STATUS[o.status] || [o.status, '']; const rep = o.cust && custAll[o.cust] > 1;
-      return `<tr><td>${fmtTime(o.created)}</td><td>${o.id}</td><td>${esc(o.name)}${rep ? ' <span class="pill b" title="Rendelt már máskor is">visszatérő</span>' : ''}${K[o.visitor] ? `<div class="sub">${esc((K[o.visitor].ref || 'közvetlen') + (K[o.visitor].campaign ? ' · ' + K[o.visitor].campaign : ''))}${K[o.visitor].days > 1 ? ` · ${K[o.visitor].days} napja jár ide` : ''}</div>` : ''}</td><td class="hide-m"><span class="sub">${esc(itemsOf(o).map(([k, q]) => q + '× ' + k).join(', '))}</span></td><td>${o.mode === 'Kiszállítás' ? esc(o.city || 'Kiszállítás') : 'Elvitel'}</td><td class="num">${o.total ? huf(o.total) + ' Ft' : '–'}</td><td><span class="pill ${s[1]}">${esc(s[0])}</span>${o.email_state === 'failed' ? '<div class="sub" style="color:var(--red)">az e-mail nem ment el</div>' : ''}${o.status === 'rejected' && o.reason ? `<div class="sub">${esc(o.reason)}</div>` : ''}</td></tr>`; }).join('') + '</tbody>'
+  $('ordCount').textContent = list.length + ' rendelés' + (tests.length ? ` · ${tests.length} teszt kimaradt` : '');
+  const shown = showTests ? list.concat(tests).sort((a, b) => new Date(b.created) - new Date(a.created)) : list;
+  $('ordTable').innerHTML = shown.length ? `<thead><tr><th>Idő</th><th>#</th><th>Vendég</th><th class="hide-m">Tételek</th><th>Átvétel</th><th class="num">Összeg</th><th>Állapot</th></tr></thead><tbody>` +
+    shown.slice(0, 200).map(o => { const s = STATUS[o.status] || [o.status, '']; const rep = o.cust && custAll[o.cust] > 1;
+      const money = o.total > 0 ? `${o.total_est ? '~' : ''}${huf(o.total)} Ft${o.total_est ? '<div class="sub">becsült</div>' : ''}` : '<span class="sub">nincs ár</span>';
+      const acts = `<div class="acts">${o.test ? `<button class="mini" data-test="${o.id}" data-v="0">Nem teszt</button>` : `<button class="mini" data-test="${o.id}" data-v="1">Teszt</button>`}${o.own ? `<button class="mini" data-own="${o.id}" data-v="0">Nem az én számom</button>` : `<button class="mini red" data-own="${o.id}" data-v="1">Én rendeltem</button>`}</div>`;
+      return `<tr class="${o.test ? 'test' : ''}"><td>${fmtTime(o.created)}</td><td>${o.id}</td><td>${esc(o.name)}${rep ? ' <span class="pill b" title="Rendelt már máskor is">visszatérő</span>' : ''}${K[o.visitor] ? `<div class="sub">${esc((K[o.visitor].ref || 'közvetlen') + (K[o.visitor].campaign ? ' · ' + K[o.visitor].campaign : ''))}${K[o.visitor].days > 1 ? ` · ${K[o.visitor].days} napja jár ide` : ''}</div>` : ''}</td><td class="hide-m"><span class="sub">${esc(itemsOf(o).length ? itemsOf(o).map(([k, q]) => q + '× ' + k).join(', ') : String(o.items || '').replace(/^Szabadon leírt rendelés:\s*/, '').replace(/\s*\n\s*/g, ', ').slice(0, 160))}</span></td><td>${o.mode === 'Kiszállítás' ? esc(o.city || 'Kiszállítás') : 'Elvitel'}</td><td class="num">${money}</td><td>${o.test ? '<span class="pill">teszt</span> ' : ''}<span class="pill ${s[1]}">${esc(s[0])}</span>${o.email_state === 'failed' ? '<div class="sub" style="color:var(--red)">az e-mail nem ment el</div>' : ''}${o.status === 'rejected' && o.reason ? `<div class="sub">${esc(o.reason)}</div>` : ''}${acts}</td></tr>`; }).join('') + '</tbody>'
     : '<tbody><tr><td class="empty">Ebben az időszakban nem volt rendelés.</td></tr></tbody>';
 }
 
@@ -834,6 +858,36 @@ $('setForm').addEventListener('submit', async e => {
     m.className = 'msg ' + (r.ok ? 'ok' : 'err'); m.textContent = r.ok ? 'Elmentve.' : (d.error || 'Nem sikerült menteni.');
   } catch (er) { m.className = 'msg err'; m.textContent = 'Nem sikerült menteni: ' + er.message; }
 });
+/* ---------- tisztítás: teszt rendelések, saját látogatások ---------- */
+async function postApi(url, body) {
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (r.status === 401) { location.reload(); throw new Error('belépés szükséges'); }
+  const d = await r.json().catch(() => ({})); if (!r.ok || d.ok === false) throw new Error(d.error || 'HTTP ' + r.status); return d;
+}
+$('showTests').addEventListener('change', e => { showTests = e.target.checked; renderOrders(); });
+$('ordTable').addEventListener('click', async e => {
+  const b = tgt(e)?.closest('[data-test],[data-own]'); if (!b) return;
+  const id = b.dataset.test || b.dataset.own, on = b.dataset.v === '1';
+  if (b.dataset.own && on && !confirm('Ennek a rendelésnek a telefonszáma a tiéd? Minden innen jött (régi és új) rendelés tesztnek számít, és kimarad a statisztikából.')) return;
+  b.disabled = true;
+  try { await postApi(`/api/orders/${id}/${b.dataset.test ? 'test' : 'own'}`, b.dataset.test ? { test: on } : { own: on }); await load(); }
+  catch (er) { alert('Nem sikerült: ' + er.message); b.disabled = false; }
+});
+$('peopleList').addEventListener('click', async e => {
+  const b = tgt(e)?.closest('[data-excl]'); if (!b) return;
+  if (!confirm('Kiveszed ezt a látogatást a statisztikából? Ez nem vonható vissza.')) return;
+  b.disabled = true;
+  try { await postApi('/api/visits/exclude', { date: peopleDay || dayKey(Date.now()), id: b.dataset.excl }); people = null; await load(); loadPeople(); }
+  catch (er) { alert('Nem sikerült: ' + er.message); b.disabled = false; }
+});
+let staffLoaded = false;
+async function loadStaffLink() {
+  if (staffLoaded) return;
+  try { const r = await fetch('/api/staff-link', { cache: 'no-store' }); const d = await r.json(); if (!r.ok || !d.url) throw new Error(d.error || r.status);
+    $('staffUrl').textContent = d.url; $('staffOpen').href = d.url; staffLoaded = true;
+  } catch (er) { $('staffUrl').textContent = 'A link most nem érhető el (fut a Vadvirág Weboldal app?)'; $('staffOpen').removeAttribute('href'); }
+}
+$('staffCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('staffUrl').textContent); $('staffCopy').textContent = 'Kimásolva ✓'; setTimeout(() => $('staffCopy').textContent = 'Másolás', 1800); } catch (er) { prompt('Másold ki a linket:', $('staffUrl').textContent); } });
 $('pwForm').addEventListener('submit', async e => {
   e.preventDefault(); const f = e.target, m = $('pwMsg');
   if (f.elements.new.value !== f.elements.new2.value) { m.className = 'msg err'; m.textContent = 'A két új jelszó nem egyezik.'; return; }

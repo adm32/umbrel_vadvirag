@@ -196,6 +196,12 @@ func (a *App) handlePublicQuick(w http.ResponseWriter, r *http.Request) {
 	}
 	o.ExtID = "web:" + o.Token
 	a.ingest(o)
+	a.st.mu.Lock()
+	if x := a.find(o.ID); x != nil && x.Total > 0 {
+		x.Extra["Végösszeg"] = "kb. " + formatHUF(x.Total) + " Ft (becslés a leírás alapján – egyeztetni)"
+		a.st.saveLocked()
+	}
+	a.st.mu.Unlock()
 	log.Printf("Weboldali gyors rendelés #%d", o.ID)
 	writeJSON(w, 200, map[string]any{"ok": true, "id": o.ID, "token": o.Token})
 }

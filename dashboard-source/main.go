@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.3.0"
+const version = "1.4.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -161,6 +161,13 @@ type Order struct {
 	Reason      string    `json:"reason"`
 	EmailState  string    `json:"email_state"`
 	EmailErr    string    `json:"email_err"`
+	Food        int       `json:"food"`
+	Pack        int       `json:"pack"`
+	TotalEst    bool      `json:"total_est,omitempty"`
+	TotalManual bool      `json:"total_manual,omitempty"`
+	Test        bool      `json:"test,omitempty"`
+	TestAuto    bool      `json:"test_auto,omitempty"`
+	Own         bool      `json:"own,omitempty"`
 	Customer    string    `json:"cust"`
 	Visitor     string    `json:"visitor,omitempty"`
 }
@@ -505,8 +512,14 @@ func checkOrders(s Settings) {
 				if o.Total > 0 {
 					t = " – " + huf(o.Total) + " Ft"
 				}
+				if o.Test {
+					t += " (teszt)"
+				}
 				send = append(send, Alert{Key: "order", Title: fmt.Sprintf("🛒 Új rendelés #%d%s", o.ID, t), Msg: where + "\n" + o.Items, Level: "order", Priority: 4})
 			}
+		}
+		if o.Test {
+			continue // teszt / saját rendelésről nem riasztunk
 		}
 		// túl régóta vár
 		if o.Status == "new" && s.PendingMinutes > 0 && now.Sub(o.Created) > time.Duration(s.PendingMinutes)*time.Minute &&
@@ -640,6 +653,9 @@ func checkSummary(s Settings) {
 		for _, o := range orders {
 			if o.Created.In(budapest).Format("2006-01-02") != day {
 				continue
+			}
+			if o.Test {
+				continue // teszt / saját rendelés: nem számít
 			}
 			n++
 			if o.Status == "rejected" {
@@ -933,6 +949,7 @@ func main() {
 		w.Write(out)
 	})
 	mux.HandleFunc("POST /api/test", handleTest)
+	registerCleanup(mux)
 	mux.HandleFunc("POST /api/check-now", func(w http.ResponseWriter, r *http.Request) {
 		mon.Lock()
 		mon.lastPublic = time.Time{}

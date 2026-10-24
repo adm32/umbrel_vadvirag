@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.5.1"
+const version = "1.6.0"
 
 var (
 	site    fs.FS
@@ -101,6 +101,7 @@ func main() {
 	}()
 	siteURL = strings.TrimRight(env("SITE_URL", "https://www.vadviragetterem.com"), "/")
 	statsInit()
+	cleanupOnStart()
 	statsServer()
 	addr := ":" + env("PORT", "8080")
 
@@ -125,10 +126,11 @@ func routes() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("GET /api/menu", handleMenu)
 	mux.HandleFunc("GET /api/ajanlat", handleOffers)
+	mux.HandleFunc("GET /sajat", handleStaffLink)
 	mux.HandleFunc("POST /api/t", handleBeacon)
 	mux.HandleFunc("GET /robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		io.WriteString(w, "User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: "+siteURL+"/sitemap.xml\n")
+		io.WriteString(w, "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /sajat\nSitemap: "+siteURL+"/sitemap.xml\n")
 	})
 	mux.HandleFunc("GET /sitemap.xml", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/xml; charset=utf-8")

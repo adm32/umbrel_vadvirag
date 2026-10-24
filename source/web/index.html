@@ -383,7 +383,12 @@ function card(o){
   let extras=o.extra?Object.entries(o.extra):[];
   const pay=extras.find(([k])=>/fizet|pay/i.test(k));
   if(pay){rows.push(row(I.card,'var(--orange)','Fizetés',esc(pay[1])));extras=extras.filter(e=>e!==pay)}
+  const vege=extras.find(([k])=>k==='Végösszeg');if(vege)extras=extras.filter(e=>e!==vege);
   extras.forEach(([k,v])=>rows.push(row(I.info,'#8e8e93',`${esc(v)}<small>${esc(k)}</small>`,'')));
+  // Végösszeg: pontos (kosár / megadva) vagy becsült (szabadon leírt, telefonos) – a becsültet itt lehet pontosítani
+  const priceLbl=o.total>0?(o.total_est?'Becsült végösszeg':'Végösszeg'):'Végösszeg';
+  const priceSub=o.total>0?(o.total_est?'a leírás alapján – koppints a pontos összeghez':o.total_manual?'kézzel megadva':'étel + doboz + szállítás'):'nincs ár – koppints a megadásához';
+  rows.push(row(I.card,o.total_est||!o.total?'var(--orange)':'var(--green)',`${priceLbl}<small>${priceSub}</small>`,o.total>0?(o.total_est?'kb. ':'')+huf(o.total)+' Ft':'–',o.total_est||!o.total?'warn':'').replace('<div class="r">',`<div class="r" style="cursor:pointer" role="button" tabindex="0" onclick="setTotal(${o.id})">`));
   let mail='';
   if(o.status==='preparing'||o.status==='rejected'){
     const st=o.email_state;
@@ -445,6 +450,10 @@ function openManual(){['mName','mPhone','mEmail','mCity','mStreet','mItems'].for
 async function saveManual(){
   try{await api('/api/orders',{name:$('mName').value,phone:$('mPhone').value,email:$('mEmail').value,mode:$('mMode').value,city:$('mCity').value,street:$('mStreet').value,items:$('mItems').value});dManual.close();toast('Rendelés rögzítve');load()}catch(e){toast(e.message)}
 }
+async function setTotal(id){const o=orders.find(x=>x.id===id);if(!o)return;
+  const v=prompt('Végösszeg forintban (étel + doboz + szállítás).\nÜresen hagyva vissza a becsléshez.',o.total_manual?o.total:'');if(v===null)return;
+  const n=parseInt(String(v).replace(/\D/g,''),10)||0;
+  try{const r=await fetch(`/api/orders/${id}/total`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({total:n})});if(!r.ok)throw new Error((await r.json()).error||r.status);await load()}catch(e){alert('Nem sikerült menteni: '+e.message)}}
 function printOrder(id){
   const o=orders.find(x=>x.id===id);const w=window.open('','_blank','width=420,height=640');
   const ex=o.extra?Object.entries(o.extra).map(([k,v])=>esc(k)+': '+esc(v)).join('<br>'):'';

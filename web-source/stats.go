@@ -166,6 +166,9 @@ type statsFile struct {
 	Sessions map[string]map[string]*Session `json:"sessions"` // nap -> látogató hash -> részletek
 	Known    map[string]*Known              `json:"known"`    // süti kódjának hash-e -> visszatérés (csak hozzájárulással)
 	Errors   []ErrEntry                     `json:"errors"`
+	// tisztítás (cleanup.go)
+	CleanVer   int    `json:"clean_ver,omitempty"`
+	StaffToken string `json:"staff_token,omitempty"` // a „saját eszköz” link kódja
 }
 
 var st = struct {
@@ -727,7 +730,8 @@ type beacon struct {
 }
 
 var allowedEvents = map[string]bool{"add": true, "wheel": true, "wheel_order": true, "town": true, "form": true, "lang": true, "call": true,
-	"route": true, "fb": true, "order_sent": true, "order_page": true, "order_btn": true, "consent_yes": true, "consent_no": true, "drinks": true, "search": true, "gallery": true, "alg": true, "quick": true}
+	"route": true, "fb": true, "order_sent": true, "order_page": true, "order_btn": true, "consent_yes": true, "consent_no": true, "drinks": true, "search": true, "gallery": true, "alg": true, "quick": true,
+	"quick_open": true, "weekend_order": true, "weekly_order": true}
 var allowedSections = map[string]bool{"hero": true, "rolunk": true, "etlap": true, "rendezvenyek": true, "kiszallitas": true, "galeria": true, "kapcsolat": true}
 
 func campaignOf(q string) string {
@@ -751,7 +755,7 @@ func campaignOf(q string) string {
 
 func handleBeacon(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
-	if isBotReq(r) {
+	if isBotReq(r) || isStaff(r) {
 		return
 	}
 	var b beacon
@@ -1015,6 +1019,8 @@ func statsServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /stats", handleStats)
 	mux.HandleFunc("GET /sessions", handleSessions)
+	mux.HandleFunc("POST /exclude", handleExclude)
+	mux.HandleFunc("GET /staff-token", handleStaffToken)
 	// GET /known?ck=a,b,c – a sütit elfogadó látogatók (a rendelésekhez: honnan jött, hányadszorra rendelt)
 	mux.HandleFunc("GET /known", func(w http.ResponseWriter, r *http.Request) {
 		st.Lock()

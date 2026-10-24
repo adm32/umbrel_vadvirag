@@ -680,7 +680,7 @@ function renderHome() {
     { l: 'Látogatók', v: td.visitors, i: 'users', c: 'blue', s: delta(td.visitors, yd ? yd.visitors : 0, 'tegnaphoz') },
     { l: 'Oldalmegnyitás', v: td.views, i: 'eye', c: 'indigo', s: td.visitors ? (td.views / td.visitors).toFixed(1).replace('.', ',') + ' / látogató' : '' },
     { l: 'Rendelések', v: D.orders ? ot.length : '–', i: 'cart', c: 'orange', s: D.orders ? delta(ot.length, oy.length, 'tegnaphoz') : '' },
-    { l: 'Online bevétel', v: D.orders ? huf(rev(ot)) + ' Ft' : '–', i: 'coin', c: 'green', s: D.orders ? delta(rev(ot), rev(oy), 'tegnaphoz') : '' },
+    { l: 'Bevétel', v: D.orders ? huf(rev(ot)) + ' Ft' : '–', i: 'coin', c: 'green', s: D.orders ? delta(rev(ot), rev(oy), 'tegnaphoz') : '' },
     { l: 'Elfogadásra vár', v: D.orders ? waiting : '–', i: 'clock', c: waiting ? 'red' : 'teal', s: info.online_paused ? 'Az online rendelés szünetel' : waiting ? 'nézd meg a Rendelésekben' : 'semmi' },
     { l: 'Olvasatlan üzenet', v: info.unread ?? '–', i: 'mail', c: 'purple', s: 'foglalás, rendezvény, kérdés' }
   ]);

@@ -159,7 +159,7 @@ function renderWeekly() {
   if (wkSoup >= d.soups.length) wkSoup = 0;
   if (wkMain >= d.mains.length) wkMain = 0;
   const letter = i => String.fromCharCode(65 + i);
-  const price = (n, p, sub) => `<button class="wk-price" data-courses="${n}" aria-pressed="${wkCourses === n}"><small>${esc(T(n === 2 ? 'weeklyTwo' : 'weeklyThree'))} · ${esc(T(sub))}</small><b>${huf(p)} Ft</b></button>`;
+  const price = (n, p, sub) => `<button class="wk-price" data-courses="${n}" aria-pressed="${wkCourses === n}"><small class="k">${esc(T(n === 2 ? 'weeklyTwo' : 'weeklyThree'))}</small><b>${huf(p)} Ft</b><small>${esc(T(sub))}</small></button>`;
   const opt = (name, i, mk, txt) => `<label class="wk-opt"><input type="radio" name="${name}" value="${i}"${(name === 'wkSoup' ? wkSoup : wkMain) === i ? ' checked' : ''}><span class="mk">${mk}</span><span>${esc(txt)}</span></label>`;
   el.innerHTML = `<div class="wk-head"><div><h3>${esc(T(m.upcoming ? 'weeklyNext' : 'weeklyTitle'))}</h3><div class="dates">${esc(weekRange(m))}</div></div>
     <div class="wk-prices" role="group">${price(2, m.two, 'weeklyTwoSub')}${price(3, m.three, 'weeklyThreeSub')}</div></div>
@@ -470,9 +470,14 @@ function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('sh
 
 /* ---------------------------------------------------------------- hulló pipacsszirmok */
 const cv = $('petals'), ctx = cv.getContext('2d'), hero = $('hero');
-let W = 0, H = 0, petals = [], running = false, visible = true, last = 0;
+let W = 0, H = 0, FH = 0, petals = [], running = false, visible = true, last = 0;
 const COLORS = ['#c4140a', '#d9261b', '#a5100a', '#e0412f', '#b81d12'];
-function resize() { const dpr = Math.min(devicePixelRatio || 1, 2); W = hero.clientWidth; H = hero.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+// FH: meddig hullanak a szirmok. Telefonon a kép van felül, a szöveg alatta – ott csak a képen hullanak, hogy ne takarják a szöveget.
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, 2); W = hero.clientWidth; H = hero.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const art = hero.querySelector('.hero-art');
+  FH = art && innerWidth < 760 ? art.getBoundingClientRect().bottom - hero.getBoundingClientRect().top : H;
+}
 function petal(x, y, burstV) {
   const s = 7 + Math.random() * 9;
   return { x, y, s, r: Math.random() * 6.28, vr: (Math.random() - .5) * .05, vx: burstV ? (Math.random() - .5) * burstV : (Math.random() - .3) * .5, vy: burstV ? -Math.random() * burstV * .8 : .35 + Math.random() * .6,
@@ -495,7 +500,7 @@ function frame(t) {
     p.sw += .02 * dt; p.flip += .03 * dt; p.r += p.vr * dt;
     if (p.life > 0) { p.vy += .06 * dt; p.vx *= .985; p.life -= .009 * dt; }
     p.x += (p.vx + Math.sin(p.sw) * .45) * dt; p.y += p.vy * dt;
-    if (p.life > 0 ? p.life <= 0 || p.y > H + 20 : p.y > H + 20) {
+    if (p.life > 0 ? p.life <= 0 || p.y > H + 20 : p.y > (FH < H ? FH - 10 : H + 20)) {
       if (p.life > 0) { petals.splice(i, 1); continue; }
       Object.assign(p, petal(Math.random() * W, -20));
     }
@@ -530,8 +535,8 @@ function miniBurst(x, y, n) {
 if (!reduced) {
   resize();
   const n = innerWidth < 760 ? 3 : 6;
-  for (let i = 0; i < n; i++) petals.push(petal(Math.random() * W, Math.random() * H));
-  addEventListener('resize', resize);
+  for (let i = 0; i < n; i++) petals.push(petal(Math.random() * W, Math.random() * FH));
+  addEventListener('resize', resize); addEventListener('load', resize);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(hero);
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
   hero.addEventListener('pointerdown', e => { if (tgt(e)?.closest('a,button')) return; burst(e.clientX, e.clientY, 8); document.querySelector('.hero-hint').classList.remove('show'); });

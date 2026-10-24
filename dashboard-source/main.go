@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.4.0"
+const version = "1.4.1"
 
 //go:embed web
 var webRoot embed.FS
@@ -486,11 +486,6 @@ func diskFree(p string) (free, total uint64, err error) {
 	return fs.Bavail * uint64(fs.Bsize), fs.Blocks * uint64(fs.Bsize), nil
 }
 
-func openNow(t time.Time) bool {
-	h := t.In(budapest).Hour()
-	return h >= 11 && h < 22
-}
-
 func checkOrders(s Settings) {
 	var orders []Order
 	if _, err := getJSON(ordersDash, "/dash/orders?days=2", &orders); err != nil {
@@ -682,7 +677,7 @@ func checkSummary(s Settings) {
 			fmt.Fprintf(&b, " (%d elutasítva)", rej)
 		}
 		if rev > 0 {
-			fmt.Fprintf(&b, ", %s Ft online", huf(rev))
+			fmt.Fprintf(&b, ", %s Ft bevétel", huf(rev))
 		}
 		b.WriteString("\n")
 		type kv struct {

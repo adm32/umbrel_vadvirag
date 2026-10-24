@@ -27,7 +27,7 @@ input,select,textarea{font:inherit;color:inherit}
 
 /* fejléc */
 header{text-align:center;padding:26px 16px 6px;position:relative}
-.home{position:absolute;left:12px;top:12px;display:inline-flex;align-items:center;gap:2px;padding:8px 12px 8px 8px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink2);font-size:14px;font-weight:600;text-decoration:none}
+.home{position:absolute;left:12px;top:12px;display:inline-flex;align-items:center;gap:2px;padding:11px 14px 11px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--ink2);font-size:14px;font-weight:600;text-decoration:none}
 .home[hidden]{display:none}
 header img{width:min(250px,62vw);display:block;margin:0 auto}
 header h1{font:italic 600 26px Lora,serif;margin-top:6px}
@@ -43,7 +43,7 @@ header h1{font:italic 600 26px Lora,serif;margin-top:6px}
 .quick b{display:block;font-size:16px}.quick small{display:block;color:var(--ink2);font-size:13.5px;line-height:1.35;margin-top:2px}
 .quick .go{margin-left:auto;color:var(--red);font-weight:700;white-space:nowrap}
 #quickBox textarea{width:100%;border:0;outline:0;background:transparent;resize:vertical;min-height:120px;padding:14px 16px;font-size:16px;line-height:1.45}
-.call{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--red);font-weight:600;text-decoration:none;font-size:15px}
+.call{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:10px 6px;min-height:44px;color:var(--red);font-weight:600;text-decoration:none;font-size:15px}
 
 /* kereső + kategóriák */
 .bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 0 8px;margin-top:14px;border-bottom:1px solid transparent;transition:border-color .2s}
@@ -75,7 +75,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .step button svg{width:18px;height:18px}
 .step b{min-width:18px;text-align:center;font-size:16px}
 .vars{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.var{display:flex;align-items:center;gap:8px;border:1.5px solid var(--red);color:var(--red);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:600;position:relative;transition:background .15s,color .15s}
+.var{display:flex;align-items:center;gap:8px;border:1.5px solid var(--red);color:var(--red);border-radius:12px;padding:8px 12px;min-height:44px;font-size:14px;font-weight:600;position:relative;transition:background .15s,color .15s}
 .var small{font-weight:500;color:var(--ink2)}
 .var .q{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;font-size:12px;line-height:22px;text-align:center;box-shadow:0 0 0 2px var(--card)}
 .var:active{background:var(--red);color:#fff}
@@ -226,7 +226,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
     <div class="box">
       <div class="fld" id="fName"><label for="name">Név</label><input id="name" autocomplete="name" placeholder="kötelező"></div>
       <div class="fld" id="fPhone"><label for="phone">Telefon</label><input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="kötelező, pl. 06 30 123 4567"></div>
-      <div class="fld" id="fEmail"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="nem kötelező – visszaigazolást küldünk"></div>
+      <div class="fld" id="fEmail"><label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="nem kötelező"></div>
       <div class="fld"><label for="note">Megjegyzés</label><textarea id="note" rows="2" placeholder="pl. csengő nem működik, allergia, kérés"></textarea></div>
     </div>
     <input class="hp" id="website" tabindex="-1" autocomplete="off" aria-hidden="true">

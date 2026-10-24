@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.6.0"
+const version = "1.6.1"
 
 var (
 	site    fs.FS
@@ -185,8 +185,7 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	}
 	name := strings.TrimPrefix(p, "/")
 	if st, err := fs.Stat(site, name); err != nil || st.IsDir() || strings.HasPrefix(path.Base(name), ".") {
-		w.WriteHeader(http.StatusNotFound)
-		sendFile(w, r, "404.html", "no-cache")
+		sendPage(w, "404.html", http.StatusNotFound)
 		return
 	}
 	cache := "public, max-age=3600"
@@ -240,22 +239,61 @@ func fingerprintHTML() {
 	}
 }
 
-func sendFile(w http.ResponseWriter, r *http.Request, name, cache string) {
+func fileData(name string) ([]byte, bool) {
 	htmlOnce.Do(fingerprintHTML)
-	data, ok := htmlMap[name]
-	if !ok {
-		var err error
-		data, err = fs.ReadFile(site, name)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
+	if data, ok := htmlMap[name]; ok {
+		return data, true
 	}
-	if ct := types[path.Ext(name)]; ct != "" {
+	data, err := fs.ReadFile(site, name)
+	return data, err == nil
+}
+
+// A beágyazott fájlok nem változnak: a tömörített változatukat egyszer készítjük el, és megtartjuk
+// (így a kis gépnek nem kell minden kérésnél újra tömörítenie).
+var gzCache sync.Map // név -> []byte
+
+func compressible(ct string) bool {
+	return strings.HasPrefix(ct, "text/") || strings.Contains(ct, "json") || strings.Contains(ct, "javascript") || strings.Contains(ct, "svg")
+}
+
+func gzipped(name string, data []byte) []byte {
+	if v, ok := gzCache.Load(name); ok {
+		return v.([]byte)
+	}
+	var b bytes.Buffer
+	zw, _ := gzip.NewWriterLevel(&b, gzip.BestCompression)
+	zw.Write(data)
+	zw.Close()
+	gzCache.Store(name, b.Bytes())
+	return b.Bytes()
+}
+
+func sendFile(w http.ResponseWriter, r *http.Request, name, cache string) {
+	data, ok := fileData(name)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	ct := types[path.Ext(name)]
+	if ct != "" {
 		w.Header().Set("Content-Type", ct)
 	}
 	w.Header().Set("Cache-Control", cache)
+	if compressible(ct) && len(data) > 1024 && strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") && r.Header.Get("Range") == "" {
+		data = gzipped(name, data)
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Add("Vary", "Accept-Encoding")
+	}
 	http.ServeContent(w, r, name, started, bytes.NewReader(data))
+}
+
+// sendPage: hibaoldal (404, nem elérhető) a megfelelő állapotkóddal és fejlécekkel.
+func sendPage(w http.ResponseWriter, name string, code int) {
+	data, _ := fileData(name)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.WriteHeader(code)
+	w.Write(data)
 }
 
 // ---------------------------------------------------------------- étlap (élő, tartalékkal)
@@ -337,8 +375,7 @@ func orderProxy() http.Handler {
 			return
 		}
 		secHeaders(w)
-		w.WriteHeader(http.StatusBadGateway)
-		sendFile(w, r, "offline.html", "no-cache")
+		sendPage(w, "offline.html", http.StatusBadGateway)
 	}
 	return px
 }
@@ -355,9 +392,7 @@ type gzw struct {
 func (g *gzw) WriteHeader(code int) {
 	if !g.decided {
 		g.decided = true
-		ct := g.Header().Get("Content-Type")
-		g.use = code != http.StatusNotModified && g.Header().Get("Content-Encoding") == "" &&
-			(strings.HasPrefix(ct, "text/") || strings.Contains(ct, "json") || strings.Contains(ct, "javascript") || strings.Contains(ct, "svg"))
+		g.use = code != http.StatusNotModified && g.Header().Get("Content-Encoding") == "" && compressible(g.Header().Get("Content-Type"))
 		if g.use {
 			g.Header().Del("Content-Length")
 			g.Header().Set("Content-Encoding", "gzip")

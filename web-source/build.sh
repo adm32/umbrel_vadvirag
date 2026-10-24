@@ -6,7 +6,7 @@ cd "$(dirname "$0")"
 python3 - <<'PY'
 import json, re
 menu = json.load(open('../source/menu.json'))
-src = open('../source/main.go', encoding='utf-8').read()
+src = open('../source/fees.go', encoding='utf-8').read()
 block = src[src.index('func defaultFees() map[string]int {'):]
 block = block[:block.index('\n}\n')]
 fees = sorted(({"name": n, "fee": int(f)} for n, f in re.findall(r'"([^"]+)":\s*(\d+)', block)), key=lambda x: x["name"])

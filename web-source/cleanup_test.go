@@ -130,3 +130,14 @@ func TestMetaBotCleanupAndStaff(t *testing.T) {
 		t.Error("wrong token accepted")
 	}
 }
+
+func TestForeignErr(t *testing.T) {
+	for _, m := range []string{"TypeError: undefined is not an object (evaluating 'window._META.IABInnerFrame')", "Script error.", "ResizeObserver loop limit exceeded"} {
+		if !foreignErr(m, "") {
+			t.Errorf("idegen hibának kellene lennie: %q", m)
+		}
+	}
+	if foreignErr("TypeError: x is undefined", "https://www.vadviragetterem.com/app.js?v=1:120") {
+		t.Error("a saját hiba nem idegen")
+	}
+}

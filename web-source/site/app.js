@@ -23,7 +23,9 @@ const track = (t, o = {}) => { try {
   else fetch('/api/t', { method: 'POST', body, keepalive: true, headers: { 'Content-Type': 'application/json' } });
 } catch (e) {} };
 let errSent = 0;
-addEventListener('error', e => { if (errSent++ < 5) track('err', { msg: String(e.message || 'hiba'), src: (e.filename || '') + ':' + (e.lineno || 0) }); });
+// csak a saját fájljaink hibáit jelentjük: a Facebook/Instagram és más alkalmazások beépített böngészője saját kódot fűz az oldalba, annak a hibái nem a mieink
+const ownErr = e => { try { const u = new URL(e.filename || '', location.href); return u.origin === location.origin && /\/(app|i18n)\.js$/.test(u.pathname); } catch (x) { return false; } };
+addEventListener('error', e => { if (ownErr(e) && errSent++ < 5) track('err', { msg: String(e.message || 'hiba'), src: (e.filename || '') + ':' + (e.lineno || 0) }); });
 addEventListener('unhandledrejection', e => { if (errSent++ < 5) track('err', { msg: 'Promise: ' + String(e.reason && e.reason.message || e.reason || '') }); });
 const T = (k, vars) => { let s = (I18N[lang] && I18N[lang][k]) ?? I18N.hu[k] ?? k; if (vars) for (const v in vars) s = s.replaceAll('{' + v + '}', vars[v]); return s; };
 

@@ -150,10 +150,38 @@ func removeSessionLocked(day, key string) bool {
 	return true
 }
 
-// cleanupOnStart: induláskor egyszer – a régi robotlátogatások eltávolítása.
+// foreignErr: olyan böngészőhiba, amely nem a weboldal kódjából jön. A Facebook, Instagram,
+// Messenger és más alkalmazások beépített böngészője, illetve a böngészőbővítmények saját
+// kódot futtatnak az oldalon; ha az hibázik, az nálunk is megjelenne, pedig nem a mi hibánk.
+func foreignErr(msg, src string) bool {
+	m := strings.ToLower(msg)
+	for _, k := range []string{"_meta", "iabinnerframe", "fbinapp", "instagram", "__gcrweb", "webkit.messagehandlers",
+		"_autofillcallbackhandler", "instantsearchsdkjsbridge", "zaloJSV2", "chrome-extension://", "moz-extension://",
+		"safari-web-extension://", "resizeobserver loop"} {
+		if strings.Contains(m, strings.ToLower(k)) {
+			return true
+		}
+	}
+	if strings.TrimSpace(m) == "script error." || strings.TrimSpace(m) == "script error" {
+		return true // más domainről betöltött kód hibája, részletek nélkül
+	}
+	s := strings.ToLower(src)
+	return strings.Contains(s, "-extension://")
+}
+
+// cleanupOnStart: induláskor – a már elmentett, nem a weboldalból jövő hibák törlése, és egyszer a régi robotlátogatások eltávolítása.
 func cleanupOnStart() {
 	st.Lock()
 	defer st.Unlock()
+	kept := st.f.Errors[:0]
+	for _, e := range st.f.Errors {
+		if e.Kind == "js" && foreignErr(e.Msg, e.Src) {
+			st.dirty = true
+			continue
+		}
+		kept = append(kept, e)
+	}
+	st.f.Errors = kept
 	if st.f.CleanVer >= cleanVersion {
 		return
 	}

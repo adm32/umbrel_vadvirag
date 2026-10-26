@@ -933,6 +933,9 @@ func handleBeacon(w http.ResponseWriter, r *http.Request) {
 		}
 		addEv(b.N, v)
 	case "err":
+		if foreignErr(b.Msg, b.Src) {
+			return // nem a weboldal hibája (beépített böngésző, bővítmény)
+		}
 		d.Errors++
 		addEv("error", b.Msg)
 		addErr(ErrEntry{At: now, Kind: "js", Msg: clip(b.Msg, 300), Src: clip(b.Src, 200), Page: page, UA: clip(r.UserAgent(), 160)})

@@ -54,8 +54,9 @@ h3{font:600 22px/1.25 var(--serif)}
 .nav a{text-decoration:none;font-weight:500;color:var(--ink2);padding:8px 12px;border-radius:999px;transition:color .15s,background .15s}
 .nav a:hover{color:var(--ink);background:#2a282308}
 .nav a.on{color:var(--ink);background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
-.langs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px}
-.langs button{font-size:13px;font-weight:600;color:var(--ink2);padding:6px 10px;border-radius:999px;transition:background .2s,color .2s}
+.langs{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px}
+.langs .globe{width:18px;height:18px;margin:0 3px 0 7px;fill:none;stroke:var(--ink2);stroke-width:1.7;flex:none}
+.langs button{font-size:13px;font-weight:600;color:var(--ink2);min-width:38px;height:34px;padding:0 9px;border-radius:999px;transition:background .2s,color .2s}
 .langs button[aria-pressed=true]{background:var(--ink);color:#fff}
 .btn-order{height:42px;padding:0 18px}
 .burger{display:none;width:44px;height:44px;border-radius:50%;place-items:center;align-content:center;gap:5px;background:var(--card);border:1px solid var(--line)}
@@ -400,8 +401,10 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
   :root{--hh:64px}
   .brand img{height:36px}
   .btn-order{display:none}
-  .langs{display:none}
-  .burger{margin-left:auto}
+  .langs{margin-left:auto}
+  .burger{margin-left:0}
+  .brand,.burger,.langs{flex:none}
+  .top-in{gap:8px;padding:0 16px}
   .hero{min-height:0;padding:12px 0 40px}
   .hero-in{grid-template-columns:1fr;gap:34px;text-align:center}
   .hero-logo{margin:0 auto;width:min(420px,88vw)}
@@ -542,6 +545,17 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 }
 
 /* süti hozzájárulás – a lap alján, nem takar el semmit végleg */
+@media (max-width:359px){
+  .langs .globe{display:none}
+  .langs button{min-width:34px;padding:0 6px}
+}
+/* nyelvajánló: német/angol nyelvű böngészőnek egyszer felajánljuk a saját nyelvét */
+.lang-hint{position:fixed;top:calc(var(--hh) + 10px);right:16px;z-index:45;width:min(360px,calc(100vw - 32px));background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px -18px rgba(42,40,35,.45);padding:16px 44px 16px 18px;animation:lhIn .35s cubic-bezier(.2,.8,.2,1)}
+.lang-hint p{font-size:15px;line-height:1.4;color:var(--ink)}
+.lang-hint .lh-go{margin-top:12px;height:44px;padding:0 18px;border-radius:999px;background:var(--ink);color:#fff;font-weight:600;font-size:15px}
+.lang-hint .lh-x{position:absolute;top:6px;right:6px;width:40px;height:40px;border-radius:50%;font-size:22px;line-height:1;color:var(--ink2)}
+@keyframes lhIn{from{opacity:0;transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.lang-hint{animation:none}}
 .consent{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;display:flex;justify-content:center;pointer-events:none}
 .consent[hidden]{display:none}
 .consent-in{pointer-events:auto;max-width:720px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:0 24px 50px -24px #2a282399;display:flex;gap:16px;align-items:center;animation:rise .4s cubic-bezier(.2,1.2,.4,1)}

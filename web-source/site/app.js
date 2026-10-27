@@ -51,7 +51,29 @@ function setLang(l, push) {
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
   renderDrinks(); renderAlg(); renderOffers();
 }
-$$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
+$$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); hideLangHint(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
+
+// Ha a böngésző nyelve német vagy angol, de az oldal magyarul nyílt meg, egyszer felajánljuk a nyelvét
+// (az oldal alapból magyar marad; a döntést a munkamenet végéig megjegyezzük, sütit nem használunk).
+const LH = {
+  de: { t: 'Diese Seite gibt es auch auf Deutsch.', go: 'Auf Deutsch anzeigen', x: 'Schließen' },
+  en: { t: 'This page is also available in English.', go: 'Switch to English', x: 'Close' },
+};
+function hideLangHint() { const h = document.getElementById('langHint'); if (h) h.remove(); try { sessionStorage.setItem('vvLangHint', '1'); } catch (e) {} }
+function offerLang() {
+  if (lang !== 'hu') return;
+  try { if (sessionStorage.getItem('vvLangHint')) return; } catch (e) {}
+  const prefs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']).map(x => String(x).slice(0, 2).toLowerCase());
+  if (prefs.includes('hu')) return; // magyar böngészőnek nem kell
+  const want = prefs.find(x => x === 'de' || x === 'en');
+  if (!want) return;
+  const c = LH[want], h = document.createElement('div');
+  h.className = 'lang-hint'; h.id = 'langHint'; h.setAttribute('role', 'dialog'); h.setAttribute('aria-live', 'polite'); h.lang = want;
+  h.innerHTML = `<p>${c.t}</p><button class="lh-go" type="button">${c.go}</button><button class="lh-x" type="button" aria-label="${c.x}">×</button>`;
+  h.querySelector('.lh-go').onclick = () => { setLang(want, true); hideLangHint(); track('ev', { n: 'lang', v: want }); };
+  h.querySelector('.lh-x').onclick = hideLangHint;
+  document.body.appendChild(h);
+}
 
 /* ---------------------------------------------------------------- fejléc, menü */
 const top = $('top');
@@ -573,6 +595,7 @@ if (!getCookie('vv_consent')) setTimeout(showConsent, 1200);   // a nyitó anim�
 /* ---------------------------------------------------------------- indulás */
 $('year').textContent = new Date().getFullYear();
 setLang(pickLang(), false);
+setTimeout(offerLang, 1200);
 // oldal megnyitása, életjel (élő látogatók), megnézett szakaszok, kattintások
 // minden jelzés magával viszi, melyik részt nézi éppen, és meddig görgetett le
 window.vvSec = 'hero'; window.vvScroll = 0;

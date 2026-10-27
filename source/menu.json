@@ -402,6 +402,7 @@
    "id": "kocsonya",
    "name": "Kocsonya",
    "short": "Kocsonya",
+   "off": true,
    "items": [
     {
      "id": "kocsonya-hazi-kocsonya",

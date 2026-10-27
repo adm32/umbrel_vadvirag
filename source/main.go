@@ -165,33 +165,34 @@ const (
 )
 
 type Order struct {
-	ID          int               `json:"id"`
-	Source      string            `json:"source"`
-	ExtID       string            `json:"ext_id,omitempty"`
-	Created     time.Time         `json:"created"`
-	Name        string            `json:"name"`
-	Email       string            `json:"email"`
-	Phone       string            `json:"phone"`
-	Mode        string            `json:"mode"` // "Személyes átvétel" | "Kiszállítás"
-	City        string            `json:"city"`
-	Street      string            `json:"street"`
-	Items       string            `json:"items"`
-	Note        string            `json:"note,omitempty"`
-	Extra       map[string]string `json:"extra,omitempty"`
-	DeliveryFee int               `json:"delivery_fee"`        // -1 = ismeretlen település
-	DriveMin    int               `json:"drive_min,omitempty"` // autós menetidő percben a futárnak
-	Status      string            `json:"status"`
-	ETA         int               `json:"eta,omitempty"`
-	Reason      string            `json:"reason,omitempty"`
-	StatusAt    time.Time         `json:"status_at"`
-	AcceptedAt  time.Time         `json:"accepted_at,omitempty"` // mikor fogadtuk el (a vendég ehhez képest látja a várható időt)
-	EmailState  string            `json:"email_state,omitempty"` // sending|sent|failed|none
-	EmailErr    string            `json:"email_err,omitempty"`
-	EmailAt     time.Time         `json:"email_at,omitempty"`
-	Total       int               `json:"total,omitempty"`   // weboldali rendelésnél: végösszeg (szállítással, ha ismert)
-	Payment     string            `json:"payment,omitempty"` // Készpénz | Kártya
-	Token       string            `json:"token,omitempty"`   // a vendég ezzel követi a rendelése állapotát
-	Visitor     string            `json:"visitor,omitempty"` // a weboldal sütijének hash-e (csak ha a vendég elfogadta) – az irányítópult ebből látja, honnan jött
+	ID           int               `json:"id"`
+	Source       string            `json:"source"`
+	ExtID        string            `json:"ext_id,omitempty"`
+	Created      time.Time         `json:"created"`
+	Name         string            `json:"name"`
+	Email        string            `json:"email"`
+	Phone        string            `json:"phone"`
+	Mode         string            `json:"mode"` // "Személyes átvétel" | "Kiszállítás"
+	City         string            `json:"city"`
+	Street       string            `json:"street"`
+	Items        string            `json:"items"`
+	Note         string            `json:"note,omitempty"`
+	Extra        map[string]string `json:"extra,omitempty"`
+	DeliveryFee  int               `json:"delivery_fee"`            // -1 = ismeretlen település
+	FreeDelivery bool              `json:"free_delivery,omitempty"` // napi ajánlat előrendelése 11:00 előtt: nincs szállítási díj
+	DriveMin     int               `json:"drive_min,omitempty"`     // autós menetidő percben a futárnak
+	Status       string            `json:"status"`
+	ETA          int               `json:"eta,omitempty"`
+	Reason       string            `json:"reason,omitempty"`
+	StatusAt     time.Time         `json:"status_at"`
+	AcceptedAt   time.Time         `json:"accepted_at,omitempty"` // mikor fogadtuk el (a vendég ehhez képest látja a várható időt)
+	EmailState   string            `json:"email_state,omitempty"` // sending|sent|failed|none
+	EmailErr     string            `json:"email_err,omitempty"`
+	EmailAt      time.Time         `json:"email_at,omitempty"`
+	Total        int               `json:"total,omitempty"`   // weboldali rendelésnél: végösszeg (szállítással, ha ismert)
+	Payment      string            `json:"payment,omitempty"` // Készpénz | Kártya
+	Token        string            `json:"token,omitempty"`   // a vendég ezzel követi a rendelése állapotát
+	Visitor      string            `json:"visitor,omitempty"` // a weboldal sütijének hash-e (csak ha a vendég elfogadta) – az irányítópult ebből látja, honnan jött
 	// Ár részletei (lásd pricing.go): Total = Food + Pack + szállítás
 	Food        int  `json:"food,omitempty"`
 	Pack        int  `json:"pack,omitempty"`
@@ -321,6 +322,9 @@ func (a *App) ingest(o *Order) bool {
 	o.Status = StNew
 	o.StatusAt = time.Now()
 	o.DeliveryFee = a.fee(o.Mode, o.City)
+	if o.FreeDelivery && o.DeliveryFee > 0 {
+		o.DeliveryFee = 0
+	}
 	o.DriveMin = a.driveMins(o.Mode, o.City)
 	applyPrice(o)
 	a.autoTest(o)

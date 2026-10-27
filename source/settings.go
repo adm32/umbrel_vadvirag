@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const appVersion = "2.12.1"
+const appVersion = "2.13.0"
 
 // viaFunnel: a kérés a nyilvános interneten (Tailscale Funnel) keresztül érkezett.
 func viaFunnel(r *http.Request) bool { return r.Header.Get("Tailscale-Funnel-Request") != "" }

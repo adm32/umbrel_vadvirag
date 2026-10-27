@@ -382,9 +382,16 @@ $('q').addEventListener('input',()=>renderMenu());
 async function loadOffers(){try{const r=await fetch('/api/ajanlat',{cache:'no-store'});if(!r.ok)return;const o=await r.json();let h='';
   const w=o.weekend;if(w&&isOpen){const names=w.courses.map(c=>c.name.hu).join(' + ');const tag=w.days_left<=0?'csak ma':w.days_left===1?'ma és holnap':'vasárnapig';
     h+=`<button class="offer" onclick="openQuick();$('qtext').value=this.dataset.t" data-t="${esc('Hétvégi ajánlat: '+names+' ('+huf(w.price)+' Ft)')}"><span><b>${esc(w.title.hu)} · <span style="white-space:nowrap">${huf(w.price)} Ft</span></b><small>${esc(names)} (${tag})</small></span><span class="go">Kérem ›</span></button>`}
-  const m=o.weekly;if(m){const td=m.days.some(d=>d.date===o.today);
-    h+=`<a class="offer wk" href="/#ajanlat"><span><b>${td?'Mai menü':m.upcoming?'Jövő heti menü':'Heti menü'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>${td?'Leves + főétel – a mai menü most rendelhető':'Hétköznap rendelhető, mindig az aznapi menü'}</small></span><span class="go">${td?'Kérem ›':'Megnézem ›'}</span></a>`}
+  if(o.now_min!=null)dailyClock={min:o.now_min,t:Date.now()};
+  const m=o.weekly;if(m){const td=m.days.some(d=>d.date===o.today),st=dailyState();const can=td&&(st==='pre'||st==='open');
+    const sm=!td?'Hétköznap 9:30–14:00, mindig az aznapi':st==='before'?'Ma 9:30–14:00 között rendelhető · 11:00-ig ingyenes kiszállítás Zalaszentgrótra, Zalaudvarnokra, Zalaszentlászlóra':st==='pre'?'Előrendelés 11:00-ig: ingyenes kiszállítás Zalaszentgrótra, Zalaudvarnokra és Zalaszentlászlóra':st==='open'?'Leves + főétel – ma 14:00-ig rendelhető':'A mai napi ajánlat 14:00-ig volt rendelhető';
+    h+=`<a class="offer wk" href="/#ajanlat"><span><b>${td?'Mai napi ajánlat':m.upcoming?'Jövő heti napi ajánlatok':'Napi ajánlat'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>${esc(sm)}</small></span><span class="go">${can?'Kérem ›':'Megnézem ›'}</span></a>`}
   $('offers').innerHTML=h}catch(e){}}
+// Napi ajánlat (a rendeléskezelő ugyanígy ellenőrzi): 9:30–14:00, 11:00-ig ingyenes kiszállítás három településre
+let dailyClock=null;const DAILY_FREE=['Zalaszentgrót','Zalaudvarnok','Zalaszentlászló'];
+function dailyMin(){return dailyClock?dailyClock.min+Math.floor((Date.now()-dailyClock.t)/60000):-1}
+function dailyState(){const n=dailyMin();return n<0?'':n<570?'before':n<660?'pre':n<840?'open':'closed'}
+function dailyFree(){if(mode!=='delivery'||dailyState()!=='pre'||!/^\s*(Napi ajánlat|Heti menü)/.test($('qtext').value))return false;return DAILY_FREE.includes($('city').value)}
 function openQuick(){quick=true;siteTrack('ev',{n:'quick_open'});openCheckout(true);setTimeout(()=>$('qtext').focus(),350)}
 function openCheckout(q){quick=!!q;renderCheckout();$('toast').classList.remove('show');$('checkout').classList.add('open');pushSheet();$('cartbar').classList.remove('show');document.body.style.overflow='hidden';
   const saved=meGet();['name','phone','email','street'].forEach(f=>{if(saved[f]&&!$(f).value)$(f).value=saved[f]});if(saved.city&&!$('city').value){$('city').value=saved.city}if(saved.mode)setMode(saved.mode);renderSum()}
@@ -410,12 +417,13 @@ function renderSum(){if(quick)return renderQuickSum();const t=totals();let feeTx
   $('send').textContent=!isOpen?'Az online rendelés most szünetel':t.n?`Rendelés elküldése · ${huf(tot)}${mode==='delivery'&&t.fee<0?' Ft + szállítás':' Ft'}`:'A kosár üres';$('send').disabled=!t.n||!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':t.fee<0?'Erre a településre egyedileg egyeztetjük a díjat – visszahívunk.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
-function renderQuickSum(){const t=totals();
-  const fee=mode==='delivery'?(t.fee===null?'válassz települést':huf(t.fee)+' Ft'):'';
+function renderQuickSum(){const t=totals();const free=dailyFree();
+  const fee=mode==='delivery'?(t.fee===null?'válassz települést':free?'ingyenes (előrendelés 11:00 előtt)':huf(t.fee)+' Ft'):'';
   $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>`;
   $('send').textContent=!isOpen?'Az online rendelés most szünetel':'Rendelés elküldése';$('send').disabled=!isOpen;
-  $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
+  $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':free?'A napi ajánlat 11:00 előtti előrendelésénél ide nincs szállítási díj.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
+$('qtext').addEventListener('input',()=>{if(quick)renderSum()});
 function setMode(v){mode=v;document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('addr').style.display=v==='delivery'?'block':'none';$('pickupHint').style.display=v==='delivery'?'none':'block';renderSum()}
 document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.v));
 document.querySelectorAll('#paySeg button').forEach(b=>b.onclick=()=>{pay=b.dataset.v;document.querySelectorAll('#paySeg button').forEach(x=>x.classList.toggle('on',x===b))});

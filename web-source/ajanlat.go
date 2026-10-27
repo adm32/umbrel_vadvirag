@@ -88,7 +88,7 @@ func day(s string) (time.Time, bool) {
 func activeOffers(now time.Time) map[string]any {
 	now = now.In(budapestTZ)
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, budapestTZ)
-	out := map[string]any{"today": today.Format("2006-01-02")}
+	out := map[string]any{"today": today.Format("2006-01-02"), "now_min": now.Hour()*60 + now.Minute()}
 	if w := offers.Weekend; w != nil {
 		from, ok1 := day(w.From)
 		to, ok2 := day(w.To)

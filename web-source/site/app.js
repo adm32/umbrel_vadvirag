@@ -149,7 +149,7 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const fmtDay = (iso, opts, loc) => cap(isoDay(iso).toLocaleDateString(loc || LOC(), opts));
 const quickHref = text => '/rendeles?leiras=' + encodeURIComponent(text);
 async function loadOffers() {
-  try { const r = await fetch('/api/ajanlat', { cache: 'no-store' }); if (!r.ok) throw 0; OFF = await r.json(); } catch (e) { OFF = {}; }
+  try { const r = await fetch('/api/ajanlat', { cache: 'no-store' }); if (!r.ok) throw 0; OFF = await r.json(); OFF._t = Date.now(); } catch (e) { OFF = {}; }
   renderOffers();
 }
 function renderOffers() {
@@ -195,18 +195,32 @@ function renderWeekly() {
     <div class="wk-foot">${wkFoot(m, d)}</div>`;
   if ($('wkOrder')) $('wkOrder').href = quickHref(weeklyText(m, d));
 }
-// A heti menü csak hétköznap, az adott nap menüje rendelhető (előre, más napra nem).
+// Napi ajánlat: hétköznap 9:30–14:00 rendelhető, mindig az aznapi. 9:30 és 11:00 között előrendelés,
+// ilyenkor Zalaszentgrótra, Zalaudvarnokra és Zalaszentlászlóra nincs szállítási díj (a rendeléskezelő
+// ellenőrzi és számolja; itt csak megmutatjuk). Az idő a szerver budapesti órájából jön.
+const DAILY = { from: 9 * 60 + 30, free: 11 * 60, to: 14 * 60 };
+const nowMin = () => (OFF && OFF.now_min != null) ? OFF.now_min + Math.floor((Date.now() - (OFF._t || Date.now())) / 60000) : 12 * 60;
+function dailyState() { const n = nowMin(); return n < DAILY.from ? 'before' : n < DAILY.free ? 'pre' : n < DAILY.to ? 'open' : 'closed'; }
 function wkFoot(m, d) {
   const price = huf(wkCourses === 3 ? m.three : m.two);
-  if (d.date === OFF.today) return `<p>${esc(T('weeklyHint'))}</p><a class="btn btn-red btn-lg" id="wkOrder" href="#">${esc(T('weeklyOrder'))} · ${price} Ft</a>`;
+  const free = `<p class="wk-free">${esc(T('weeklyFree'))}</p>`;
+  if (d.date === OFF.today) {
+    const st = dailyState();
+    if (st === 'pre' || st === 'open') return `<p>${esc(T('weeklyHint'))}</p>${st === 'pre' ? free : ''}<a class="btn btn-red btn-lg" id="wkOrder" href="#">${esc(T(st === 'pre' ? 'weeklyPre' : 'weeklyOrder'))} · ${price} Ft</a>`;
+    if (st === 'before') return `<p>${esc(T('weeklyRule'))}</p>${free}<span class="btn btn-lg wk-later" aria-disabled="true">${esc(T('weeklyLater'))}</span>`;
+    return `<p>${esc(T('weeklyRule'))}</p><span class="btn btn-lg wk-later" aria-disabled="true">${esc(T('weeklyClosed'))}</span>`;
+  }
   const day = isoDay(d.date).toLocaleDateString(LOC(), { weekday: 'long' });
-  const msg = d.date < OFF.today ? T('weeklyPast') : T('weeklyOnDay', { day });
-  return `<p>${esc(T('weeklyRule'))}</p><span class="btn btn-lg wk-later" aria-disabled="true">${esc(msg)}</span>`;
+  const past = d.date < OFF.today;
+  return `<p>${esc(T('weeklyRule'))}</p>${past ? '' : free}<span class="btn btn-lg wk-later" aria-disabled="true">${esc(past ? T('weeklyPast') : T('weeklyOnDay', { day }))}</span>`;
 }
+// percenként: ha közben 9:30, 11:00 vagy 14:00 lett, frissítjük a gombot
+let lastDaily = null;
+setInterval(() => { if (!OFF || !OFF.weekly) return; const s = dailyState(); if (lastDaily !== null && s !== lastDaily) renderWeekly(); lastDaily = s; }, 30000);
 function weeklyText(m, d) {
   const three = wkCourses === 3;
   const dd = isoDay(d.date);
-  return 'Heti menü – ' + dd.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + dd.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) + '), ' +
+  return 'Napi ajánlat – ' + dd.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + dd.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) + '), ' +
     (three ? 'háromfogásos (' + huf(m.three) + ' Ft)' : 'kétfogásos (' + huf(m.two) + ' Ft)') +
     '\nLeves: ' + d.soups[wkSoup].hu + '\nFőétel: ' + String.fromCharCode(65 + wkMain) + ') ' + d.mains[wkMain].hu +
     (three ? '\nDesszert: a háromfogásos menü desszertje' : '');
@@ -234,6 +248,7 @@ async function loadMenu() {
     ]);
     if (!m.sections) throw 0;
     M = m; TR = tr; DR = dr;
+    $('kocsonya').hidden = !M.sections.some(s => s.id === 'kocsonya'); // csak ha a rendeléskezelőben be van kapcsolva (nem fogyott el)
   } catch (e) { $('food').innerHTML = `<p class="empty">${esc(T('menuError'))}</p>`; return; }
   renderChips(); renderFood(); renderDrinks(); renderFees(); renderFacts(); renderStatus(); buildWheelFilters();
   const opts = [...M.fees].sort((a, b) => a.name.localeCompare(b.name, 'hu')).map(f => `<option value="${esc(f.name)}">`).join(''); $('towns').innerHTML = opts;

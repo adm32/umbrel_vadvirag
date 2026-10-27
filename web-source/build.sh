@@ -11,7 +11,7 @@ block = src[src.index('func defaultFees() map[string]int {'):]
 block = block[:block.index('\n}\n')]
 fees = sorted(({"name": n, "fee": int(f)} for n, f in re.findall(r'"([^"]+)":\s*(\d+)', block)), key=lambda x: x["name"])
 json.dump({"live": False, "restaurant": "Vadvirág Étterem", "phone": "06 20 339 5099", "open": True, "notice": "",
-           "sections": menu["sections"], "fees": fees}, open('menu-fallback.json', 'w'), ensure_ascii=False)
+           "sections": [s for s in menu["sections"] if not s.get("off")], "fees": fees}, open('menu-fallback.json', 'w'), ensure_ascii=False)
 print("tartalék étlap:", sum(len(s["items"]) for s in menu["sections"]), "étel,", len(fees), "település")
 PY
 for a in amd64 arm64; do

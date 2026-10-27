@@ -43,12 +43,15 @@ type MenuSection struct {
 	ID    string     `json:"id"`
 	Name  string     `json:"name"`
 	Short string     `json:"short"`
+	Off   bool       `json:"off,omitempty"` // elfogyott / nincs szezonja: nem látszik és nem rendelhető, de az ára megmarad a régi rendelésekhez
 	Items []MenuItem `json:"items"`
 }
 
 var (
-	menuSections []MenuSection
+	menuSections []MenuSection // a teljes étlap (az árbecslés ezt használja)
+	publicMenu   []MenuSection // amit a vendég lát: a kikapcsolt részek nélkül
 	menuIdx      = map[string]*MenuItem{}
+	menuOff      = map[string]bool{} // a kikapcsolt részek ételei
 )
 
 func init() {
@@ -68,6 +71,12 @@ func init() {
 				it.Variants[vi].Pack = packFor(menuSections[si].ID, it, it.Variants[vi].Label)
 			}
 			menuIdx[it.ID] = it
+			if menuSections[si].Off {
+				menuOff[it.ID] = true
+			}
+		}
+		if !menuSections[si].Off {
+			publicMenu = append(publicMenu, menuSections[si])
 		}
 	}
 }
@@ -99,7 +108,7 @@ func (a *App) handlePublicMenu(w http.ResponseWriter, r *http.Request) {
 		"phone":      c.EtteremTelefon,
 		"open":       !c.OnlineSzunetel,
 		"notice":     c.OnlineUzenet,
-		"sections":   menuSections,
+		"sections":   publicMenu,
 		"fees":       fees,
 	})
 }
@@ -173,7 +182,7 @@ func (a *App) handlePublicQuick(w http.ResponseWriter, r *http.Request) {
 		publicErr(w, 400, "Írd le, mit szeretnél rendelni.")
 		return
 	}
-	if msg := weeklyMenuCheck(in.Text, time.Now()); msg != "" {
+	if msg := dailyOfferCheck(in.Text, time.Now()); msg != "" {
 		publicErr(w, 400, msg)
 		return
 	}
@@ -190,6 +199,10 @@ func (a *App) handlePublicQuick(w http.ResponseWriter, r *http.Request) {
 		Items: itemsText, Note: in.Note, Payment: payment,
 		Token: randStr(22, "abcdefghjkmnpqrstuvwxyz23456789"),
 		Extra: map[string]string{"Fizetés módja": payment, "Végösszeg": "az árat egyeztetni kell (szabadon leírt rendelés)"},
+	}
+	if a.dailyFreeDelivery(in.Text, mode, in.City, time.Now()) {
+		o.FreeDelivery = true
+		o.Extra["Szállítás"] = "ingyenes – napi ajánlat előrendelése " + hhmm(dailyFreeTil) + " előtt"
 	}
 	if mode == modeDelivery {
 		o.City, o.Street = in.City, in.Street
@@ -277,6 +290,10 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 		it := menuIdx[l.ID]
 		if it == nil || l.Qty < 1 || l.Qty > 50 {
 			publicErr(w, 400, "Az étlap közben változott – frissítsd az oldalt, és próbáld újra.")
+			return
+		}
+		if menuOff[l.ID] {
+			publicErr(w, 400, "Elfogyott: "+it.Name+". Vedd ki a kosárból, vagy frissítsd az oldalt.")
 			return
 		}
 		price, label, pk := it.Price, it.Name, it.Pack
@@ -516,24 +533,71 @@ func visitorKey(r *http.Request) string {
 
 var huDays = []string{"vasárnap", "hétfő", "kedd", "szerda", "csütörtök", "péntek", "szombat"}
 
-// weeklyMenuCheck: a heti menü csak hétköznap, és csak az aznapi menü rendelhető.
-// A weboldal gombja „Heti menü – <nap> (…)” kezdetű szöveget küld; ezt ellenőrizzük.
-func weeklyMenuCheck(text string, now time.Time) string {
-	if !strings.HasPrefix(strings.TrimSpace(text), "Heti menü") {
+// Napi ajánlat (a heti menü napjai): hétköznap 9:30 és 14:00 között rendelhető, mindig az aznapi.
+// 9:30 és 11:00 között előrendelés: Zalaszentgrótra, Zalaudvarnokra és Zalaszentlászlóra ilyenkor
+// nincs szállítási díj. A weboldal gombja „Napi ajánlat – <nap> (…)” kezdetű szöveget küld
+// (a régebbi oldal „Heti menü – …”-t); ebből ismerjük fel.
+const (
+	dailyFrom    = 9*60 + 30 // 9:30
+	dailyFreeTil = 11 * 60   // 11:00-ig ingyenes a kiszállítás a lenti településekre
+	dailyTo      = 14 * 60   // 14:00
+)
+
+var dailyFreeTowns = []string{"Zalaszentgrót", "Zalaudvarnok", "Zalaszentlászló"}
+
+func isDailyOffer(text string) bool {
+	t := strings.TrimSpace(text)
+	return strings.HasPrefix(t, "Napi ajánlat") || strings.HasPrefix(t, "Heti menü")
+}
+
+func budapestNow(now time.Time) time.Time {
+	if loc, err := time.LoadLocation("Europe/Budapest"); err == nil {
+		return now.In(loc)
+	}
+	return now
+}
+
+func hhmm(m int) string { return fmt.Sprintf("%d:%02d", m/60, m%60) }
+
+// dailyOfferCheck: üres, ha rendelhető; különben a vendégnek szóló magyarázat.
+func dailyOfferCheck(text string, now time.Time) string {
+	if !isDailyOffer(text) {
 		return ""
 	}
-	if loc, err := time.LoadLocation("Europe/Budapest"); err == nil {
-		now = now.In(loc)
-	}
+	now = budapestNow(now)
 	today := huDays[now.Weekday()]
 	if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
-		return "A heti menüt csak hétköznap lehet rendelni. Az étlapról vagy a hétvégi ajánlatból most is rendelhetsz!"
+		return "A napi ajánlatot csak hétköznap lehet rendelni. Az étlapról vagy a hétvégi ajánlatból most is rendelhetsz!"
+	}
+	if m := now.Hour()*60 + now.Minute(); m < dailyFrom || m >= dailyTo {
+		return "A napi ajánlat " + hhmm(dailyFrom) + " és " + hhmm(dailyTo) + " között rendelhető. Az étlapról most is rendelhetsz!"
 	}
 	first := strings.SplitN(strings.TrimSpace(text), "\n", 2)[0]
 	for _, d := range huDays {
 		if strings.Contains(first, "– "+d) && d != today {
-			return "A heti menüből mindig csak az aznapi menü rendelhető (ma: " + today + ")."
+			return "Mindig csak az aznapi napi ajánlat rendelhető (ma: " + today + ")."
 		}
 	}
 	return ""
+}
+
+// dailyFreeDelivery: napi ajánlat előrendelése 11:00 előtt a kedvezményes településekre.
+func (a *App) dailyFreeDelivery(text, mode, city string, now time.Time) bool {
+	if !isDailyOffer(text) || mode != modeDelivery {
+		return false
+	}
+	now = budapestNow(now)
+	if m := now.Hour()*60 + now.Minute(); m < dailyFrom || m >= dailyFreeTil {
+		return false
+	}
+	e := a.match(city)
+	if e == nil {
+		return false
+	}
+	for _, t := range dailyFreeTowns {
+		if norm(t) == e.norm {
+			return true
+		}
+	}
+	return false
 }

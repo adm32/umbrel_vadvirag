@@ -376,7 +376,7 @@ function card(o){
   if(o.phone)rows.push(row(I.phone,'var(--green)',`<a href="tel:${esc(o.phone.replace(/[^+\d]/g,''))}">${esc(o.phone)}</a>`,''));
   rows.push(row(I.mail,'var(--blue)',o.email?`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`:'<span style="color:var(--red)">Nincs e-mail cím</span>',''));
   if(deliv){
-    const fee=o.delivery_fee>0?huf(o.delivery_fee)+' Ft':o.delivery_fee<0?'egyeztetni':'';
+    const fee=o.free_delivery?'ingyenes':o.delivery_fee>0?huf(o.delivery_fee)+' Ft':o.delivery_fee<0?'egyeztetni':'';
     rows.push(row(I.car,'var(--purple)',`Kiszállítás<small>${esc([o.city,o.street].filter(Boolean).join(', '))||'nincs cím'}</small>`,fee,o.delivery_fee<0?'warn':''));
     if(o.drive_min>0)rows.push(row(I.clock,'var(--indigo,#5856d6)',`Út a futárnak<small>autóval, az étteremtől</small>`,`kb. ${o.drive_min} perc`));
   }else rows.push(row(I.bag,'var(--teal)','Személyes átvétel',''));
@@ -457,7 +457,7 @@ async function setTotal(id){const o=orders.find(x=>x.id===id);if(!o)return;
 function printOrder(id){
   const o=orders.find(x=>x.id===id);const w=window.open('','_blank','width=420,height=640');
   const ex=o.extra?Object.entries(o.extra).map(([k,v])=>esc(k)+': '+esc(v)).join('<br>'):'';
-  w.document.write(`<html><meta charset="utf-8"><title>Rendelés #${o.id}</title><body style="font:16px/1.4 -apple-system,system-ui,sans-serif;max-width:300px"><h2 style="margin:0 0 4px">#${o.id} · ${esc(info.restaurant)}</h2><div>${fmtDay(o.created)} ${fmtTime(o.created)}</div><hr><b>${esc(o.name)}</b><br>${esc(o.phone)}<br>${o.mode==='Kiszállítás'?'<b>KISZÁLLÍTÁS</b><br>'+esc([o.city,o.street].filter(Boolean).join(', '))+(o.drive_min>0?'<br>Út: kb. '+o.drive_min+' perc':'')+(o.delivery_fee>0?'<br>Díj: '+huf(o.delivery_fee)+' Ft':''):'<b>SZEMÉLYES ÁTVÉTEL</b>'}${ex?'<br>'+ex:''}<hr><div style="white-space:pre-wrap;font-size:18px">${esc(o.items)}</div>${o.note?'<hr>'+esc(o.note):''}${o.eta?'<hr>Elkészülés: kb. '+o.eta+' perc':''}</body></html>`);
+  w.document.write(`<html><meta charset="utf-8"><title>Rendelés #${o.id}</title><body style="font:16px/1.4 -apple-system,system-ui,sans-serif;max-width:300px"><h2 style="margin:0 0 4px">#${o.id} · ${esc(info.restaurant)}</h2><div>${fmtDay(o.created)} ${fmtTime(o.created)}</div><hr><b>${esc(o.name)}</b><br>${esc(o.phone)}<br>${o.mode==='Kiszállítás'?'<b>KISZÁLLÍTÁS</b><br>'+esc([o.city,o.street].filter(Boolean).join(', '))+(o.drive_min>0?'<br>Út: kb. '+o.drive_min+' perc':'')+(o.free_delivery?'<br>Díj: ingyenes (előrendelés)':o.delivery_fee>0?'<br>Díj: '+huf(o.delivery_fee)+' Ft':''):'<b>SZEMÉLYES ÁTVÉTEL</b>'}${ex?'<br>'+ex:''}<hr><div style="white-space:pre-wrap;font-size:18px">${esc(o.items)}</div>${o.note?'<hr>'+esc(o.note):''}${o.eta?'<hr>Elkészülés: kb. '+o.eta+' perc':''}</body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 

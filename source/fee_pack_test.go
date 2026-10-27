@@ -105,20 +105,68 @@ func TestSideSharesBox(t *testing.T) {
 	}
 }
 
-func TestWeeklyMenuCheck(t *testing.T) {
+func TestDailyOffer(t *testing.T) {
 	loc, _ := time.LoadLocation("Europe/Budapest")
-	sat := time.Date(2026, 10, 24, 18, 0, 0, 0, loc)
-	wed := time.Date(2026, 10, 28, 11, 0, 0, 0, loc)
-	if weeklyMenuCheck("Heti menü – szerda (okt. 28.), kétfogásos", sat) == "" {
-		t.Error("weekend order should be refused")
+	at := func(d, h, m int) time.Time { return time.Date(2026, 10, d, h, m, 0, 0, loc) }
+	wedTxt := "Napi ajánlat – szerda (okt. 28.), kétfogásos (2 400 Ft)"
+	cases := []struct {
+		text string
+		now  time.Time
+		ok   bool
+	}{
+		{wedTxt, at(24, 12, 0), false}, // szombat
+		{wedTxt, at(28, 9, 29), false}, // még korán
+		{wedTxt, at(28, 9, 30), true},  // előrendelés kezdete
+		{wedTxt, at(28, 13, 59), true}, // utolsó perc
+		{wedTxt, at(28, 14, 0), false}, // lejárt
+		{"Napi ajánlat – csütörtök (okt. 29.), kétfogásos", at(28, 10, 0), false}, // más nap
+		{"Heti menü – szerda (okt. 28.), kétfogásos", at(28, 12, 0), true},        // régi oldalról
+		{"2 gulyásleves", at(24, 20, 0), true},                                    // más rendelést nem érint
+		{"Hétvégi ajánlat: x", at(24, 20, 0), true},
 	}
-	if weeklyMenuCheck("Heti menü – szerda (okt. 28.), kétfogásos", wed) != "" {
-		t.Error("same-day order should pass")
+	for _, c := range cases {
+		if got := dailyOfferCheck(c.text, c.now) == ""; got != c.ok {
+			t.Errorf("%q @ %s: rendelhető=%v, várt %v", c.text, c.now.Format("Mon 15:04"), got, c.ok)
+		}
 	}
-	if weeklyMenuCheck("Heti menü – csütörtök (okt. 29.), kétfogásos", wed) == "" {
-		t.Error("other-day order should be refused")
+
+	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
+	free := []struct {
+		text, mode, city string
+		now              time.Time
+		want             bool
+	}{
+		{wedTxt, modeDelivery, "Zalaszentgrót", at(28, 10, 15), true},
+		{wedTxt, modeDelivery, "8790 Zalaszentgrót, Csáford", at(28, 10, 15), false}, // Csáford drágább, az számít
+		{wedTxt, modeDelivery, "zalaudvarnok", at(28, 9, 30), true},
+		{wedTxt, modeDelivery, "Zalaszentlászló", at(28, 10, 59), true},
+		{wedTxt, modeDelivery, "Zalaszentgrót", at(28, 11, 0), false}, // 11-től már díjas
+		{wedTxt, modeDelivery, "Kehidakustány", at(28, 10, 0), false},
+		{wedTxt, modePickup, "Zalaszentgrót", at(28, 10, 0), false},
+		{"2 Pizza Margherita", modeDelivery, "Zalaszentgrót", at(28, 10, 0), false},
 	}
-	if weeklyMenuCheck("2 gulyásleves", sat) != "" || weeklyMenuCheck("Hétvégi ajánlat: x", sat) != "" {
-		t.Error("other quick orders must not be affected")
+	for _, c := range free {
+		if got := a.dailyFreeDelivery(c.text, c.mode, c.city, c.now); got != c.want {
+			t.Errorf("ingyenes? %q %s %s: %v, várt %v", c.text[:12], c.city, c.now.Format("15:04"), got, c.want)
+		}
+	}
+	o := &Order{Mode: modeDelivery, City: "Zalaszentgrót", Items: wedTxt, FreeDelivery: true}
+	a.ingest(o)
+	if o.DeliveryFee != 0 || o.Food != 2400 || o.Total != o.Food+o.Pack {
+		t.Errorf("ingyenes kiszállítás: díj %d, végösszeg %d", o.DeliveryFee, o.Total)
+	}
+}
+
+func TestMenuOff(t *testing.T) {
+	if !menuOff["kocsonya-hazi-kocsonya"] {
+		t.Fatal("a kocsonya ki van kapcsolva")
+	}
+	for _, s := range publicMenu {
+		if s.Off || s.ID == "kocsonya" {
+			t.Error("kikapcsolt rész a vendég étlapján:", s.ID)
+		}
+	}
+	if menuIdx["kocsonya-hazi-kocsonya"] == nil {
+		t.Error("a régi rendelések árához meg kell maradnia")
 	}
 }

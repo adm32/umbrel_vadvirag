@@ -196,15 +196,18 @@ function preTotals() {
   let fee = 0; if (preMode === 'kiszallitas') { const f = PRE.fees.find(x => x.name === $('preCity')?.value); fee = f ? f.fee : null; }
   return { n, mains, food, pack, fee, total: food + pack + (fee || 0) };
 }
+// egyszerű, saját rajzolású liba (díszítés)
+const GOOSE = '<svg viewBox="0 0 200 160" aria-hidden="true"><path d="M150 28c-11-1-19 7-19 17 0 9 6 15 6 25 0 9-8 15-19 15H78c-30 0-55 18-61 44 14 14 37 22 64 22h40c34 0 58-21 58-49 0-15-6-26-15-35-5-5-7-10-7-15 0-5 4-8 9-8h17c-4-10-15-16-27-16z"/><path d="M168 46h20M60 112c18 10 40 13 64 9M88 132c14 3 30 3 44-1"/><circle cx="152" cy="40" r="1.5"/></svg>';
 function renderPre() {
-  const el = $('offPre');
-  el.hidden = !PRE;
+  const el = $('offPre'), hp = $('heroPre');
+  el.hidden = !PRE; hp.hidden = !PRE;
   if (!PRE) return;
+  hp.innerHTML = `<span class="gi">${GOOSE}</span><span><b>${esc(L10(PRE.offer.title))}</b><small>${esc(T('preServed', { date: fromDate(PRE.offer.serve_from) }))} · ${esc(T('preHeroSub'))}</small></span><span class="go">›</span>`;
   const o = PRE.offer, t = preTotals();
   const dish = it => { const q = preQty[it.k] || 0; return `<div class="mt-dish${q ? ' on' : ''}"><div class="tx"><div class="n">${esc(L10(it.d.name))}</div>${L10(it.d.desc) ? `<div class="d">${esc(L10(it.d.desc))}</div>` : ''}</div>
     <div class="mt-step"><button type="button" data-pq="${it.k}" data-d="-1" aria-label="${esc(T('preMinus') + ': ' + L10(it.d.name))}"${q ? '' : ' disabled'}>−</button><b aria-live="polite">${q}</b><button type="button" class="plus" data-pq="${it.k}" data-d="1" aria-label="${esc(T('prePlus') + ': ' + L10(it.d.name))}">+</button></div></div>`; };
   const items = preItems();
-  el.innerHTML = `<div class="mt-head"><div><span class="off-tag hot">${esc(T('preTag'))}</span><h3>${esc(L10(o.title))}</h3></div><div class="mt-dates">${esc(T('preServed', { date: fromDate(o.serve_from) }))}</div></div>
+  el.innerHTML = GOOSE.replace('<svg ', '<svg class="mt-goose" ') + `<div class="mt-head"><div><span class="off-tag hot">${esc(T('preTag'))}</span><h3>${esc(L10(o.title))}</h3></div><div class="mt-dates">${esc(T('preServed', { date: fromDate(o.serve_from) }))}</div></div>
     <p class="mt-lead">${esc(T('preLead'))}</p>
     <div class="mt-cols">
       <div class="mt-col"><h4><span>${esc(T('preMains'))}</span><b>${esc(T('prePer', { p: huf(o.main_price) }))}</b></h4>${items.filter(i => i.k[0] === 'm').map(dish).join('')}</div>

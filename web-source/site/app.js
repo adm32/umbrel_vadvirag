@@ -188,11 +188,12 @@ function fromDate(iso) {
   if (lang === 'hu') { const u = n % 10, tol = u ? [3, 6, 8].includes(u) : n !== 10; return d.toLocaleDateString('hu-HU', { month: 'long' }) + ' ' + n + '-' + (tol ? 'tól' : 'től'); }
   return d.toLocaleDateString(LOC(), { day: 'numeric', month: 'long' });
 }
-function preItems() { const o = PRE.offer; return [...o.mains.map((d, i) => ({ k: 'm' + i, d, p: o.main_price })), ...o.desserts.map((d, i) => ({ k: 'd' + i, d, p: o.dessert_price }))]; }
+function preItems() { const o = PRE.offer; return [...o.mains.map((d, i) => ({ k: 'm' + i, d, p: o.main_price })), ...(o.platters || []).map((d, i) => ({ k: 't' + i, d, p: o.platter_price })), ...o.desserts.map((d, i) => ({ k: 'd' + i, d, p: o.dessert_price }))]; }
 function preTotals() {
   let n = 0, mains = 0, food = 0;
-  for (const it of preItems()) { const q = preQty[it.k] || 0; n += q; food += q * it.p; if (it.k[0] === 'm') mains += q; }
-  const pack = preMode === 'helyben' ? 0 : n * PRE.pack;
+  let pack = 0;
+  for (const it of preItems()) { const q = preQty[it.k] || 0; n += q; food += q * it.p; if (it.k[0] === 'm') mains += q; if (it.k[0] === 't') mains += 2 * q; pack += q * (it.k[0] === 't' ? (PRE.pack_platter || PRE.pack) : PRE.pack); }
+  if (preMode === 'helyben') pack = 0;
   let fee = 0; if (preMode === 'kiszallitas') { const f = PRE.fees.find(x => x.name === $('preCity')?.value); fee = f ? f.fee : null; }
   return { n, mains, food, pack, fee, total: food + pack + (fee || 0) };
 }
@@ -210,7 +211,8 @@ function renderPre() {
   el.innerHTML = GOOSE.replace('<svg ', '<svg class="mt-goose" ') + `<div class="mt-head"><div><span class="off-tag hot">${esc(T('preTag'))}</span><h3>${esc(L10(o.title))}</h3></div><div class="mt-dates">${esc(T('preServed', { date: fromDate(o.serve_from) }))}</div></div>
     <p class="mt-lead">${esc(T('preLead'))}</p>
     <div class="mt-cols">
-      <div class="mt-col"><h4><span>${esc(T('preMains'))}</span><b>${esc(T('prePer', { p: huf(o.main_price) }))}</b></h4>${items.filter(i => i.k[0] === 'm').map(dish).join('')}</div>
+      <div class="mt-col"><h4><span>${esc(T('preMains'))}</span><b>${esc(T('prePer', { p: huf(o.main_price) }))}</b></h4>${items.filter(i => i.k[0] === 'm').map(dish).join('')}
+        ${(o.platters || []).length ? `<h4 class="mt-h2"><span>${esc(T('prePlatters'))}</span><b>${esc(T('prePerPlatter', { p: huf(o.platter_price) }))}</b></h4>${items.filter(i => i.k[0] === 't').map(dish).join('')}` : ''}</div>
       <div class="mt-col"><h4><span>${esc(T('preDesserts'))}</span><b>${esc(T('prePer', { p: huf(o.dessert_price) }))}</b></h4>${items.filter(i => i.k[0] === 'd').map(dish).join('')}
         <div class="mt-sum"><div class="t"><span>${esc(T('preSum', { n: t.n }))}</span><b>${huf(t.food)} Ft</b></div>
           <button type="button" class="btn btn-red btn-lg" id="preNext"${t.n ? '' : ' disabled'}>${esc(T(t.n ? 'preNext' : 'prePick'))}</button>

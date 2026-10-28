@@ -753,7 +753,8 @@ function renderPre(){
     const dl=list.filter(p=>p.date===d),rel=preRel(d),k=preKitchen(dl);
     const mains=dl.filter(p=>p.status!=='lemondva').reduce((s,p)=>s+p.lines.filter(l=>l.key[0]==='m').reduce((a,l)=>a+l.qty,0),0);
     const desserts=dl.filter(p=>p.status!=='lemondva').reduce((s,p)=>s+p.lines.filter(l=>l.key[0]==='d').reduce((a,l)=>a+l.qty,0),0);
-    h+=`<div class="pday"><div class="pdh"><h3>${esc(preDayName(d))}</h3>${rel?`<span class="rel">${rel}</span>`:''}<span class="cnt">${dl.length} előrendelés · ${mains} főétel · ${desserts} desszert</span><button class="pr" onclick="prePrint('${d}')">${I.print}Nyomtatás</button></div>
+    const plat=dl.filter(p=>p.status!=='lemondva').reduce((s,p)=>s+p.lines.filter(l=>l.key[0]==='t').reduce((a,l)=>a+l.qty,0),0);
+    h+=`<div class="pday"><div class="pdh"><h3>${esc(preDayName(d))}</h3>${rel?`<span class="rel">${rel}</span>`:''}<span class="cnt">${dl.length} előrendelés · ${mains} főétel${plat?` · ${plat} tál`:''} · ${desserts} desszert</span><button class="pr" onclick="prePrint('${d}')">${I.print}Nyomtatás</button></div>
       ${k.length?`<div class="pkit"><b>A konyhának</b>${k.map(([n,q])=>`${q}× ${esc(n)}`).join('<br>')}</div>`:''}`;
     for(const p of dl){
       const [ml,mi]=PM[p.mode]||['?',''];

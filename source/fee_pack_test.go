@@ -172,7 +172,7 @@ func TestMenuOff(t *testing.T) {
 }
 
 func TestPreorder(t *testing.T) {
-	if preOff == nil || len(preOff.Mains) != 4 || len(preOff.Desserts) != 2 || preOff.MainPrice != 6500 || preOff.DessertPrice != 1590 {
+	if preOff == nil || len(preOff.Mains) != 4 || len(preOff.Desserts) != 2 || len(preOff.Platters) != 1 || preOff.MainPrice != 6500 || preOff.DessertPrice != 1590 || preOff.PlatterPrice != 12990 {
 		t.Fatal("az elorendeles.json adatai hibásak")
 	}
 	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
@@ -196,6 +196,12 @@ func TestPreorder(t *testing.T) {
 	p, msg = a.buildPreorder(in, now)
 	if msg != "" || p.Pack != 3*packTray || p.Fee != 600 || p.Total != 2*6500+1590+3*packTray+600 || p.DriveMin == 0 {
 		t.Fatalf("kiszállítás: %q %+v", msg, p)
+	}
+	// tál elvitelre: 2 személyes habtálca
+	in = base()
+	in.Items, in.Mode = map[string]int{"t0": 1}, preTakeaway
+	if p, msg = a.buildPreorder(in, now); msg != "" || p.Food != 12990 || p.Pack != packPlatter2 || p.Total != 12990+packPlatter2 {
+		t.Fatalf("tál: %q %+v", msg, p)
 	}
 	// elvitel: doboz, szállítás nélkül
 	in = base()

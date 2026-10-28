@@ -17,45 +17,60 @@
     "de": "Konfierte Gänsekeule mit Rosmarin und Knoblauch"
    },
    "desc": {
-    "hu": "vörösboros-almás párolt lilakáposztával, hagymás törtburgonyával",
-    "en": "red cabbage braised with red wine and apple, crushed potatoes with onion",
-    "de": "Rotkraut mit Rotwein und Apfel, Kartoffelstampf mit Zwiebeln"
+    "hu": "ropogós bőrrel, vörösboros-almás párolt lilakáposztával, hagymás törtburgonyával",
+    "en": "crispy skin, red cabbage braised with red wine and apple, crushed potatoes with onion",
+    "de": "knusprige Haut, Rotkraut mit Rotwein und Apfel, Kartoffelstampf mit Zwiebeln"
    }
   },
   {
    "name": {
-    "hu": "Konfitált libacomb muskotályos-birsalma mártással",
-    "en": "Confit goose leg with muscat and quince sauce",
-    "de": "Konfierte Gänsekeule mit Muskateller-Quittensoße"
+    "hu": "Konfitált libacomb",
+    "en": "Confit goose leg",
+    "de": "Konfierte Gänsekeule"
    },
    "desc": {
-    "hu": "házi pirított dödöllével",
-    "en": "homemade toasted dödölle (potato dumplings)",
-    "de": "hausgemachte geröstete Dödölle (Kartoffelnocken)"
+    "hu": "ropogós bőrrel, muskotályos-birsalma mártással, házi pirított dödöllével",
+    "en": "crispy skin, muscat and quince sauce, homemade toasted dödölle (potato dumplings)",
+    "de": "knusprige Haut, Muskateller-Quittensoße, hausgemachte geröstete Dödölle (Kartoffelnocken)"
    }
   },
   {
    "name": {
-    "hu": "Rozé libamell narancsos-kakukkfüves jus-vel",
-    "en": "Rosé goose breast with orange and thyme jus",
-    "de": "Rosa Gänsebrust mit Orangen-Thymian-Jus"
+    "hu": "Rozé libamell",
+    "en": "Rosé goose breast",
+    "de": "Rosa Gänsebrust"
    },
    "desc": {
-    "hu": "burgonyakrokettel",
-    "en": "potato croquettes",
-    "de": "Kartoffelkroketten"
+    "hu": "narancsos-kakukkfüves jus-vel, burgonyakrokettel",
+    "en": "orange and thyme jus, potato croquettes",
+    "de": "Orangen-Thymian-Jus, Kartoffelkroketten"
    }
   },
   {
    "name": {
-    "hu": "Rozé libamell krémes édesburgonya-pürével",
-    "en": "Rosé goose breast with creamy sweet potato purée",
-    "de": "Rosa Gänsebrust mit cremigem Süßkartoffelpüree"
+    "hu": "Rozé libamell",
+    "en": "Rosé goose breast",
+    "de": "Rosa Gänsebrust"
    },
    "desc": {
-    "hu": "gránátalmás-erdei gyümölcsös redukcióval",
-    "en": "pomegranate and forest berry reduction",
-    "de": "Granatapfel-Waldbeeren-Reduktion"
+    "hu": "krémes édesburgonya-pürével, gránátalmás-erdei gyümölcsös redukcióval",
+    "en": "creamy sweet potato purée, pomegranate and forest berry reduction",
+    "de": "cremiges Süßkartoffelpüree, Granatapfel-Waldbeeren-Reduktion"
+   }
+  }
+ ],
+ "platter_price": 12990,
+ "platters": [
+  {
+   "name": {
+    "hu": "Libalakoma tál 2 főre",
+    "en": "Goose feast platter for two",
+    "de": "Gänseplatte für zwei"
+   },
+   "desc": {
+    "hu": "1 konfitált libacomb ropogós bőrrel, vörösboros-almás lilakáposztával, 1 rozé libamell narancsos-kakukkfüves jus-vel, és mindenből egy kicsi: burgonyakrokett, édesburgonyapüré, hagymás törtburgonya, dödölle, muskotályos-birsalma mártás, gránátalmás-erdei gyümölcs redukció",
+    "en": "1 confit goose leg with crispy skin and red cabbage braised with red wine and apple, 1 rosé goose breast with orange and thyme jus, plus a little of every side: potato croquettes, sweet potato purée, crushed potatoes with onion, dödölle, muscat and quince sauce, pomegranate and forest berry reduction",
+    "de": "1 konfierte Gänsekeule mit knuspriger Haut und Rotkraut mit Rotwein und Apfel, 1 rosa Gänsebrust mit Orangen-Thymian-Jus, dazu von jeder Beilage etwas: Kartoffelkroketten, Süßkartoffelpüree, Kartoffelstampf mit Zwiebeln, Dödölle, Muskateller-Quittensoße, Granatapfel-Waldbeeren-Reduktion"
    }
   }
  ],

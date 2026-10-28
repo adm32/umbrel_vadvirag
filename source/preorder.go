@@ -8,7 +8,7 @@ package main
 // Amíg a személyzet nem kapcsolja „Elfogyott”-ra, a weboldalon látszik; utána azonnal eltűnik.
 //
 // Árak: az ételek ára az elorendeles.json szerint; elvitelnél és kiszállításnál adagonként egy
-// fedeles habtálca (packTray), kiszállításnál a település szokásos díja.
+// fedeles habtálca (packTray), tálanként 2 személyes habtálca (packPlatter2), kiszállításnál a település szokásos díja.
 
 import (
 	_ "embed"
@@ -43,6 +43,8 @@ type preOffer struct {
 	DessertPrice int               `json:"dessert_price"`
 	Mains        []preDish         `json:"mains"`
 	Desserts     []preDish         `json:"desserts"`
+	PlatterPrice int               `json:"platter_price,omitempty"`
+	Platters     []preDish         `json:"platters,omitempty"` // tálak (pl. 2 főre)
 }
 
 var preOff *preOffer
@@ -68,6 +70,9 @@ func (o *preOffer) items() []preItem {
 	var out []preItem
 	for i, d := range o.Mains {
 		out = append(out, preItem{fmt.Sprintf("m%d", i), d.Name["hu"], o.MainPrice})
+	}
+	for i, d := range o.Platters {
+		out = append(out, preItem{fmt.Sprintf("t%d", i), d.Name["hu"], o.PlatterPrice})
 	}
 	for i, d := range o.Desserts {
 		out = append(out, preItem{fmt.Sprintf("d%d", i), d.Name["hu"], o.DessertPrice})
@@ -201,7 +206,7 @@ func (a *App) handlePublicPreorder(w http.ResponseWriter, r *http.Request) {
 	sort.Slice(fees, func(i, j int) bool { return strings.Compare(norm(fees[i].Name), norm(fees[j].Name)) < 0 })
 	writeJSON(w, 200, map[string]any{
 		"open": true, "offer": preOff, "today": todayBudapest(time.Now()),
-		"pack": packTray, "fees": fees, "hours": []string{preFirst, preLast},
+		"pack": packTray, "pack_platter": packPlatter2, "fees": fees, "hours": []string{preFirst, preLast},
 	})
 }
 
@@ -289,7 +294,13 @@ func (a *App) buildPreorder(in preorderReq, now time.Time) (*Preorder, string) {
 		}
 		p.Guests = in.Guests
 	case preTakeaway, preDelivery:
-		p.Pack = n * packTray
+		for _, l := range p.Lines {
+			if strings.HasPrefix(l.Key, "t") {
+				p.Pack += l.Qty * packPlatter2
+			} else {
+				p.Pack += l.Qty * packTray
+			}
+		}
 		if in.Payment == "Kártya" || in.Payment == "Készpénz" {
 			p.Payment = in.Payment
 		}

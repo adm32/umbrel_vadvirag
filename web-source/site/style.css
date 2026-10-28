@@ -382,6 +382,7 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 .mt-cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;margin-top:24px;align-items:start}
 .preoff .mt-col{background:var(--card);color:var(--ink);border-radius:20px;padding:16px 18px 6px;box-shadow:0 12px 30px -18px #3a0603aa}
 .mt-col h4{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--ink2);padding-bottom:8px;border-bottom:1px solid var(--line)}
+.mt-col h4.mt-h2{margin-top:18px}
 .mt-col h4 b{color:var(--red);font-size:15px;white-space:nowrap}
 .mt-dish{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px dashed var(--line)}
 .mt-dish .tx{flex:1;min-width:0}

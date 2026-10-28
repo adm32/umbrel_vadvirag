@@ -118,7 +118,8 @@ function renderStatus() {
   const el = $('status'), tx = $('statusText'); if (!el) return;
   const { min } = budapestNow(), o = HOURS.open * 60, c = HOURS.close * 60;
   el.classList.remove('open', 'closed');
-  if (min >= o && min < c) { el.classList.add('open'); tx.textContent = c - min <= 45 ? T('closingSoon', { t: hh(HOURS.close) }) : T('openNow', { t: hh(HOURS.close) }); }
+  if (M && M.closed_today) { el.classList.add('closed'); tx.textContent = T('closedEarly', { t: hh(HOURS.open) }); }
+  else if (min >= o && min < c) { el.classList.add('open'); tx.textContent = c - min <= 45 ? T('closingSoon', { t: hh(HOURS.close) }) : T('openNow', { t: hh(HOURS.close) }); }
   else { el.classList.add('closed'); tx.textContent = min < o ? T('closedNow', { t: hh(HOURS.open) }) : T('closedTomorrow', { t: hh(HOURS.open) }); }
   if (M && M.open === false && el.classList.contains('open')) tx.textContent += ' · ' + T('orderPaused');
   if ($('hoursToday')) $('hoursToday').textContent = tx.textContent;
@@ -128,6 +129,8 @@ function renderHours() {
   $('hoursList').innerHTML = T('days').map((d, i) => `<li class="${i === wd ? 'today' : ''}"><span data-today="${esc(T('today'))}">${esc(d)}</span><span>${hh(HOURS.open)}–${hh(HOURS.close)}</span></li>`).join('');
 }
 setInterval(renderStatus, 60000);
+// a nyitva/zárva állapotot (szünetel, korábban zártunk) 3 percenként frissítjük, ha az oldal nyitva marad
+setInterval(async () => { if (document.hidden || !M) return; try { const m = await (await fetch('/api/menu', { cache: 'no-store' })).json(); if (m && m.sections) { const ch = m.closed_today !== M.closed_today || m.open !== M.open; M.open = m.open; M.closed_today = m.closed_today; if (ch) { renderStatus(); renderWeekly(); } } } catch (e) {} }, 180000);
 
 /* ---------------------------------------------------------------- étlap */
 const trSec = s => (lang !== 'hu' && TR.sections[s.id] && TR.sections[s.id][lang]) || s.name;
@@ -234,7 +237,7 @@ function buildPreDlg() {
       <div class="pre-lbl">${esc(T('preHow'))}</div>
       <div class="pre-modes" role="radiogroup" aria-label="${esc(T('preHow'))}">${modes.map(([v, l, sub]) => `<button type="button" role="radio" data-pm="${v}" aria-checked="${preMode === v}">${PRE_ICON[v]}<b>${esc(T(l))}</b><small>${esc(T(sub))}</small></button>`).join('')}</div>
       <div class="row2"><label class="f"><span>${esc(T('preDay'))}</span><input name="date" type="date" min="${preMinDate()}" required></label>
-        <label class="f"><span>${esc(T('preTime'))}</span><input name="time" type="time" min="11:00" max="21:30" step="900" required></label></div>
+        <label class="f"><span>${esc(T('preTime'))}</span><input name="time" type="time" min="09:30" max="21:30" step="900" required></label></div>
       <div class="pre-g" data-for="helyben"><label class="f"><span>${esc(T('preGuests'))}</span><input name="guests" type="number" min="1" max="200" inputmode="numeric"></label></div>
       <div class="pre-g" data-for="kiszallitas"><label class="f"><span>${esc(T('preTown'))}</span><select name="city" id="preCity"><option value="">${esc(T('preTownPick'))}</option>${towns}</select></label>
         <label class="f"><span>${esc(T('preStreet'))}</span><input name="street" autocomplete="street-address"></label></div>
@@ -290,7 +293,7 @@ $('preDlg').addEventListener('submit', async e => {
   err.textContent = '';
   const min = preMinDate();
   if (!v.date || v.date < min) return bad('date', T('preErrDate', { date: fromDate(min) }));
-  if (!v.time || v.time < '11:00' || v.time > '21:30') return bad('time', T('errTime'));
+  if (!v.time || v.time < '09:30' || v.time > '21:30') return bad('time', T('preErrTime'));
   if (preMode === 'helyben' && !(+v.guests >= 1 && +v.guests <= 200)) return bad('guests', T('preErrGuests'));
   if (preMode === 'kiszallitas' && !v.city) return bad('city', T('preErrTown'));
   if (preMode === 'kiszallitas' && !v.street.trim()) return bad('street', T('preErrStreet'));
@@ -342,7 +345,7 @@ function renderWeekly() {
 // ellenőrzi és számolja; itt csak megmutatjuk). Az idő a szerver budapesti órájából jön.
 const DAILY = { from: 9 * 60 + 30, free: 11 * 60, to: 14 * 60 };
 const nowMin = () => (OFF && OFF.now_min != null) ? OFF.now_min + Math.floor((Date.now() - (OFF._t || Date.now())) / 60000) : 12 * 60;
-function dailyState() { const n = nowMin(); return n < DAILY.from ? 'before' : n < DAILY.free ? 'pre' : n < DAILY.to ? 'open' : 'closed'; }
+function dailyState() { if (M && M.closed_today) return 'closed'; const n = nowMin(); return n < DAILY.from ? 'before' : n < DAILY.free ? 'pre' : n < DAILY.to ? 'open' : 'closed'; }
 function wkFoot(m, d) {
   const price = huf(wkCourses === 3 ? m.three : m.two);
   const free = `<p class="wk-free">${esc(T('weeklyFree'))}</p>`;

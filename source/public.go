@@ -104,12 +104,13 @@ func (a *App) handlePublicMenu(w http.ResponseWriter, r *http.Request) {
 		return strings.Compare(norm(fees[i].Name), norm(fees[j].Name)) < 0
 	})
 	writeJSON(w, 200, map[string]any{
-		"restaurant": c.EtteremNeve,
-		"phone":      c.EtteremTelefon,
-		"open":       !c.OnlineSzunetel,
-		"notice":     c.OnlineUzenet,
-		"sections":   publicMenu,
-		"fees":       fees,
+		"restaurant":   c.EtteremNeve,
+		"phone":        c.EtteremTelefon,
+		"open":         !c.OnlineSzunetel && !a.closedToday(),
+		"closed_today": a.closedToday(),
+		"notice":       c.OnlineUzenet,
+		"sections":     publicMenu,
+		"fees":         fees,
 	})
 }
 
@@ -165,12 +166,8 @@ func (a *App) handlePublicQuick(w http.ResponseWriter, r *http.Request) {
 		publicErr(w, 400, "Hibás kérés.")
 		return
 	}
-	if c := a.conf(); c.OnlineSzunetel {
-		msg := "Az online rendelés most szünetel."
-		if c.OnlineUzenet != "" {
-			msg += " " + c.OnlineUzenet
-		}
-		publicErr(w, 503, msg+" Telefonon szívesen felvesszük: "+c.EtteremTelefon)
+	if msg := a.orderingBlocked(); msg != "" {
+		publicErr(w, 503, msg)
 		return
 	}
 	if in.Website != "" {
@@ -261,12 +258,8 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 		publicErr(w, 400, "Hibás kérés.")
 		return
 	}
-	if c := a.conf(); c.OnlineSzunetel {
-		msg := "Az online rendelés most szünetel."
-		if c.OnlineUzenet != "" {
-			msg += " " + c.OnlineUzenet
-		}
-		publicErr(w, 503, msg+" Telefonon szívesen felvesszük: "+c.EtteremTelefon)
+	if msg := a.orderingBlocked(); msg != "" {
+		publicErr(w, 503, msg)
 		return
 	}
 	if in.Website != "" { // robot
@@ -464,6 +457,49 @@ func (a *App) handleSettingsOnline(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Online rendelés: szünetel=%v", in.Paused)
 	writeJSON(w, 200, map[string]any{"ok": true, "paused": in.Paused})
+}
+
+// closedToday: ma korábban bezártunk (a személyzet jelezte; éjfélkor magától lejár).
+func (a *App) closedToday() bool {
+	z := a.conf().KorabbanZarva
+	return z != "" && z == todayBudapest(time.Now())
+}
+
+// orderingBlocked: üres, ha most lehet online rendelni; különben a vendégnek szóló üzenet.
+func (a *App) orderingBlocked() string {
+	c := a.conf()
+	if a.closedToday() {
+		return "Ma már bezártunk. Holnap 11:00-tól újra várjuk a rendelésed! Előrendelést későbbi napra most is leadhatsz."
+	}
+	if c.OnlineSzunetel {
+		msg := "Az online rendelés most szünetel."
+		if c.OnlineUzenet != "" {
+			msg += " " + c.OnlineUzenet
+		}
+		return msg + " Telefonon szívesen felvesszük: " + c.EtteremTelefon
+	}
+	return ""
+}
+
+// POST /api/settings/closed {"closed":true} – ma korábban bezártunk / mégis nyitva.
+func (a *App) handleSettingsClosed(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Closed bool `json:"closed"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 1<<10)).Decode(&in); err != nil {
+		publicErr(w, 400, "hibás kérés")
+		return
+	}
+	day := ""
+	if in.Closed {
+		day = todayBudapest(time.Now())
+	}
+	if err := a.updateConf(func(c *Config) { c.KorabbanZarva = day }); err != nil {
+		publicErr(w, 500, "nem sikerült menteni")
+		return
+	}
+	log.Printf("Korábbi zárás ma: %v", in.Closed)
+	writeJSON(w, 200, map[string]any{"ok": true, "closed": in.Closed})
 }
 
 // ---------------------------------------------------------------- biztonság

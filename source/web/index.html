@@ -177,6 +177,24 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .ibtn .bdg{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--bg)}
 .ibtn{position:relative}
 .ibtn[hidden]{display:none}
+/* ---- Továbbiak menü és a mai nyitvatartás */
+.mrow{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:8px 14px;background:var(--card);text-align:left;color:var(--label);font-size:17px;border-bottom:.5px solid var(--sep)}
+.mrow:first-child{border-radius:12px 12px 0 0}.mrow:last-child{border-radius:0 0 12px 12px;border-bottom:0}
+.mrow .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;flex:none}.mrow .ic svg{width:18px;height:18px}
+.mrow .tx{flex:1;min-width:0}.mrow small{display:block;font-size:13px;color:var(--label2)}
+.mrow .chev{color:var(--label3);font-size:20px}
+.mgroup{margin-top:16px}
+.daybtn{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-radius:15px;font-weight:600;font-size:14px;background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+.daybtn i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.daybtn.paused{background:color-mix(in srgb,var(--orange) 15%,transparent);color:var(--orange)}
+.daybtn.closed{background:color-mix(in srgb,var(--red) 13%,transparent);color:var(--red)}
+.dopt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:var(--card);border-radius:14px;padding:14px;margin-top:10px;border:2px solid transparent;color:var(--label)}
+.dopt[aria-checked=true]{border-color:var(--blue)}
+.dopt .rd{width:22px;height:22px;border-radius:50%;border:2px solid var(--label3);flex:none;margin-top:1px;display:grid;place-items:center}
+.dopt[aria-checked=true] .rd{border-color:var(--blue)}.dopt[aria-checked=true] .rd::after{content:"";width:12px;height:12px;border-radius:50%;background:var(--blue)}
+.dopt b{display:block;font-size:17px}.dopt small{display:block;color:var(--label2);font-size:14px;line-height:1.35;margin-top:2px}
+.dnote{width:100%;margin-top:8px;border:1px solid var(--sep);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px;background:var(--bg);color:var(--label)}
+.dsave{width:100%;height:50px;border-radius:14px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;margin-top:16px}
 /* ---- Előrendelések */
 .sheet.wide{width:min(100%,760px)}
 .pstrip{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--orange) 13%,var(--card));border-radius:14px;padding:12px 14px;margin:0 0 14px;cursor:pointer;width:100%;text-align:left;color:var(--label)}
@@ -238,10 +256,13 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .bigbtn.ghost{background:var(--card);color:var(--blue)}.bigbtn.ghost.red{color:var(--red)}
 .urlrow{display:flex;align-items:center;gap:10px;padding:12px 16px}
 .urlrow code{flex:1;min-width:0;font:13px/1.4 ui-monospace,"SF Mono",Menlo,Consolas,monospace;word-break:break-all;color:var(--label)}
+.list .row.tgl{cursor:pointer}
+.list .row.tgl input[type=checkbox]{flex:none;width:51px;height:31px;padding:0;border-radius:16px;cursor:pointer;background:var(--fill) radial-gradient(circle at 15.5px 50%,#fff 12.5px,transparent 13px) no-repeat;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.04);transition:background-color .2s,background-position .2s}
+.list .row.tgl input[type=checkbox]:checked{background:var(--green) radial-gradient(circle at 35.5px 50%,#fff 12.5px,transparent 13px) no-repeat}
+.list .row.tgl input[type=checkbox]:focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 50%,transparent)}
 .copy{flex:none;height:32px;padding:0 14px;border-radius:16px;background:var(--fill2);color:var(--blue);font-weight:600;font-size:14px}
 .sver{text-align:center;color:var(--label3);font-size:13px;margin-top:22px}
 .bigbtn:disabled{opacity:.5}
-.olbtn{font:inherit;font-size:inherit;color:var(--green);background:none;border:0;padding:0;cursor:pointer;font-weight:600}.olbtn.off{color:var(--red)}
 .pausebar{display:flex;gap:14px;align-items:center;background:color-mix(in srgb,var(--red) 12%,var(--card));border:1.5px solid var(--red);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:15px;color:var(--label2)}
 .pausebar b{display:block;color:var(--red);font-size:17px;margin-bottom:2px}.pausebar div{flex:1}
 .pausebar button{flex:none;background:var(--green);color:#fff;font-weight:700;border:0;border-radius:12px;height:42px;padding:0 16px;font-size:15px}
@@ -269,19 +290,15 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 <div class="nav" id="nav">
   <div class="navrow">
     <span class="sp"></span>
-    <button class="ibtn" id="ntf" onclick="openNotif()" title="Értesítések"></button>
-    <button class="ibtn" id="snd" onclick="toggleSound()" title="Hang"></button>
     <button class="ibtn" id="preBtn" onclick="openPre()" title="Előrendelések (Márton-nap)" style="color:var(--orange)" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8.5 15.5l2.2 2.2 4.8-4.8"/></svg></button>
     <button class="ibtn" id="msgBtn" onclick="openMsgs()" title="Üzenetek a weboldalról" style="color:var(--teal);position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg></button>
-    <button class="ibtn" onclick="openRaffle()" title="Nyereményjáték sorsolás" style="color:var(--purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></button>
-    <button class="ibtn" onclick="openSettings()" title="Beállítások" style="color:var(--label2)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.9 2.6l.4 2.3a7.6 7.6 0 0 1 1.9 1.1l2.2-.8a1 1 0 0 1 1.2.4l1.9 3.3a1 1 0 0 1-.2 1.3l-1.8 1.5a7.7 7.7 0 0 1 0 2.2l1.8 1.5a1 1 0 0 1 .2 1.3l-1.9 3.3a1 1 0 0 1-1.2.4l-2.2-.8a7.6 7.6 0 0 1-1.9 1.1l-.4 2.3a1 1 0 0 1-1 .8h-3.8a1 1 0 0 1-1-.8l-.4-2.3a7.6 7.6 0 0 1-1.9-1.1l-2.2.8a1 1 0 0 1-1.2-.4l-1.9-3.3a1 1 0 0 1 .2-1.3l1.8-1.5a7.7 7.7 0 0 1 0-2.2L2.1 9.9a1 1 0 0 1-.2-1.3l1.9-3.3A1 1 0 0 1 5 4.9l2.2.8a7.6 7.6 0 0 1 1.9-1.1l.4-2.3a1 1 0 0 1 1-.8h2.4a1 1 0 0 1 1 .8ZM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg></button>
-    <button class="ibtn" onclick="location.href='/logout'" title="Kilépés"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg></button>
+    <button class="ibtn" id="moreBtn" onclick="openMore()" title="Továbbiak: értesítések, hang, sorsolás, beállítások, kilépés" aria-label="Továbbiak"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
   </div>
   <div class="ttl"><h1 id="title">Rendelések</h1><div class="sub" id="bar"></div></div>
   <div class="segwrap"><div class="seg" id="tabs"></div></div>
 </div>
 
-<main><div id="nbanner"></div><div id="prestrip"></div><div id="list"></div></main>
+<main><div id="prestrip"></div><div id="list"></div></main>
 
 <button class="fab" onclick="openManual()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="ft">Telefonos rendelés</span></button>
 <div id="toast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7Z"/></svg><span></span></div>
@@ -341,6 +358,16 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
   <div class="sbody" id="rfBody"></div>
 </div></div></dialog>
 
+<dialog id="dMore"><div class="dwrap" onclick="if(event.target===this)dMore.close()"><div class="sheet">
+  <div class="shd"><span class="tb"></span><h2>Továbbiak</h2><button class="tb r" onclick="dMore.close()">Kész</button></div>
+  <div class="sbody" id="moreBody"></div>
+</div></div></dialog>
+
+<dialog id="dDay"><div class="dwrap" onclick="if(event.target===this)dDay.close()"><div class="sheet">
+  <div class="shd"><span class="tb"></span><h2>Mai nyitvatartás</h2><button class="tb r" onclick="dDay.close()">Kész</button></div>
+  <div class="sbody" id="dayBody"></div>
+</div></div></dialog>
+
 <dialog id="dPre"><div class="dwrap" onclick="if(event.target===this)dPre.close()"><div class="sheet wide">
   <div class="shd"><span class="tb"></span><h2>Előrendelések</h2><button class="tb r" onclick="dPre.close()">Kész</button></div>
   <div class="sbody" id="preBody"></div>
@@ -382,6 +409,9 @@ const I={
   belloff:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66a6.9 6.9 0 0 0-2.7 1.3L19 16.7ZM3.3 2.3 2 3.6l3.4 3.4A7 7 0 0 0 5 11v5l-2 2v1h14.4l2.9 2.9 1.3-1.3Z"/></svg>',
   spk:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4Zm12.5-1.8a6 6 0 0 1 0 9.6l-1.2-1.6a4 4 0 0 0 0-6.4Zm2.4-3.2a10 10 0 0 1 0 16l-1.2-1.6a8 8 0 0 0 0-12.8Z"/></svg>',
   spkoff:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9h4l5-4v14l-5-4H4Zm11.3.3 1.4-1.4 2.3 2.3 2.3-2.3 1.4 1.4-2.3 2.3 2.3 2.3-1.4 1.4-2.3-2.3-2.3 2.3-1.4-1.4 2.3-2.3Z"/></svg>',
+  gift:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>',
   tray:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 13l2.5-8h13L21 13v6H3Z"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg>'
 };
 const AVC=['#ff9500','#34c759','#007aff','#af52de','#ff2d55','#5ac8fa','#ff3b30','#5856d6'];
@@ -403,24 +433,25 @@ function counts(){const c={new:0,preparing:0,done:0,rejected:0};orders.forEach(o
 function render(){
   const c=counts();
   $('title').textContent=info.restaurant||'Rendelések';msgBadge();preBadge();
-  $('snd').innerHTML=soundOn?I.spk:I.spkoff;$('ntf').innerHTML=I.bell+(N.on?'':'<span class="bdg"></span>');$('ntf').style.color=N.on?'var(--blue)':'var(--label2)';renderBanner();$('snd').style.color=soundOn?'var(--blue)':'var(--label2)';
+
   const T=[['active','Aktív',c.new+c.preparing],['new','Új',c.new],['preparing','Készül',c.preparing],['closed','Lezárt',c.done+c.rejected],['all','Mind',orders.length]];
   $('tabs').innerHTML='<span class="knob" id="knob"></span>'+T.map(([k,l,n])=>`<button data-k="${k}" onclick="setTab('${k}')">${l}${n?`<span class="n ${(k==='new'||k==='active')&&c.new?'hot':''}">${n}</span>`:''}</button>`).join('');
   moveKnob(false);
   const bar=[];
-  bar.push(`<span><span class="dot" style="background:${offline?'var(--red)':'var(--green)'}"></span>${offline?'Nincs kapcsolat':'Kapcsolódva'}</span>`);
-  bar.push(info.smtp?'<span>E-mail küldés bekapcsolva</span>':'<span style="color:var(--orange)">E-mail küldés nincs beállítva</span>');
-  if(info.wix?.enabled)bar.push(info.wix.error?`<span style="color:var(--red)">Wix hiba</span>`:'<span>Wix: kapcsolódva</span>');
-  bar.push(info.online_paused?'<button class="olbtn off" onclick="toggleOnline()">● Online rendelés szünetel</button>':'<button class="olbtn" onclick="toggleOnline()">● Online rendelés: fogadjuk</button>');
+  const ds=dayState();
+  bar.push(`<button class="daybtn ${ds}" onclick="openDay()"><i></i>${{open:'Nyitva – fogadjuk a rendeléseket',paused:'Online rendelés szünetel',closed:'Ma már bezártunk'}[ds]}</button>`);
+  if(offline)bar.push('<span style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>Nincs kapcsolat</span>');
+  if(info.wix?.enabled&&info.wix.error)bar.push('<span style="color:var(--red)">Wix hiba</span>');
   $('bar').innerHTML=bar.join('<span style="color:var(--label3)">·</span>');
   const f={active:o=>o.status==='new'||o.status==='preparing',new:o=>o.status==='new',preparing:o=>o.status==='preparing',closed:o=>o.status==='done'||o.status==='rejected',all:()=>true}[tab];
   let list=orders.filter(f);
   if(tab==='active'||tab==='new'||tab==='preparing')list.sort((a,b)=>(a.status==='new'?0:1)-(b.status==='new'?0:1)||new Date(a.created)-new Date(b.created));
   else list.sort((a,b)=>new Date(b.created)-new Date(a.created));
-  const sig=tab+JSON.stringify(list)+offline+info.online_paused+info.online_note;
+  const sig=tab+JSON.stringify(list)+offline+info.online_paused+info.online_note+info.closed_today;
   if(sig===lastSig){return}lastSig=sig;
   const emptyTxt={active:['Nincs aktív rendelés','Az új rendelések automatikusan itt jelennek meg.'],new:['Nincs új rendelés','Minden rendelés feldolgozva.'],preparing:['Nincs készülő rendelés',''],closed:['Még nincs lezárt rendelés',''],all:['Még nincs rendelés','']}[tab];
-  const pz=info.online_paused?`<div class="pausebar" style="grid-column:1/-1"><div><b>Az online rendelés szünetel</b>A vendégek a weboldalon ezt látják, és nem tudnak rendelni${info.online_note?` („${esc(info.online_note)}”)`:''}.</div><button onclick="toggleOnline()">Újraindítás</button></div>`:'';
+  const pz=info.closed_today?`<div class="pausebar" style="grid-column:1/-1"><div><b>Ma korábban bezártatok</b>A weboldalon zárva látszotok, és ma nem lehet rendelni. Éjfélkor magától visszaáll.</div><button onclick="setDay('open')">Mégis nyitva</button></div>`:
+    info.online_paused?`<div class="pausebar" style="grid-column:1/-1"><div><b>Az online rendelés szünetel</b>A vendégek a weboldalon ezt látják, és nem tudnak rendelni${info.online_note?` („${esc(info.online_note)}”)`:''}.</div><button onclick="setDay('open')">Újraindítás</button></div>`:'';
   $('list').innerHTML=pz+(offline?'<div class="offline" style="grid-column:1/-1">Nincs kapcsolat a programmal. Fut a gépen?</div>':'')+(list.length?list.map(card).join(''):`<div class="empty">${I.tray}<b>${emptyTxt[0]}</b>${emptyTxt[1]}</div>`);
   if(!$('cityList').children.length&&info.cities)$('cityList').innerHTML=info.cities.map(c=>`<option value="${esc(c)}">`).join('');
 }
@@ -434,19 +465,18 @@ function card(o){
   const deliv=o.mode==='Kiszállítás';
   const rows=[];
   if(o.phone)rows.push(row(I.phone,'var(--green)',`<a href="tel:${esc(o.phone.replace(/[^+\d]/g,''))}">${esc(o.phone)}</a>`,''));
-  rows.push(row(I.mail,'var(--blue)',o.email?`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`:'<span style="color:var(--red)">Nincs e-mail cím</span>',''));
+  if(o.email)rows.push(row(I.mail,'var(--blue)',`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>`,''));
   if(deliv){
     const fee=o.free_delivery?'ingyenes':o.delivery_fee>0?huf(o.delivery_fee)+' Ft':o.delivery_fee<0?'egyeztetni':'';
-    rows.push(row(I.car,'var(--purple)',`Kiszállítás<small>${esc([o.city,o.street].filter(Boolean).join(', '))||'nincs cím'}</small>`,fee,o.delivery_fee<0?'warn':''));
-    if(o.drive_min>0)rows.push(row(I.clock,'var(--indigo,#5856d6)',`Út a futárnak<small>autóval, az étteremtől</small>`,`kb. ${o.drive_min} perc`));
+    rows.push(row(I.car,'var(--purple)',`Kiszállítás<small>${esc([o.city,o.street].filter(Boolean).join(', '))||'nincs cím'}${o.drive_min>0?` · kb. ${o.drive_min} perc út`:''}</small>`,fee,o.delivery_fee<0?'warn':''));
   }else rows.push(row(I.bag,'var(--teal)','Személyes átvétel',''));
   let extras=o.extra?Object.entries(o.extra):[];
   const pay=extras.find(([k])=>/fizet|pay/i.test(k));
-  if(pay){rows.push(row(I.card,'var(--orange)','Fizetés',esc(pay[1])));extras=extras.filter(e=>e!==pay)}
+  if(pay)extras=extras.filter(e=>e!==pay);
   const vege=extras.find(([k])=>k==='Végösszeg');if(vege)extras=extras.filter(e=>e!==vege);
   extras.forEach(([k,v])=>rows.push(row(I.info,'#8e8e93',`${esc(v)}<small>${esc(k)}</small>`,'')));
   // Végösszeg: pontos (kosár / megadva) vagy becsült (szabadon leírt, telefonos) – a becsültet itt lehet pontosítani
-  const priceLbl=o.total>0?(o.total_est?'Becsült végösszeg':'Végösszeg'):'Végösszeg';
+  const priceLbl=(o.total>0&&o.total_est?'Becsült végösszeg':'Végösszeg')+(pay?` · <b style="font-weight:600">${esc(pay[1])}</b>`:'');
   const priceSub=o.total>0?(o.total_est?'a leírás alapján – koppints a pontos összeghez':o.total_manual?'kézzel megadva':'étel + doboz + szállítás'):'nincs ár – koppints a megadásához';
   rows.push(row(I.card,o.total_est||!o.total?'var(--orange)':'var(--green)',`${priceLbl}<small>${priceSub}</small>`,o.total>0?(o.total_est?'kb. ':'')+huf(o.total)+' Ft':'–',o.total_est||!o.total?'warn':'').replace('<div class="r">',`<div class="r" style="cursor:pointer" role="button" tabindex="0" onclick="setTotal(${o.id})">`));
   let mail='';
@@ -589,22 +619,29 @@ function renderNotif(){
   else if(N.state==='ios-install')h+=`<div class="flabel">Lépések</div><div class="list" style="padding:12px 16px"><ol class="steps"><li>Safariban koppints a <b>Megosztás</b> gombra.</li><li>Válaszd: <b>Főképernyőhöz adás</b>.</li><li>Nyisd meg a „Rendelések” ikont a főképernyőről, és itt kapcsold be az értesítéseket.</li></ol></div>`;
   $('notifBody').innerHTML=h;
 }
-function renderBanner(){
-  let dismissed=false;try{dismissed=localStorage.getItem('nb')==='1'}catch(e){}
-  const show=!N.on&&!dismissed&&['off','insecure','ios-install','denied'].includes(N.state);
-  if(!show){$('nbanner').innerHTML='';return}
-  const txt={off:['Értesítések ezen az eszközön','Kapj azonnali értesítést minden új rendelésről.','Bekapcsolás','notifEnable()'],
-    insecure:['Értesítések nem elérhetők ezen a címen','Nyisd meg a programot a https:// (Tailscale) címen.','Részletek','openNotif()'],
-    'ios-install':['Értesítések iPhone-on','Add a programot a Főképernyőhöz, és onnan nyisd meg.','Hogyan?','openNotif()'],
-    denied:['Az értesítések le vannak tiltva','Engedélyezd őket a böngésző webhely-beállításaiban.','Hogyan?','openNotif()']}[N.state];
-  $('nbanner').innerHTML=`<div class="banner"><span class="bi">${I.bell}</span><span class="bt"><b>${txt[0]}</b>${txt[1]}</span><button class="bb" onclick="${txt[3]}">${txt[2]}</button><button class="bx" title="Bezárás" onclick="try{localStorage.setItem('nb','1')}catch(e){};renderBanner()">${I.x}</button></div>`;
-}
 // ---- beállítások
 let S=null;
 async function openSettings(){dSet.showModal();try{S=await api('/api/settings');renderSettings()}catch(e){$('setBody').innerHTML=`<div class="hint">${esc(e.message||'Nem sikerült betölteni')}</div>`}}
 function renderSettings(){
   const hook=location.origin+S.webhook_path,https=location.protocol==='https:',em=S.email||{};
-  let h=`<div class="flabel" style="padding-top:6px">Wix – rendelések fogadása</div>
+  const nf=S.ntfy||{};
+  let h=`<div class="flabel" style="padding-top:6px">Értesítés az ntfy appba</div>
+  <div class="hint" style="padding-top:0;padding-bottom:8px">Telepítsd az <b>ntfy</b> appot a telefonodra (App Store / Google Play), nyomj a <b>+</b> gombra, és iratkozz fel az itt megadott témára. Így akkor is szól, ha a böngésző nincs nyitva.</div>
+  <div class="list">
+    <div class="row"><span class="k">Téma</span><input id="nfTopic" autocomplete="off" spellcheck="false" placeholder="pl. vadvirag-rendeles-4821" value="${esc(nf.topic||'')}"><button class="copy" onclick="$('nfTopic').value='vadvirag-'+Math.random().toString(36).slice(2,8)">Új</button></div>
+    <div class="row"><span class="k">Szerver</span><input id="nfServer" type="url" autocomplete="off" value="${esc(nf.server||'https://ntfy.sh')}"></div>
+    <div class="row"><span class="k">Token</span><input id="nfToken" type="password" autocomplete="new-password" placeholder="${nf.has_token?'•••• megadva – csak cseréhez':'nem kötelező'}"></div>
+  </div>
+  <div class="flabel">Miről szóljon?</div>
+  <div class="list">
+    <label class="row tgl"><span class="k" style="flex:1">Új rendelés</span><input type="checkbox" id="nfOrders" ${nf.orders||!nf.topic?'checked':''}></label>
+    <label class="row tgl"><span class="k" style="flex:1">Előrendelés</span><input type="checkbox" id="nfPre" ${nf.preorders||!nf.topic?'checked':''}></label>
+    <label class="row tgl"><span class="k" style="flex:1">Üzenet (foglalás, kérdés)</span><input type="checkbox" id="nfMsg" ${nf.messages||!nf.topic?'checked':''}></label>
+  </div>
+  <div class="hint">${nf.topic?'<span style="color:var(--green)">●</span> Bekapcsolva: <b>'+esc(nf.topic)+'</b>. ':'<span style="color:var(--label3)">●</span> Nincs beállítva. '}Ha az Irányítópult is küld rendelés-értesítést ugyanerre a témára, ott kapcsold ki, különben kétszer szól.</div>
+  <button class="bigbtn blue" onclick="saveNtfy(this)">ntfy mentése</button>
+  ${nf.topic?'<button class="bigbtn ghost" style="margin-top:10px" onclick="testNtfy(this)">Próba értesítés küldése</button>':''}
+  <div class="flabel">Wix – rendelések fogadása</div>
   <div class="list"><div class="urlrow"><code id="hookUrl">${esc(hook)}</code><button class="copy" onclick="copyHook()">Másolás</button></div></div>
   <div class="hint">${https?'Ezt a címet írd be a Wix automatizálásba (<b>Send HTTP request</b> → URL).':'Ez a helyi cím, a Wix ezt nem éri el. Nyisd meg a programot a nyilvános <b>https://…ts.net</b> címen (Tailscale Funnel) – ott itt a Wix-be beírandó cím jelenik meg.'}</div>
   <div class="flabel">E-mail visszaigazolás a vendégnek</div>
@@ -631,14 +668,41 @@ function renderSettings(){
   $('setBody').innerHTML=h;
 }
 async function copyHook(){const t=$('hookUrl').textContent;try{await navigator.clipboard.writeText(t);toast('Cím kimásolva')}catch(e){const r=document.createRange();r.selectNodeContents($('hookUrl'));getSelection().removeAllRanges();getSelection().addRange(r);toast('Jelöld ki és másold')}}
+async function saveNtfy(btn){busy(btn,async()=>{await api('/api/settings/ntfy',{topic:$('nfTopic').value.trim(),server:$('nfServer').value.trim(),token:$('nfToken').value.trim(),orders:$('nfOrders').checked,preorders:$('nfPre').checked,messages:$('nfMsg').checked});toast($('nfTopic').value.trim()?'ntfy értesítés bekapcsolva':'ntfy értesítés kikapcsolva');S=await api('/api/settings');renderSettings()})}
+async function testNtfy(btn){busy(btn,async()=>{await api('/api/settings/test-ntfy',{});toast('Próba értesítés elküldve – nézd meg a telefonod')})}
 async function busy(btn,fn){btn.disabled=true;try{await fn()}catch(e){toast(e.message||'Hiba')}finally{btn.disabled=false}}
 function saveEmail(btn){busy(btn,async()=>{const addr=$('seAddr').value.trim();const r=await api('/api/settings/email',addr?{address:addr,password:$('sePass').value}:{off:true});toast(r.warning||(addr?'E-mail beállítva':'E-mail küldés kikapcsolva'));S=await api('/api/settings');renderSettings();lastSig='';load()})}
 function testEmail(btn){busy(btn,async()=>{toast('Küldés…');const r=await api('/api/settings/test-email',{});toast('Próbalevél elküldve: '+r.to)})}
-async function toggleOnline(){
-  if(info.online_paused){try{await api('/api/settings/online',{paused:false});toast('Az online rendelés újra fogadja a rendeléseket');lastSig='';load()}catch(e){alert(e.message)}return}
-  const note=prompt('Szünetelteted az online rendelést? A vendégek a weboldalon ezt látják.\n\nRövid üzenet nekik (nem kötelező), pl. „Ma 20 óráig nem tudunk többet vállalni.”','');
-  if(note===null)return;
-  try{await api('/api/settings/online',{paused:true,note});toast('Az online rendelés szünetel');lastSig='';load()}catch(e){alert(e.message)}
+// ---- Mai nyitvatartás: nyitva / online rendelés szünetel / ma korábban bezártunk
+function dayState(){return info.closed_today?'closed':info.online_paused?'paused':'open'}
+let daySel='open';
+function openDay(){daySel=dayState();renderDay();dDay.showModal()}
+function renderDay(){
+  const o=(k,t,d)=>`<button class="dopt" role="radio" aria-checked="${daySel===k}" onclick="daySel='${k}';renderDay()"><span class="rd"></span><span><b>${t}</b><small>${d}</small></span></button>`;
+  $('dayBody').innerHTML=`<div class="hint" style="padding:2px 2px 4px">Amit itt beállítasz, azt látják a vendégek a weboldalon.</div>`+
+    o('open','Nyitva vagyunk','A weboldalon nyitva látszunk, és online lehet rendelni.')+
+    o('paused','Online rendelés szüneteltetése','Pl. ha túl sok a rendelés. Nyitva látszunk, de online nem lehet rendelni – telefonon igen.')+
+    (daySel==='paused'?`<input class="dnote" id="dayNote" maxlength="200" placeholder="Üzenet a vendégeknek (nem kötelező), pl. „20 óráig nem tudunk többet vállalni.”" value="${esc(info.online_note||'')}">`:'')+
+    o('closed','Ma korábban bezártunk','A weboldalon zárva látszunk, és ma már nem lehet rendelni. Éjfélkor magától visszaáll; későbbi napra előrendelni továbbra is lehet.')+
+    `<button class="dsave" onclick="setDay(daySel)">Mentés</button>`;
+}
+async function setDay(k){
+  try{
+    await api('/api/settings/closed',{closed:k==='closed'});
+    await api('/api/settings/online',k==='paused'?{paused:true,note:($('dayNote')?.value||'').trim()}:{paused:false});
+    dDay.close();toast({open:'Nyitva – fogadjuk a rendeléseket',paused:'Az online rendelés szünetel',closed:'Ma már bezártunk – a weboldalon is zárva látszunk'}[k]);lastSig='';load();
+  }catch(e){alert(e.message)}
+}
+// ---- Továbbiak (ritkábban kellő dolgok egy helyen)
+function openMore(){renderMore();dMore.showModal()}
+function renderMore(){
+  const r=(ic,col,t,sub,fn,warn)=>`<button class="mrow" onclick="${fn}"><span class="ic" style="background:${col}">${ic}</span><span class="tx">${t}${sub?`<small${warn?' style="color:var(--orange)"':''}>${sub}</small>`:''}</span><span class="chev">›</span></button>`;
+  $('moreBody').innerHTML=`<div class="mgroup" style="margin-top:4px">`+
+    r(I.bell,'var(--red)','Értesítések a böngészőben',N.on?'Bekapcsolva ezen az eszközön':'Ezen az eszközön nincs bekapcsolva','dMore.close();openNotif()')+
+    r(soundOn?I.spk:I.spkoff,'var(--blue)','Hangjelzés',soundOn?'Bekapcsolva – csipog, ha új rendelés jön':'Kikapcsolva','toggleSound();renderMore()')+`</div><div class="mgroup">`+
+    r(I.gift,'var(--purple)','Nyereményjáték sorsolás','Facebook-játék nyertesének kihúzása','dMore.close();openRaffle()')+
+    r(I.gear,'#8e8e93','Beállítások','ntfy értesítés, e-mail, jelszó, mentés','dMore.close();openSettings()')+`</div><div class="mgroup">`+
+    r(I.out,'#8e8e93','Kilépés','','location.href=\'/logout\'')+`</div>`;
 }
 // ---- Üzenetek a weboldalról (asztalfoglalás, rendezvény, kérdés)
 const MK={asztal:'Asztalfoglalás',rendezveny:'Rendezvény',egyeb:'Kérdés'};

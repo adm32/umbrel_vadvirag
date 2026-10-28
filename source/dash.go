@@ -43,6 +43,7 @@ type dashOrder struct {
 	TestAuto    bool      `json:"test_auto,omitempty"`
 	Own         bool      `json:"own,omitempty"`
 	Customer    string    `json:"cust,omitempty"`
+	Free        bool      `json:"free_delivery,omitempty"`
 	Visitor     string    `json:"visitor,omitempty"` // a telefonszámból képzett névtelen kód: így látszik, ki rendel újra
 }
 
@@ -74,12 +75,24 @@ func (a *App) startDash() {
 			"version":       appVersion,
 			"started":       started,
 			"online_paused": c.OnlineSzunetel,
+			"closed_today":  a.closedToday(),
 			"paused_note":   c.OnlineUzenet,
 			"email_ready":   a.smtpEnabled(),
 			"orders_total":  n,
 			"unread":        a.unreadMessages(),
 			"needs_setup":   a.needsSetup(),
+			"preorder":      a.preInfo(),
 		})
+	})
+	// GET /dash/preorders – az előrendelések (elérhetőségek nélkül) az irányítópult statisztikájához
+	mux.HandleFunc("GET /dash/preorders", func(w http.ResponseWriter, r *http.Request) {
+		preMu.Lock()
+		ps := a.loadPreorders()
+		preMu.Unlock()
+		for i := range ps {
+			ps[i].Phone, ps[i].Email, ps[i].Street, ps[i].Note = "", "", "", ""
+		}
+		writeJSON(w, 200, ps)
 	})
 	// GET /dash/orders?days=90 – az utolsó N nap rendelései (személyes elérhetőségek nélkül)
 	mux.HandleFunc("GET /dash/orders", func(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +116,7 @@ func (a *App) startDash() {
 				Items: o.Items, Total: o.Total, DeliveryFee: o.DeliveryFee, Payment: o.Payment, Status: o.Status,
 				StatusAt: o.StatusAt, AcceptedAt: o.AcceptedAt, ETA: o.ETA, Reason: o.Reason, EmailState: o.EmailState, EmailErr: o.EmailErr,
 				Food: o.Food, Pack: o.Pack, TotalEst: o.TotalEst, TotalManual: o.TotalManual, Test: o.Test, TestAuto: o.TestAuto,
-				Own: own[ownKey(o.Phone)], Customer: custID(salt, o.Phone), Visitor: o.Visitor})
+				Own: own[ownKey(o.Phone)], Customer: custID(salt, o.Phone), Visitor: o.Visitor, Free: o.FreeDelivery})
 		}
 		a.st.mu.Unlock()
 		writeJSON(w, 200, out)

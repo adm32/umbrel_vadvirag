@@ -13,8 +13,11 @@
 <meta property="og:url" content="https://www.vadviragetterem.com/rendeles">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>/* a betűtípusok a weboldalról jönnek (ugyanazon a címen fut); ha nem érhetők el, a rendszer betűtípusa marad */
+@font-face{font-family:Inter;font-weight:400;font-display:swap;src:url(/fonts/inter-400.woff) format("woff")}@font-face{font-family:Inter;font-weight:500;font-display:swap;src:url(/fonts/inter-500.woff) format("woff")}
+@font-face{font-family:Inter;font-weight:600;font-display:swap;src:url(/fonts/inter-600.woff) format("woff")}@font-face{font-family:Inter;font-weight:700;font-display:swap;src:url(/fonts/inter-700.woff) format("woff")}
+@font-face{font-family:Inter;font-weight:800;font-display:swap;src:url(/fonts/inter-800.woff) format("woff")}
+@font-face{font-family:Lora;font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/lora.woff) format("woff")}@font-face{font-family:Lora;font-style:italic;font-weight:400 700;font-display:swap;src:url(/fonts/lora-italic.woff) format("woff")}</style>
 <style>
 :root{--bg:#f4efe4;--card:#fffdf8;--ink:#2a2823;--ink2:#6c675b;--ink3:#a39c8d;--line:#e6dfcf;--red:#c4140a;--red2:#a5100a;--redt:#f7e3df;--green:#2f9e58;--orange:#d97706}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
@@ -285,7 +288,7 @@ function setConsent(yes){setCookie('vv_consent',yes?'1':'0',390);
 function showConsent(){if(getCookie('vv_consent'))return;const d=document.createElement('div');d.id='consent';d.className='consent';
   d.innerHTML='<p><b>Megjegyezzük az adataidat?</b> Ha elfogadod a sütit, legközelebb nem kell újra beírnod a nevedet, telefonszámodat és címedet. Enélkül is ugyanúgy rendelhetsz.</p><div class="cb"><button class="no">Nem kérem</button><button class="yes">Elfogadom</button></div>';
   d.querySelector('.yes').onclick=()=>setConsent(true);d.querySelector('.no').onclick=()=>setConsent(false);document.body.appendChild(d)}
-let M=null, idx={}, cart=store.get('vv_cart',{}), mode='pickup', quick=false, pay='Készpénz', phone='06 20 339 5099', isOpen=true;
+let M=null, idx={}, cart=store.get('vv_cart',{}), mode='pickup', quick=false, pay='Készpénz', phone='06 20 339 5099', isOpen=true, closedToday=false;
 const telHref=()=>'tel:'+phone.replace(/[^+\d]/g,'');
 const key=(id,v)=>id+'|'+(v||'');
 function price(id,v){const it=idx[id];if(!it)return 0;if(it.variants){const x=it.variants.find(z=>z.label===v);return x?x.price:0}return it.price}
@@ -299,7 +302,7 @@ async function load(){
     M=await r.json();if(!M.sections)throw 0;
   }catch(e){$('menu').innerHTML=`<div class="empty">Az étlap most nem tölthető be.<br>Próbáld újra pár perc múlva, vagy rendelj telefonon: <a href="${telHref()}"><b>${phone}</b></a></div>`;return}
   phone=M.phone||phone;$('phoneTop').textContent=phone;$('callTop').href=telHref();$('callFoot').textContent=phone;$('callFoot').href=telHref();
-  isOpen=M.open!==false;renderNotices();
+  isOpen=M.open!==false;closedToday=!!M.closed_today;renderNotices();
   M.sections.forEach(s=>s.items.forEach(it=>idx[it.id]=it));
   for(const k in cart){const [id,v]=k.split('|');if(!idx[id]||!price(id,v))delete cart[k]}
   const mn=Math.min(...M.fees.map(f=>f.fee));if(isFinite(mn))$('feeInfo').textContent=`Kiszállítás ${huf(mn)} Ft-tól, vagy elvitel`;
@@ -325,7 +328,8 @@ function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toStrin
 // Zárva / szünetel üzenet és a folyamatban lévő rendelés jelzése a lap tetején
 let active=null;
 function renderNotices(){let h='';
-  if(!isOpen)h+=`<div class="notice off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><div><b>Az online rendelés most szünetel.</b>${M&&M.notice?esc(M.notice)+' ':''}Az étlapot megnézheted, rendelni most telefonon tudsz: <a href="${telHref()}" style="color:inherit;font-weight:700">${esc(phone)}</a></div></div>`;
+  if(closedToday)h+=`<div class="notice off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><div><b>Ma már bezártunk.</b> Holnap 11:00-tól újra rendelhetsz online. Az étlapot addig is megnézheted, későbbi napra pedig előrendelést leadhatsz az <a href="/#ajanlat" style="color:inherit;font-weight:700">ajánlatoknál</a>.</div></div>`;
+  else if(!isOpen)h+=`<div class="notice off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><div><b>Az online rendelés most szünetel.</b>${M&&M.notice?esc(M.notice)+' ':''}Az étlapot megnézheted, rendelni most telefonon tudsz: <a href="${telHref()}" style="color:inherit;font-weight:700">${esc(phone)}</a></div></div>`;
   if(active)h+=`<div class="notice act" onclick="showStatus('${active.tok}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="tx">Legutóbbi rendelésed: <b>#${active.id}</b><small>${{new:'Visszaigazolásra vár',preparing:'Elfogadva',done:'Elfogadva'}[active.status]||''}</small></span><span class="go">Megnézem ›</span></div>`;
   $('notices').innerHTML=h}
 async function checkActive(){const tok=store.get('vv_last',null);if(!tok)return;
@@ -416,13 +420,13 @@ function renderSum(){if(quick)return renderQuickSum();const t=totals();let feeTx
   if(mode==='delivery'){feeTxt=t.fee===null?'válassz települést':t.fee<0?'egyeztetjük telefonon':huf(t.fee)+' Ft'}
   const tot=t.sub+t.pk+(t.fee>0?t.fee:0);
   $('sum').innerHTML=`<div><span>Ételek</span><span>${huf(t.sub)} Ft</span></div>${t.pk?`<div><span>Csomagolás (elviteles dobozok)</span><span>${huf(t.pk)} Ft</span></div>`:''}${mode==='delivery'?`<div><span>Szállítás</span><span>${feeTxt}</span></div>`:''}<div class="tot"><span>Végösszeg</span><span>${huf(tot)} Ft</span></div>`;
-  $('send').textContent=!isOpen?'Az online rendelés most szünetel':t.n?`Rendelés elküldése · ${huf(tot)}${mode==='delivery'&&t.fee<0?' Ft + szállítás':' Ft'}`:'A kosár üres';$('send').disabled=!t.n||!isOpen;
+  $('send').textContent=closedToday?'Ma már bezártunk':!isOpen?'Az online rendelés most szünetel':t.n?`Rendelés elküldése · ${huf(tot)}${mode==='delivery'&&t.fee<0?' Ft + szállítás':' Ft'}`:'A kosár üres';$('send').disabled=!t.n||!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':t.fee<0?'Erre a településre egyedileg egyeztetjük a díjat – visszahívunk.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
 function renderQuickSum(){const t=totals();const free=dailyFree();
   const fee=mode==='delivery'?(t.fee===null?'válassz települést':free?'ingyenes (előrendelés 11:00 előtt)':huf(t.fee)+' Ft'):'';
   $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>`;
-  $('send').textContent=!isOpen?'Az online rendelés most szünetel':'Rendelés elküldése';$('send').disabled=!isOpen;
+  $('send').textContent=closedToday?'Ma már bezártunk':!isOpen?'Az online rendelés most szünetel':'Rendelés elküldése';$('send').disabled=!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':free?'A napi ajánlat 11:00 előtti előrendelésénél ide nincs szállítási díj.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
 $('qtext').addEventListener('input',()=>{if(quick)renderSum()});

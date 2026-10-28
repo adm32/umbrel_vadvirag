@@ -1,3 +1,13 @@
+/* Betűtípusok a saját szerverről (Inter, Lora – SIL Open Font License): nem kell a Google-höz fordulni,
+   így gyorsabb az első megjelenés, és a látogatók adatai nem mennek harmadik félhez. Csak a magyar,
+   német és angol szövegekhez kellő karakterek vannak benne. */
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/inter-400.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/inter-500.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/inter-600.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/inter-700.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/inter-800.woff) format("woff")}
+@font-face{font-family:Lora;font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/lora.woff) format("woff")}
+@font-face{font-family:Lora;font-style:italic;font-weight:400 700;font-display:swap;src:url(/fonts/lora-italic.woff) format("woff")}
 /* Vadvirág Étterem – weboldal
    Ugyanaz a világ, mint az online rendelésnél: meleg papírszín, Lora + Inter, pipacspiros.
    A régi oldalból: sötét (itt: faszínű) sávok, a pipacsos festmény és a logó. */

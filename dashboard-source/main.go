@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.4.1"
+const version = "1.5.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -693,6 +693,41 @@ func checkSummary(s Settings) {
 			fmt.Fprintf(&b, "⭐ Legnépszerűbb: %s (%d db)", top[0].k, top[0].v)
 		}
 	}
+	// előrendelések: ma beérkezett, és ami holnapra szól (a konyhának jó előre tudni)
+	var pre []struct {
+		At     time.Time `json:"at"`
+		Date   string    `json:"date"`
+		Total  int       `json:"total"`
+		Status string    `json:"status"`
+		Lines  []struct {
+			Qty int `json:"qty"`
+		} `json:"lines"`
+	}
+	if _, err := getJSON(ordersDash, "/dash/preorders", &pre); err == nil && len(pre) > 0 {
+		tomorrow := now.AddDate(0, 0, 1).Format("2006-01-02")
+		nNew, sum, nTom, portions := 0, 0, 0, 0
+		for _, p := range pre {
+			if p.Status == "lemondva" {
+				continue
+			}
+			if p.At.In(budapest).Format("2006-01-02") == day {
+				nNew++
+				sum += p.Total
+			}
+			if p.Date == tomorrow {
+				nTom++
+				for _, l := range p.Lines {
+					portions += l.Qty
+				}
+			}
+		}
+		if nNew > 0 {
+			fmt.Fprintf(&b, "\n📅 %d új előrendelés (%s Ft)", nNew, huf(sum))
+		}
+		if nTom > 0 {
+			fmt.Fprintf(&b, "\n🍽 Holnapra: %d előrendelés, %d adag", nTom, portions)
+		}
+	}
 	mon.save()
 	notify(Alert{Key: "summary", Title: "🌺 Vadvirág – napi összesítő", Msg: strings.TrimSpace(b.String()), Level: "info", Priority: 2})
 }
@@ -750,7 +785,7 @@ func handleOverview(w http.ResponseWriter, r *http.Request) {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	set := func(k string, v any) { mu.Lock(); out[k] = v; mu.Unlock() }
-	wg.Add(5)
+	wg.Add(6)
 	go func() {
 		defer wg.Done()
 		var st json.RawMessage
@@ -784,6 +819,13 @@ func handleOverview(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	go func() { defer wg.Done(); set("dish_names", dishNames()) }()
+	go func() {
+		defer wg.Done()
+		var p json.RawMessage
+		if _, err := getJSON(ordersDash, "/dash/preorders", &p); err == nil {
+			set("preorders", p)
+		}
+	}()
 	wg.Wait()
 	// a sütit elfogadó vendégek rendeléseihez: honnan jöttek, hányadik látogatásukon rendeltek
 	if os, ok := out["orders"].([]Order); ok {

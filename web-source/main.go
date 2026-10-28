@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.9.0"
+const version = "1.10.0"
 
 var (
 	site    fs.FS
@@ -162,7 +162,7 @@ func secHeaders(w http.ResponseWriter) {
 	h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 	h.Set("X-Frame-Options", "SAMEORIGIN")
 	h.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-	h.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'")
+	h.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'")
 }
 
 var langPages = map[string]bool{"/": true, "/en": true, "/de": true, "/hu": true, "/index.html": true}
@@ -203,7 +203,7 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 var types = map[string]string{
 	".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
 	".json": "application/json; charset=utf-8", ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg",
-	".svg": "image/svg+xml", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8",
+	".svg": "image/svg+xml", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json", ".woff2": "font/woff2", ".woff": "font/woff", ".txt": "text/plain; charset=utf-8",
 }
 
 var started = time.Now()

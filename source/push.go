@@ -254,9 +254,6 @@ func (p *Pusher) send(s PushSub, payload []byte) (int, error) {
 }
 
 func (a *App) notifyNewOrder(o Order) {
-	if push == nil || push.count() == 0 {
-		return
-	}
 	title := fmt.Sprintf("Új rendelés #%d – %s", o.ID, o.Name)
 	body := o.Mode
 	if o.Mode == modeDelivery && o.City != "" {
@@ -269,7 +266,12 @@ func (a *App) notifyNewOrder(o Order) {
 	if items != "" {
 		body += "\n" + items
 	}
-	push.broadcast(map[string]any{"title": title, "body": body, "tag": fmt.Sprintf("order-%d", o.ID), "url": "/"})
+	if !o.Test {
+		a.ntfyNotify("order", title, body, 4, "shopping_cart")
+	}
+	if push != nil && push.count() > 0 {
+		push.broadcast(map[string]any{"title": title, "body": body, "tag": fmt.Sprintf("order-%d", o.ID), "url": "/"})
+	}
 }
 
 // ---- HTTP

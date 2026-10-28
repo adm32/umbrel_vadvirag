@@ -75,6 +75,12 @@ func (o *preOffer) items() []preItem {
 	return out
 }
 
+// Előrendelésnél választható időpontok (a napi ajánlathoz hasonlóan 9:30-tól).
+const (
+	preFirst = "09:30"
+	preLast  = "21:30"
+)
+
 const (
 	preDineIn   = "helyben"
 	preTakeaway = "elvitel"
@@ -150,6 +156,15 @@ func (a *App) preSoldOut() bool {
 	return preOff == nil || a.conf().Elfogyott[preOff.ID]
 }
 
+// preInfo: az ajánlat állapota az irányítópultnak (nil, ha nincs előrendelhető ajánlat).
+func (a *App) preInfo() map[string]any {
+	if preOff == nil {
+		return nil
+	}
+	fresh, today := a.preCounts()
+	return map[string]any{"id": preOff.ID, "title": preOff.Title["hu"], "serve_from": preOff.ServeFrom, "sold_out": a.preSoldOut(), "new": fresh, "today": today}
+}
+
 // preCounts: visszaigazolásra váró (új) és a mai (nem lemondott, még nem kész) előrendelések száma.
 func (a *App) preCounts() (fresh, today int) {
 	if preOff == nil {
@@ -186,7 +201,7 @@ func (a *App) handlePublicPreorder(w http.ResponseWriter, r *http.Request) {
 	sort.Slice(fees, func(i, j int) bool { return strings.Compare(norm(fees[i].Name), norm(fees[j].Name)) < 0 })
 	writeJSON(w, 200, map[string]any{
 		"open": true, "offer": preOff, "today": todayBudapest(time.Now()),
-		"pack": packTray, "fees": fees, "hours": []string{"11:00", "21:30"},
+		"pack": packTray, "fees": fees, "hours": []string{preFirst, preLast},
 	})
 }
 
@@ -247,8 +262,11 @@ func (a *App) buildPreorder(in preorderReq, now time.Time) (*Preorder, string) {
 	if d, err := time.Parse("2006-01-02", in.Date); err != nil || d.Sub(now) > 120*24*time.Hour {
 		return nil, "Válassz egy közelebbi napot."
 	}
-	if !timeRe.MatchString(in.Time) || in.Time < "11:00" || in.Time > "21:30" {
-		return nil, "11:00 és 21:30 között válassz időpontot."
+	if !timeRe.MatchString(in.Time) || in.Time < preFirst || in.Time > preLast {
+		return nil, "9:30 és 21:30 között válassz időpontot."
+	}
+	if in.Date == today && a.closedToday() {
+		return nil, "Ma már bezártunk – válassz egy későbbi napot."
 	}
 	if in.Date == today {
 		if bn := budapestNow(now); in.Time < bn.Add(30*time.Minute).Format("15:04") {
@@ -363,9 +381,6 @@ func (a *App) handlePublicPreorderPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) notifyPreorder(p Preorder) {
-	if push == nil || push.count() == 0 {
-		return
-	}
 	var ls []string
 	for _, l := range p.Lines {
 		ls = append(ls, fmt.Sprintf("%d× %s", l.Qty, l.Name))
@@ -380,7 +395,10 @@ func (a *App) notifyPreorder(p Preorder) {
 	if len([]rune(body)) > 160 {
 		body = string([]rune(body)[:160]) + "…"
 	}
-	push.broadcast(map[string]any{"title": "Előrendelés – " + p.Name, "body": body, "tag": fmt.Sprintf("pre-%d", p.ID), "url": "/#elorendeles"})
+	a.ntfyNotify("preorder", "Előrendelés – "+p.Name, body, 4, "calendar")
+	if push != nil && push.count() > 0 {
+		push.broadcast(map[string]any{"title": "Előrendelés – " + p.Name, "body": body, "tag": fmt.Sprintf("pre-%d", p.ID), "url": "/#elorendeles"})
+	}
 }
 
 // GET /api/preorders – a személyzetnek: az ajánlat és az összes előrendelés.

@@ -178,6 +178,10 @@ func TestPreorder(t *testing.T) {
 	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
 	loc, _ := time.LoadLocation("Europe/Budapest")
 	now := time.Date(2026, 10, 28, 13, 0, 0, 0, loc)
+	okEarly := preorderReq{Items: map[string]int{"m0": 1}, Mode: preTakeaway, Date: "2026-11-11", Time: "09:30", Name: "A", Phone: "06301234567"}
+	if _, msg := a.buildPreorder(okEarly, now); msg != "" {
+		t.Error("9:30-ra lehet előrendelni:", msg)
+	}
 	base := func() preorderReq {
 		return preorderReq{Items: map[string]int{"m0": 2, "d1": 1}, Mode: preDineIn, Date: "2026-11-11", Time: "18:00", Guests: 2, Name: "Kiss Anna", Phone: "06 30 123 4567"}
 	}
@@ -200,10 +204,11 @@ func TestPreorder(t *testing.T) {
 		t.Fatalf("elvitel: %q %+v", msg, p)
 	}
 	bad := []func(*preorderReq){
-		func(r *preorderReq) { r.Date = "2026-11-09" },                                   // a kezdés előtt
-		func(r *preorderReq) { r.Items = map[string]int{} },                              // semmi
-		func(r *preorderReq) { r.Items = map[string]int{"m0": 51} },                      // túl sok
-		func(r *preorderReq) { r.Time = "22:30" },                                        // zárás után
+		func(r *preorderReq) { r.Date = "2026-11-09" },              // a kezdés előtt
+		func(r *preorderReq) { r.Items = map[string]int{} },         // semmi
+		func(r *preorderReq) { r.Items = map[string]int{"m0": 51} }, // túl sok
+		func(r *preorderReq) { r.Time = "22:30" },
+		func(r *preorderReq) { r.Time = "09:15" },                                        // zárás után
 		func(r *preorderReq) { r.Phone = "" },                                            // nincs telefon
 		func(r *preorderReq) { r.Guests = 0 },                                            // helyben létszám kell
 		func(r *preorderReq) { r.Mode = "x" },                                            // ismeretlen mód

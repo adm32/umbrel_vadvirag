@@ -73,6 +73,10 @@ type Config struct {
 	OnlineSzunetel bool `json:"online_szunetel,omitempty"`
 	// Elfogyott: az előrendelhető alkalmi ajánlatok (elorendeles.json id) – ami itt true, az nem látszik a weboldalon
 	Elfogyott map[string]bool `json:"elfogyott,omitempty"`
+	// KorabbanZarva: ezen a napon (YYYY-MM-DD, budapesti idő) korábban bezártunk – a weboldal zárva mutat, nem lehet rendelni. Másnap magától lejár.
+	KorabbanZarva string `json:"korabban_zarva,omitempty"`
+	// Ntfy: értesítés az ntfy appba (téma, szerver, mikről)
+	Ntfy NtfyConf `json:"ntfy,omitempty"`
 	// Saját telefonszámok kódja (ownKey): az innen jövő rendelések tesztnek számítanak
 	SajatTelefonok []string `json:"sajat_telefonok,omitempty"`
 	OnlineUzenet   string   `json:"online_uzenet,omitempty"`
@@ -1034,6 +1038,7 @@ func (a *App) handleList(w http.ResponseWriter, r *http.Request) {
 			"online_note":   a.conf().OnlineUzenet,
 			"messages":      a.unreadMessages(),
 			"preorder_on":   preOff != nil,
+			"closed_today":  a.closedToday(),
 			"preorders":     preNew,
 			"preorders_day": preToday,
 		},
@@ -1296,6 +1301,9 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("POST /api/settings/test-email", a.requireAuth(a.handleTestEmail))
 	mux.HandleFunc("POST /api/settings/password", a.requireAuth(a.handleSettingsPassword))
 	mux.HandleFunc("POST /api/settings/online", a.requireAuth(a.handleSettingsOnline))
+	mux.HandleFunc("POST /api/settings/closed", a.requireAuth(a.handleSettingsClosed))
+	mux.HandleFunc("POST /api/settings/ntfy", a.requireAuth(a.handleSettingsNtfy))
+	mux.HandleFunc("POST /api/settings/test-ntfy", a.requireAuth(a.handleTestNtfy))
 	mux.HandleFunc("GET /api/raffle", a.requireAuth(a.handleRaffleList))
 	mux.HandleFunc("POST /api/raffle", a.requireAuth(a.handleRaffleDraw))
 	mux.HandleFunc("POST /api/raffle/preview", a.requireAuth(a.handleRafflePreview))

@@ -154,9 +154,6 @@ func (a *App) handlePublicMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) notifyMessage(m Message) {
-	if push == nil || push.count() == 0 {
-		return
-	}
 	body := m.Text
 	if m.Date != "" {
 		d := m.Date
@@ -171,7 +168,10 @@ func (a *App) notifyMessage(m Message) {
 	if len([]rune(body)) > 140 {
 		body = string([]rune(body)[:140]) + "…"
 	}
-	push.broadcast(map[string]any{"title": msgKinds[m.Kind] + " – " + m.Name, "body": strings.TrimSpace(body), "tag": fmt.Sprintf("msg-%d", m.ID), "url": "/#uzenetek"})
+	a.ntfyNotify("message", msgKinds[m.Kind]+" – "+m.Name, strings.TrimSpace(body), 3, "envelope")
+	if push != nil && push.count() > 0 {
+		push.broadcast(map[string]any{"title": msgKinds[m.Kind] + " – " + m.Name, "body": strings.TrimSpace(body), "tag": fmt.Sprintf("msg-%d", m.ID), "url": "/#uzenetek"})
+	}
 }
 
 // GET /api/messages – legújabb elöl

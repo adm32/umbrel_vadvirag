@@ -386,6 +386,8 @@ async function loadOffers(){try{const r=await fetch('/api/ajanlat',{cache:'no-st
   const m=o.weekly;if(m){const td=m.days.some(d=>d.date===o.today),st=dailyState();const can=td&&(st==='pre'||st==='open');
     const sm=!td?'Hétköznap 9:30–14:00, mindig az aznapi':st==='before'?'Ma 9:30–14:00 között rendelhető · 11:00-ig ingyenes kiszállítás Zalaszentgrótra, Zalaudvarnokra, Zalaszentlászlóra':st==='pre'?'Előrendelés 11:00-ig: ingyenes kiszállítás Zalaszentgrótra, Zalaudvarnokra és Zalaszentlászlóra':st==='open'?'Leves + főétel – ma 14:00-ig rendelhető':'A mai napi ajánlat 14:00-ig volt rendelhető';
     h+=`<a class="offer wk" href="/#ajanlat"><span><b>${td?'Mai napi ajánlat':m.upcoming?'Jövő heti napi ajánlatok':'Napi ajánlat'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>${esc(sm)}</small></span><span class="go">${can?'Kérem ›':'Megnézem ›'}</span></a>`}
+  try{const pr=await (await fetch('/api/public/preorder',{cache:'no-store'})).json();if(pr.open){const of=pr.offer;
+    h=`<a class="offer" href="/#ajanlat"><span><b>${esc(of.title.hu)} · <span style="white-space:nowrap">${huf(of.main_price)} Ft-tól</span></b><small>Előrendelés helyben, elvitelre vagy kiszállítással</small></span><span class="go">Megnézem ›</span></a>`+h}}catch(e){}
   $('offers').innerHTML=h}catch(e){}}
 // Napi ajánlat (a rendeléskezelő ugyanígy ellenőrzi): 9:30–14:00, 11:00-ig ingyenes kiszállítás három településre
 let dailyClock=null;const DAILY_FREE=['Zalaszentgrót','Zalaudvarnok','Zalaszentlászló'];

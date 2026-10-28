@@ -165,7 +165,6 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .msg .mh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .msg .mk{font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal)}
 .msg .mk.rendezveny{background:color-mix(in srgb,var(--purple) 15%,transparent);color:var(--purple)}
-.msg .mk.pre{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
 .msg .mk.asztal{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
 .msg .mn{font-weight:600;font-size:16px}
 .msg .mt{margin-left:auto;color:var(--label2);font-size:13px}
@@ -177,6 +176,60 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .ibtn .cnt{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
 .ibtn .bdg{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--bg)}
 .ibtn{position:relative}
+.ibtn[hidden]{display:none}
+/* ---- Előrendelések */
+.sheet.wide{width:min(100%,760px)}
+.pstrip{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--orange) 13%,var(--card));border-radius:14px;padding:12px 14px;margin:0 0 14px;cursor:pointer;width:100%;text-align:left;color:var(--label)}
+.pstrip .pi{width:36px;height:36px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;flex:none}
+.pstrip .pi svg{width:20px;height:20px}
+.pstrip .pt{flex:1;min-width:0;font-size:15px;line-height:1.35}
+.pstrip .pt b{display:block;font-size:16px}
+.pstrip .go{color:var(--orange);font-weight:700;white-space:nowrap}
+.poff{background:var(--card);border-radius:14px;padding:14px 16px;margin-top:4px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.poff .tx{flex:1;min-width:200px}
+.poff .tx b{display:block;font-size:17px}
+.poff .tx small{color:var(--label2);font-size:13px;line-height:1.35;display:block;margin-top:2px}
+.sw{position:relative;width:51px;height:31px;border-radius:16px;background:var(--fill);flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:transform .2s}
+.sw[aria-checked=true]{background:var(--green)}.sw[aria-checked=true]::after{transform:translateX(20px)}
+.pfilt{display:flex;gap:6px;margin:14px 0 2px;flex-wrap:wrap}
+.pfilt button{height:32px;padding:0 14px;border-radius:16px;background:var(--fill2);font-size:14px;font-weight:600;color:var(--label)}
+.pfilt button[aria-pressed=true]{background:var(--label);color:var(--bg)}
+.pday{margin-top:18px}
+.pdh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:0 2px}
+.pdh h3{font-size:20px;font-weight:700}
+.pdh .rel{background:var(--red);color:#fff;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px}
+.pdh .cnt{color:var(--label2);font-size:14px}
+.pdh .pr{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:10px;background:var(--fill2);color:var(--blue);font-size:14px;font-weight:600}
+.pdh .pr svg{width:16px;height:16px}
+.pkit{background:var(--card);border-radius:12px;padding:10px 14px;margin-top:8px;font-size:14px;line-height:1.5}
+.pkit b{font-size:13px;color:var(--label2);text-transform:uppercase;letter-spacing:.02em;display:block;margin-bottom:2px}
+.pc{background:var(--card);border-radius:14px;padding:12px 14px;margin-top:10px;display:grid;grid-template-columns:62px 1fr;gap:4px 12px;position:relative;overflow:hidden}
+.pc.uj{box-shadow:inset 4px 0 0 var(--orange)}
+.pc.kesz,.pc.lemondva{opacity:.55}
+.pc .tm{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.pc .tm small{display:block;font-size:12px;font-weight:600;color:var(--label2);margin-top:3px}
+.pc .bd{min-width:0}
+.pc .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pc .nm{font-size:17px;font-weight:600}
+.pm{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;padding:3px 9px;border-radius:8px}
+.pm svg{width:15px;height:15px}
+.pm.helyben{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
+.pm.elvitel{background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue)}
+.pm.kiszallitas{background:color-mix(in srgb,var(--purple) 15%,transparent);color:var(--purple)}
+.pst{font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;background:var(--fill2);color:var(--label2)}
+.pst.uj{background:var(--orange);color:#fff}.pst.visszaigazolva{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+.pc ul{list-style:none;margin:8px 0 0;padding:0;font-size:15px;line-height:1.45}
+.pc ul b{display:inline-block;min-width:30px}
+.pc .meta{font-size:14px;color:var(--label2);margin-top:6px;line-height:1.4}
+.pc .meta b{color:var(--label)}
+.pc .note{margin-top:6px;font-size:14px;background:var(--card2);border-radius:8px;padding:6px 10px}
+.pc .act{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pc .act a,.pc .act button{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:10px;background:var(--fill2);color:var(--blue);font-size:14px;font-weight:600}
+.pc .act svg{width:16px;height:16px}
+.pc .act .ok{background:var(--green);color:#fff}
+.pc .act .no{color:var(--red);margin-left:auto}
+.pempty{color:var(--label2);text-align:center;padding:30px 10px;font-size:15px}
 .stat{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:14px 16px}
 .stat .si{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:#fff;flex:none}
 .stat .si svg{width:20px;height:20px}
@@ -218,6 +271,7 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
     <span class="sp"></span>
     <button class="ibtn" id="ntf" onclick="openNotif()" title="Értesítések"></button>
     <button class="ibtn" id="snd" onclick="toggleSound()" title="Hang"></button>
+    <button class="ibtn" id="preBtn" onclick="openPre()" title="Előrendelések (Márton-nap)" style="color:var(--orange)" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8.5 15.5l2.2 2.2 4.8-4.8"/></svg></button>
     <button class="ibtn" id="msgBtn" onclick="openMsgs()" title="Üzenetek a weboldalról" style="color:var(--teal);position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg></button>
     <button class="ibtn" onclick="openRaffle()" title="Nyereményjáték sorsolás" style="color:var(--purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></button>
     <button class="ibtn" onclick="openSettings()" title="Beállítások" style="color:var(--label2)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.9 2.6l.4 2.3a7.6 7.6 0 0 1 1.9 1.1l2.2-.8a1 1 0 0 1 1.2.4l1.9 3.3a1 1 0 0 1-.2 1.3l-1.8 1.5a7.7 7.7 0 0 1 0 2.2l1.8 1.5a1 1 0 0 1 .2 1.3l-1.9 3.3a1 1 0 0 1-1.2.4l-2.2-.8a7.6 7.6 0 0 1-1.9 1.1l-.4 2.3a1 1 0 0 1-1 .8h-3.8a1 1 0 0 1-1-.8l-.4-2.3a7.6 7.6 0 0 1-1.9-1.1l-2.2.8a1 1 0 0 1-1.2-.4l-1.9-3.3a1 1 0 0 1 .2-1.3l1.8-1.5a7.7 7.7 0 0 1 0-2.2L2.1 9.9a1 1 0 0 1-.2-1.3l1.9-3.3A1 1 0 0 1 5 4.9l2.2.8a7.6 7.6 0 0 1 1.9-1.1l.4-2.3a1 1 0 0 1 1-.8h2.4a1 1 0 0 1 1 .8ZM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg></button>
@@ -227,7 +281,7 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
   <div class="segwrap"><div class="seg" id="tabs"></div></div>
 </div>
 
-<main><div id="nbanner"></div><div id="list"></div></main>
+<main><div id="nbanner"></div><div id="prestrip"></div><div id="list"></div></main>
 
 <button class="fab" onclick="openManual()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="ft">Telefonos rendelés</span></button>
 <div id="toast"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1.2 14.2-4-4 1.4-1.4 2.6 2.6 5.6-5.6 1.4 1.4-7 7Z"/></svg><span></span></div>
@@ -287,6 +341,11 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
   <div class="sbody" id="rfBody"></div>
 </div></div></dialog>
 
+<dialog id="dPre"><div class="dwrap" onclick="if(event.target===this)dPre.close()"><div class="sheet wide">
+  <div class="shd"><span class="tb"></span><h2>Előrendelések</h2><button class="tb r" onclick="dPre.close()">Kész</button></div>
+  <div class="sbody" id="preBody"></div>
+</div></div></dialog>
+
 <dialog id="dMsg"><div class="dwrap" onclick="if(event.target===this)dMsg.close()"><div class="sheet">
   <div class="shd"><span class="tb"></span><h2>Üzenetek</h2><button class="tb r" onclick="dMsg.close()">Kész</button></div>
   <div class="sbody" id="msgBody"></div>
@@ -343,7 +402,7 @@ async function load(){
 function counts(){const c={new:0,preparing:0,done:0,rejected:0};orders.forEach(o=>c[o.status]++);return c}
 function render(){
   const c=counts();
-  $('title').textContent=info.restaurant||'Rendelések';msgBadge();
+  $('title').textContent=info.restaurant||'Rendelések';msgBadge();preBadge();
   $('snd').innerHTML=soundOn?I.spk:I.spkoff;$('ntf').innerHTML=I.bell+(N.on?'':'<span class="bdg"></span>');$('ntf').style.color=N.on?'var(--blue)':'var(--label2)';renderBanner();$('snd').style.color=soundOn?'var(--blue)':'var(--label2)';
   const T=[['active','Aktív',c.new+c.preparing],['new','Új',c.new],['preparing','Készül',c.preparing],['closed','Lezárt',c.done+c.rejected],['all','Mind',orders.length]];
   $('tabs').innerHTML='<span class="knob" id="knob"></span>'+T.map(([k,l,n])=>`<button data-k="${k}" onclick="setTab('${k}')">${l}${n?`<span class="n ${(k==='new'||k==='active')&&c.new?'hot':''}">${n}</span>`:''}</button>`).join('');
@@ -591,14 +650,83 @@ function renderMsgs(){
   $('msgBody').innerHTML='<div class="hint" style="padding:2px 2px 0">A weboldalról érkezett üzenetek. Ha válaszoltál, jelöld „Kész”-nek.</div>'+MSGS.map(m=>{
     const when=new Date(m.at);const d=[m.date&&new Date(m.date+'T12:00').toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'}),m.time,m.guests?m.guests+' fő':''].filter(Boolean).join(' · ');
     const lang=m.lang&&m.lang!=='hu'?` <span class="mk">${esc(m.lang.toUpperCase())}</span>`:'';
-    // alkalmi ajánlat előrendelése (pl. „Márton-napi előrendelés:” az első sor) – külön címkét kap
-    const pre=(/^(.{3,40}?) előrendelés:/.exec(m.text||'')||[])[1];const preTag=pre?` <span class="mk pre">${esc(pre.replace(/-napi$/,'-nap'))} · előrendelés</span>`:'';
-    return `<div class="msg${m.done?' done':''}"><div class="mh"><span class="mk ${esc(m.kind)}">${MK[m.kind]||'Üzenet'}</span>${preTag}${lang}<span class="mn">${esc(m.name)}</span><span class="mt">${fmtDay(m.at)} ${fmtTime(m.at)}</span></div>
+    return `<div class="msg${m.done?' done':''}"><div class="mh"><span class="mk ${esc(m.kind)}">${MK[m.kind]||'Üzenet'}</span>${lang}<span class="mn">${esc(m.name)}</span><span class="mt">${fmtDay(m.at)} ${fmtTime(m.at)}</span></div>
     ${d?`<div class="md">${esc(d)}</div>`:''}${m.text?`<div class="mx">${esc(m.text)}</div>`:''}
     <div class="ma">${m.phone?`<a href="tel:${esc(m.phone.replace(/[^0-9+]/g,''))}">${I.phone}${esc(m.phone)}</a>`:''}${m.email?`<a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Vadvirág Étterem – '+(MK[m.kind]||'Üzenet'))}">${I.mail}${esc(m.email)}</a>`:''}<button onclick="msgDone(${m.id},${!m.done})" style="margin-left:auto;color:${m.done?'var(--label2)':'var(--green)'}">${m.done?I.undo+'Visszaállít':I.check+'Kész'}</button></div></div>`}).join('');
 }
 async function msgDone(id,done){try{await api('/api/messages/'+id+'/done',{done});const m=MSGS.find(x=>x.id===id);if(m)m.done=done;info.messages=MSGS.filter(x=>!x.done).length;msgBadge();renderMsgs()}catch(e){alert(e.message)}}
 if(location.hash==='#uzenetek')setTimeout(openMsgs,600);
+
+// ---- Előrendelések (alkalmi ajánlat, pl. Márton-nap): napok szerint, a konyhának összesítve.
+// Nem a mai rendelések közé kerülnek, hogy senki ne kezdje el idő előtt elkészíteni.
+const PM={helyben:['Helyben',I.tray],elvitel:['Elvitel',I.bag],kiszallitas:['Kiszállítás',I.car]};
+const PST={uj:'Visszahívandó',visszaigazolva:'Visszaigazolva',kesz:'Kész',lemondva:'Lemondva'};
+let PRE={items:[],offer:null,today:''},preFilter='aktiv',lastPreN=-1;
+function preBadge(){const b=$('preBtn');if(!b)return;b.hidden=!info.preorder_on;const n=info.preorders||0;
+  if(lastPreN>=0&&n>lastPreN)toast('Új előrendelés érkezett');lastPreN=n;
+  let c=b.querySelector('.cnt');if(n){if(!c){c=document.createElement('span');c.className='cnt';b.appendChild(c)}c.textContent=n>99?'99+':n}else if(c)c.remove();
+  // a főoldalon: emlékeztető, ha van visszahívandó vagy mára szóló előrendelés
+  const t=info.preorders_day||0;
+  $('prestrip').innerHTML=(n||t)&&info.preorder_on?`<button class="pstrip" onclick="openPre()"><span class="pi">${I.clock}</span><span class="pt"><b>Előrendelések${t?` – ma ${t} db`:''}</b>${n?`${n} új, vissza kell hívni a vendéget`:'Nézd meg, mit kell ma elkészíteni'}</span><span class="go">Megnyitás ›</span></button>`:'';}
+async function openPre(){dPre.showModal();$('preBody').innerHTML='<div class="hint">Betöltés…</div>';try{PRE=await api('/api/preorders');renderPre()}catch(e){$('preBody').innerHTML=`<div class="hint">${esc(e.message)}</div>`}}
+function huFrom(d){const x=new Date(d+'T12:00'),n=x.getDate(),u=n%10,tol=u?[3,6,8].includes(u):n!==10;return x.toLocaleDateString('hu-HU',{month:'long'})+' '+n+'-'+(tol?'tól':'től')}
+const preDayName=d=>new Date(d+'T12:00').toLocaleDateString('hu-HU',{month:'long',day:'numeric',weekday:'long'});
+function preRel(d){const t=new Date(PRE.today+'T12:00'),x=new Date(d+'T12:00');const n=Math.round((x-t)/864e5);return n===0?'ma':n===1?'holnap':''}
+function preKitchen(list){const m={};list.filter(p=>p.status!=='lemondva').forEach(p=>p.lines.forEach(l=>{m[l.name]=(m[l.name]||0)+l.qty}));return Object.entries(m)}
+function renderPre(){
+  const o=PRE.offer,all=PRE.items||[];
+  const on=o&&!o.sold_out;
+  let h=o?`<div class="poff"><div class="tx"><b>${esc(o.title)}</b><small>${on?'Most látszik a weboldalon, lehet előrendelni.':'Elfogyott – a weboldalon nem látszik, nem lehet előrendelni.'} Kérhető: ${esc(huFrom(o.serve_from))}.</small></div>
+    <span style="font-size:14px;font-weight:600;color:var(--label2)">${on?'Rendelhető':'Elfogyott'}</span><button class="sw" role="switch" aria-checked="${on}" aria-label="Rendelhető a weboldalon" onclick="preSoldOut(${on})"></button></div>
+    <div class="hint" style="padding:6px 2px 0">Ha elfogyott, kapcsold ki: a weboldalról azonnal eltűnik. A már leadott előrendelések megmaradnak.</div>`:'';
+  const cnt=k=>all.filter(k).length;
+  const fl={aktiv:['Teendő',p=>p.status==='uj'||p.status==='visszaigazolva'],uj:['Visszahívandó',p=>p.status==='uj'],mind:['Mind',p=>true]};
+  h+=`<div class="pfilt">${Object.entries(fl).map(([k,[l,f]])=>`<button aria-pressed="${preFilter===k}" onclick="preFilter='${k}';renderPre()">${l} (${cnt(f)})</button>`).join('')}</div>`;
+  const list=all.filter(fl[preFilter][1]).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(!list.length){h+=`<div class="pempty">${all.length?'Ebben a nézetben nincs előrendelés.':'Még nem érkezett előrendelés. Ha valaki a weboldalon előrendel, itt jelenik meg, napok szerint.'}</div>`;$('preBody').innerHTML=h;return}
+  const days=[...new Set(list.map(p=>p.date))];
+  for(const d of days){
+    const dl=list.filter(p=>p.date===d),rel=preRel(d),k=preKitchen(dl);
+    const mains=dl.filter(p=>p.status!=='lemondva').reduce((s,p)=>s+p.lines.filter(l=>l.key[0]==='m').reduce((a,l)=>a+l.qty,0),0);
+    const desserts=dl.filter(p=>p.status!=='lemondva').reduce((s,p)=>s+p.lines.filter(l=>l.key[0]==='d').reduce((a,l)=>a+l.qty,0),0);
+    h+=`<div class="pday"><div class="pdh"><h3>${esc(preDayName(d))}</h3>${rel?`<span class="rel">${rel}</span>`:''}<span class="cnt">${dl.length} előrendelés · ${mains} főétel · ${desserts} desszert</span><button class="pr" onclick="prePrint('${d}')">${I.print}Nyomtatás</button></div>
+      ${k.length?`<div class="pkit"><b>A konyhának</b>${k.map(([n,q])=>`${q}× ${esc(n)}`).join('<br>')}</div>`:''}`;
+    for(const p of dl){
+      const [ml,mi]=PM[p.mode]||['?',''];
+      const who=p.mode==='helyben'?`${p.guests} fő`:p.mode==='kiszallitas'?esc(p.city):'';
+      const money=`<b>${huf(p.total)} Ft</b>`+(p.pack||p.fee?` (étel ${huf(p.food)}${p.pack?` + doboz ${huf(p.pack)}`:''}${p.fee?` + szállítás ${huf(p.fee)}`:''})`:'')+(p.payment?` · ${esc(p.payment)}`:'');
+      const where=p.mode==='kiszallitas'?`<div class="meta">Cím: <b>${esc(p.city)}, ${esc(p.street)}</b>${p.drive_min?` · kb. ${p.drive_min} perc út`:''}</div>`:'';
+      const act=p.status==='uj'?`<button class="ok" onclick="preSet(${p.id},'visszaigazolva')">${I.check}Visszahívtam, rendben</button>`:
+        p.status==='visszaigazolva'?`<button class="ok" onclick="preSet(${p.id},'kesz')">${I.check}${p.mode==='helyben'?'Kiszolgálva':p.mode==='elvitel'?'Átadva':'Kiszállítva'}</button>`:
+        `<button onclick="preSet(${p.id},'visszaigazolva')">${I.undo}Visszaállít</button>`;
+      h+=`<div class="pc ${p.status}"><div class="tm">${esc(p.time)}<small>#${p.id}</small></div><div class="bd">
+        <div class="top"><span class="pm ${p.mode}">${mi}${ml}${who?' · '+who:''}</span><span class="nm">${esc(p.name)}</span><span class="pst ${p.status}">${PST[p.status]||p.status}</span></div>
+        <ul>${p.lines.map(l=>`<li><b>${l.qty}×</b> ${esc(l.name)}</li>`).join('')}</ul>
+        ${where}<div class="meta">${money}</div>${p.note?`<div class="note">${esc(p.note)}</div>`:''}
+        <div class="meta">Leadva: ${fmtDay(p.at)} ${fmtTime(p.at)}${p.lang&&p.lang!=='hu'?` · ${esc(p.lang.toUpperCase())} nyelvű vendég`:''}</div></div>
+        <div class="act"><a href="tel:${esc(p.phone.replace(/[^0-9+]/g,''))}">${I.phone}${esc(p.phone)}</a>${act}${p.status==='uj'||p.status==='visszaigazolva'?`<button class="no" onclick="preSet(${p.id},'lemondva')">${I.x}Lemondva</button>`:''}</div></div>`;
+    }
+    h+='</div>';
+  }
+  $('preBody').innerHTML=h;
+}
+async function preSet(id,status){
+  if(status==='lemondva'&&!confirm('Biztosan lemondottnak jelölöd ezt az előrendelést?'))return;
+  try{await api('/api/preorders/'+id+'/status',{status});const p=PRE.items.find(x=>x.id===id);if(p)p.status=status;info.preorders=PRE.items.filter(x=>x.status==='uj').length;lastPreN=info.preorders;preBadge();renderPre()}catch(e){alert(e.message)}
+}
+async function preSoldOut(on){
+  if(on&&!confirm('Elfogyott? A weboldalról azonnal eltűnik, és nem lehet tovább előrendelni.'))return;
+  try{await api('/api/preorders/soldout',{sold_out:on});PRE.offer.sold_out=on;renderPre();toast(on?'Elfogyott – levettük a weboldalról':'Újra rendelhető a weboldalon')}catch(e){alert(e.message)}
+}
+function prePrint(d){
+  const dl=(PRE.items||[]).filter(p=>p.date===d&&p.status!=='lemondva').sort((a,b)=>a.time.localeCompare(b.time));
+  const k=preKitchen(dl);const w=window.open('','_blank');if(!w)return;
+  w.document.write(`<html><meta charset="utf-8"><title>Előrendelések – ${esc(d)}</title><body style="font:15px/1.45 -apple-system,system-ui,sans-serif;max-width:640px;margin:20px auto"><h2 style="margin:0">${esc(PRE.offer?PRE.offer.title:'Előrendelések')}</h2><h3 style="margin:4px 0 12px">${esc(preDayName(d))}</h3>
+    <b>A konyhának:</b><br>${k.map(([n,q])=>`${q}× ${esc(n)}`).join('<br>')}<hr>`+
+    dl.map(p=>`<div style="margin:10px 0"><b style="font-size:18px">${esc(p.time)}</b> · <b>${(PM[p.mode]||['?'])[0].toUpperCase()}</b>${p.mode==='helyben'?` (${p.guests} fő)`:''} · ${esc(p.name)} · ${esc(p.phone)}${p.mode==='kiszallitas'?`<br>${esc(p.city)}, ${esc(p.street)}`:''}<br>${p.lines.map(l=>`${l.qty}× ${esc(l.name)}`).join('<br>')}<br>Összesen: ${huf(p.total)} Ft${p.payment?' · '+esc(p.payment):''}${p.note?`<br><i>${esc(p.note)}</i>`:''}</div>`).join('<hr>')+
+    `</body></html>`);w.document.close();w.focus();w.print();
+}
+if(location.hash==='#elorendeles')setTimeout(openPre,600);
 
 // ---- Nyereményjáték sorsolás
 let RF={title:'',link:'',names:'',winners:1,reserves:1,clean:[],off:new Set(),hist:[]},rfT=0;

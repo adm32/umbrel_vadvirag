@@ -170,3 +170,56 @@ func TestMenuOff(t *testing.T) {
 		t.Error("a régi rendelések árához meg kell maradnia")
 	}
 }
+
+func TestPreorder(t *testing.T) {
+	if preOff == nil || len(preOff.Mains) != 4 || len(preOff.Desserts) != 2 || preOff.MainPrice != 6500 || preOff.DessertPrice != 1590 {
+		t.Fatal("az elorendeles.json adatai hibásak")
+	}
+	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
+	loc, _ := time.LoadLocation("Europe/Budapest")
+	now := time.Date(2026, 10, 28, 13, 0, 0, 0, loc)
+	base := func() preorderReq {
+		return preorderReq{Items: map[string]int{"m0": 2, "d1": 1}, Mode: preDineIn, Date: "2026-11-11", Time: "18:00", Guests: 2, Name: "Kiss Anna", Phone: "06 30 123 4567"}
+	}
+	// helyben: csak az ételek ára
+	p, msg := a.buildPreorder(base(), now)
+	if msg != "" || p.Food != 2*6500+1590 || p.Pack != 0 || p.Fee != 0 || p.Total != p.Food || len(p.Lines) != 2 {
+		t.Fatalf("helyben: %q %+v", msg, p)
+	}
+	// kiszállítás: doboz adagonként + a település díja
+	in := base()
+	in.Mode, in.City, in.Street = preDelivery, "Zalaszentgrót", "Fő u. 1."
+	p, msg = a.buildPreorder(in, now)
+	if msg != "" || p.Pack != 3*packTray || p.Fee != 600 || p.Total != 2*6500+1590+3*packTray+600 || p.DriveMin == 0 {
+		t.Fatalf("kiszállítás: %q %+v", msg, p)
+	}
+	// elvitel: doboz, szállítás nélkül
+	in = base()
+	in.Mode = preTakeaway
+	if p, msg = a.buildPreorder(in, now); msg != "" || p.Fee != 0 || p.Pack != 3*packTray {
+		t.Fatalf("elvitel: %q %+v", msg, p)
+	}
+	bad := []func(*preorderReq){
+		func(r *preorderReq) { r.Date = "2026-11-09" },                                   // a kezdés előtt
+		func(r *preorderReq) { r.Items = map[string]int{} },                              // semmi
+		func(r *preorderReq) { r.Items = map[string]int{"m0": 51} },                      // túl sok
+		func(r *preorderReq) { r.Time = "22:30" },                                        // zárás után
+		func(r *preorderReq) { r.Phone = "" },                                            // nincs telefon
+		func(r *preorderReq) { r.Guests = 0 },                                            // helyben létszám kell
+		func(r *preorderReq) { r.Mode = "x" },                                            // ismeretlen mód
+		func(r *preorderReq) { r.Mode, r.City, r.Street = preDelivery, "Budapest", "x" }, // nem szállítunk oda
+		func(r *preorderReq) { r.Mode, r.City = preDelivery, "Zalaszentgrót" },           // nincs cím
+	}
+	for i, f := range bad {
+		in := base()
+		f(&in)
+		if _, msg := a.buildPreorder(in, now); msg == "" {
+			t.Errorf("%d. hibás kérést elfogadott", i)
+		}
+	}
+	// elfogyott: semmit nem fogad el
+	a.cfg.Elfogyott = map[string]bool{preOff.ID: true}
+	if _, msg := a.buildPreorder(base(), now); msg == "" {
+		t.Error("elfogyott ajánlatra nem szabad előrendelést fogadni")
+	}
+}

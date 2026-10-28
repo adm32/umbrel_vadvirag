@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const appVersion = "2.13.1"
+const appVersion = "2.14.0"
 
 // viaFunnel: a kérés a nyilvános interneten (Tailscale Funnel) keresztül érkezett.
 func viaFunnel(r *http.Request) bool { return r.Header.Get("Tailscale-Funnel-Request") != "" }
@@ -221,12 +221,13 @@ func (a *App) handleBackup(w http.ResponseWriter, r *http.Request) {
 	ord, _ := json.Marshal(a.st)
 	a.st.mu.Unlock()
 	out, _ := json.MarshalIndent(map[string]any{
-		"tipus":       "vadvirag-rendeleskezelo-mentes",
-		"verzio":      appVersion,
-		"keszult":     time.Now(),
-		"beallitasok": cfg,
-		"rendelesek":  json.RawMessage(ord),
-		"uzenetek":    a.loadMessages(),
+		"tipus":         "vadvirag-rendeleskezelo-mentes",
+		"verzio":        appVersion,
+		"keszult":       time.Now(),
+		"beallitasok":   cfg,
+		"rendelesek":    json.RawMessage(ord),
+		"uzenetek":      a.loadMessages(),
+		"elorendelesek": a.loadPreorders(),
 	}, "", " ")
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="vadvirag-mentes-%s.json"`, time.Now().Format("2006-01-02")))

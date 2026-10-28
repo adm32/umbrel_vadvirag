@@ -41,38 +41,3 @@ func TestOffersVisibility(t *testing.T) {
 		t.Error("data not loaded")
 	}
 }
-
-func TestMartonOffer(t *testing.T) {
-	b := offers.Marton
-	if b == nil || len(b.Mains) != 4 || len(b.Desserts) != 2 || b.MainPrice != 6500 || b.DessertPrice != 1590 {
-		t.Fatalf("Márton-napi ajánlat adatai hibásak: %+v", b)
-	}
-	at := func(s string) (bool, bool) {
-		tm, _ := time.ParseInLocation("2006-01-02 15:04", s, budapestTZ)
-		v, ok := activeOffers(tm)["marton"]
-		if !ok {
-			return false, false
-		}
-		return true, v.(bookingOffer).Started
-	}
-	for _, c := range []struct {
-		when          string
-		shown, active bool
-	}{
-		{"2026-10-27 23:59", false, false},
-		{"2026-10-28 08:00", true, false}, // előrendelhető
-		{"2026-11-09 22:00", true, false},
-		{"2026-11-10 00:01", true, true},
-		{"2026-11-16 21:00", true, true},
-		{"2026-11-17 00:01", false, false}, // vége
-	} {
-		if s, a := at(c.when); s != c.shown || a != c.active {
-			t.Errorf("%s: látszik=%v aktív=%v", c.when, s, a)
-		}
-	}
-	for _, d := range append(b.Mains, b.Desserts...) {
-		if d.Name["hu"] == "" || d.Name["en"] == "" || d.Name["de"] == "" || d.Desc["hu"] == "" {
-			t.Errorf("hiányzó fordítás: %v", d.Name)
-		}
-	}
-}

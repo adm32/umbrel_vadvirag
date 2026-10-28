@@ -49,7 +49,7 @@ function setLang(l, push) {
   if (push) { const path = lang === 'hu' ? '/' : '/' + lang; history.replaceState(null, '', path + location.hash); }
   renderStatus(); renderHours(); renderFacts(); setKind(kind);
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
-  renderDrinks(); renderAlg(); renderOffers();
+  renderDrinks(); renderAlg(); renderOffers(); renderPre();
 }
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); hideLangHint(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
 
@@ -169,57 +169,149 @@ function renderOffers() {
   }
   el.hidden = !w;
   renderWeekly();
-  renderMarton();
 }
 
-// ---- Márton-napi ajánlat: az ételeket itt választja ki a vendég, és asztalfoglalásként küldi el
-// (a Rendelések app Üzenetek részébe érkezik, nem rendelésként). A szöveg mindig magyar, a személyzetnek.
-let mtQty = {};
-const MT_HEAD = 'Márton-napi előrendelés:';
-function mtRange(b) { return weekRange(b); }
-function mtItems(b) { return [...b.mains.map((d, i) => ({ k: 'm' + i, d, p: b.main_price })), ...b.desserts.map((d, i) => ({ k: 'd' + i, d, p: b.dessert_price }))]; }
-function mtTotals(b) { let n = 0, p = 0; for (const it of mtItems(b)) { const q = mtQty[it.k] || 0; n += q; p += q * it.p; } return { n, p }; }
-function renderMarton() {
-  const b = OFF && OFF.marton, el = $('offMarton');
-  el.hidden = !b;
-  if (!b) return;
-  const dish = it => { const q = mtQty[it.k] || 0; return `<div class="mt-dish${q ? ' on' : ''}"><div class="tx"><div class="n">${esc(L10(it.d.name))}</div>${L10(it.d.desc) ? `<div class="d">${esc(L10(it.d.desc))}</div>` : ''}</div>
-    <div class="mt-step"><button type="button" data-mt="${it.k}" data-d="-1" aria-label="${esc(T('martonMinus') + ': ' + L10(it.d.name))}"${q ? '' : ' disabled'}>−</button><b aria-live="polite">${q}</b><button type="button" class="plus" data-mt="${it.k}" data-d="1" aria-label="${esc(T('martonPlus') + ': ' + L10(it.d.name))}">+</button></div></div>`; };
-  const items = mtItems(b), t = mtTotals(b);
-  el.innerHTML = `<div class="mt-head"><div><span class="off-tag hot">${esc(T(b.started ? 'martonTagNow' : 'martonTagPre'))}</span><h3>${esc(L10(b.title))}</h3></div><div class="mt-dates">${esc(T('martonDates', { range: mtRange(b) }))}</div></div>
-    <p class="mt-lead">${esc(T('martonLead'))}</p>
+// ---- Előrendelhető alkalmi ajánlat (most: Márton-nap). Az ajánlat és az árak a rendeléskezelőből
+// jönnek (/api/public/preorder); ha ott „Elfogyott”-ra kapcsolják, innen is eltűnik. A vendég választ
+// ételeket, majd helyben (asztalfoglalás), elvitelre vagy kiszállítással kéri egy későbbi napra.
+let PRE = null, preQty = {}, preMode = 'helyben', prePay = 'Készpénz', preBuilt = false;
+async function loadPre() {
+  try { const r = await fetch('/api/public/preorder', { cache: 'no-store' }); if (!r.ok) throw 0; const d = await r.json(); PRE = d.open ? d : null; } catch (e) { PRE = null; }
+  renderPre();
+}
+// „november 10-től” / „10 November” / „10. November”
+function fromDate(iso) {
+  const d = isoDay(iso), n = d.getDate();
+  if (lang === 'hu') { const u = n % 10, tol = u ? [3, 6, 8].includes(u) : n !== 10; return d.toLocaleDateString('hu-HU', { month: 'long' }) + ' ' + n + '-' + (tol ? 'tól' : 'től'); }
+  return d.toLocaleDateString(LOC(), { day: 'numeric', month: 'long' });
+}
+function preItems() { const o = PRE.offer; return [...o.mains.map((d, i) => ({ k: 'm' + i, d, p: o.main_price })), ...o.desserts.map((d, i) => ({ k: 'd' + i, d, p: o.dessert_price }))]; }
+function preTotals() {
+  let n = 0, mains = 0, food = 0;
+  for (const it of preItems()) { const q = preQty[it.k] || 0; n += q; food += q * it.p; if (it.k[0] === 'm') mains += q; }
+  const pack = preMode === 'helyben' ? 0 : n * PRE.pack;
+  let fee = 0; if (preMode === 'kiszallitas') { const f = PRE.fees.find(x => x.name === $('preCity')?.value); fee = f ? f.fee : null; }
+  return { n, mains, food, pack, fee, total: food + pack + (fee || 0) };
+}
+function renderPre() {
+  const el = $('offPre');
+  el.hidden = !PRE;
+  if (!PRE) return;
+  const o = PRE.offer, t = preTotals();
+  const dish = it => { const q = preQty[it.k] || 0; return `<div class="mt-dish${q ? ' on' : ''}"><div class="tx"><div class="n">${esc(L10(it.d.name))}</div>${L10(it.d.desc) ? `<div class="d">${esc(L10(it.d.desc))}</div>` : ''}</div>
+    <div class="mt-step"><button type="button" data-pq="${it.k}" data-d="-1" aria-label="${esc(T('preMinus') + ': ' + L10(it.d.name))}"${q ? '' : ' disabled'}>−</button><b aria-live="polite">${q}</b><button type="button" class="plus" data-pq="${it.k}" data-d="1" aria-label="${esc(T('prePlus') + ': ' + L10(it.d.name))}">+</button></div></div>`; };
+  const items = preItems();
+  el.innerHTML = `<div class="mt-head"><div><span class="off-tag hot">${esc(T('preTag'))}</span><h3>${esc(L10(o.title))}</h3></div><div class="mt-dates">${esc(T('preServed', { date: fromDate(o.serve_from) }))}</div></div>
+    <p class="mt-lead">${esc(T('preLead'))}</p>
     <div class="mt-cols">
-      <div class="mt-col"><h4><span>${esc(T('martonMains'))}</span><b>${esc(T('martonPer', { p: huf(b.main_price) }))}</b></h4>${items.filter(i => i.k[0] === 'm').map(dish).join('')}</div>
-      <div class="mt-col"><h4><span>${esc(T('martonDesserts'))}</span><b>${esc(T('martonPer', { p: huf(b.dessert_price) }))}</b></h4>${items.filter(i => i.k[0] === 'd').map(dish).join('')}
-        <div class="mt-sum"><div class="t"><span>${esc(T('martonSum', { n: t.n }))}</span><b>${huf(t.p)} Ft</b></div>
-          <button type="button" class="btn btn-red btn-lg" id="mtBook"${t.n ? '' : ' disabled'}>${esc(T(t.n ? 'martonBook' : 'martonPick'))}</button>
-          <small>${esc(T('martonConfirm'))}</small></div></div>
+      <div class="mt-col"><h4><span>${esc(T('preMains'))}</span><b>${esc(T('prePer', { p: huf(o.main_price) }))}</b></h4>${items.filter(i => i.k[0] === 'm').map(dish).join('')}</div>
+      <div class="mt-col"><h4><span>${esc(T('preDesserts'))}</span><b>${esc(T('prePer', { p: huf(o.dessert_price) }))}</b></h4>${items.filter(i => i.k[0] === 'd').map(dish).join('')}
+        <div class="mt-sum"><div class="t"><span>${esc(T('preSum', { n: t.n }))}</span><b>${huf(t.food)} Ft</b></div>
+          <button type="button" class="btn btn-red btn-lg" id="preNext"${t.n ? '' : ' disabled'}>${esc(T(t.n ? 'preNext' : 'prePick'))}</button>
+          <small>${esc(T('preModes'))}</small></div></div>
     </div>`;
 }
-function martonText(b) {
-  const lines = mtItems(b).filter(it => mtQty[it.k]).map(it => `${mtQty[it.k]}× ${it.d.name.hu} (${huf(it.p)} Ft/adag)`);
-  return MT_HEAD + '\n' + lines.join('\n') + '\nÖsszesen: ' + huf(mtTotals(b).p) + ' Ft';
-}
-function martonBook() {
-  const b = OFF.marton, t = mtTotals(b); if (!t.n) return;
-  setKind('asztal');
-  const f = form.elements, today = OFF.today || f.date.min;
-  const first = today > b.from ? today : b.from;
-  if (!f.date.value || f.date.value < b.from || f.date.value > b.to || f.date.value < today) f.date.value = first;
-  const mains = mtItems(b).filter(i => i.k[0] === 'm').reduce((s, i) => s + (mtQty[i.k] || 0), 0);
-  if (mains && (!+f.guests.value || +f.guests.value < mains)) f.guests.value = mains;
-  const block = martonText(b), old = f.text.value.replace(/Márton-napi előrendelés:[\s\S]*?Összesen: [\d\s\u00a0]+Ft\n*/, '').trim();
-  f.text.value = block + (old ? '\n\n' + old : '');
-  track('ev', { n: 'marton_book', v: String(t.n) });
-  $('kapcsolat').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-  setTimeout(() => { (f.name.value ? f.time : f.name).focus({ preventScroll: true }); toast(T('martonAdded')); }, 450);
-}
-$('offMarton').addEventListener('click', e => {
+$('offPre').addEventListener('click', e => {
   const t = tgt(e); if (!t) return;
-  const s = t.closest('[data-mt]');
-  if (s) { const k = s.dataset.mt; mtQty[k] = Math.max(0, Math.min(50, (mtQty[k] || 0) + +s.dataset.d)); renderMarton(); $('offMarton').querySelector(`[data-mt="${k}"][data-d="${s.dataset.d}"]:not(:disabled)`)?.focus(); }
-  else if (t.closest('#mtBook')) martonBook();
+  const s = t.closest('[data-pq]');
+  if (s) { const k = s.dataset.pq; preQty[k] = Math.max(0, Math.min(50, (preQty[k] || 0) + +s.dataset.d)); renderPre(); $('offPre').querySelector(`[data-pq="${k}"][data-d="${s.dataset.d}"]:not(:disabled)`)?.focus(); }
+  else if (t.closest('#preNext')) openPre();
 });
+
+// --- az előrendelés ablaka
+const PRE_ICON = {
+  helyben: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v8a3 3 0 0 0 3 3v7M8 3v6M11 3v8a3 3 0 0 1-3 3M17 21V3c-2 1-3 4-3 8h3"/></svg>',
+  elvitel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 13H6L5 8zM9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  kiszallitas: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>'
+};
+function preMinDate() { const a = PRE.offer.serve_from, b = PRE.today || a; return a > b ? a : b; }
+function buildPreDlg() {
+  const modes = [['helyben', 'preDine', 'preDineSub'], ['elvitel', 'preTake', 'preTakeSub'], ['kiszallitas', 'preDel', 'preDelSub']];
+  const towns = [...PRE.fees].sort((a, b) => a.name.localeCompare(b.name, 'hu')).map(f => `<option value="${esc(f.name)}">${esc(f.name)} · ${huf(f.fee)} Ft</option>`).join('');
+  $('preBody').innerHTML = `<h3 id="preTitle">${esc(T('preDlgTitle'))}</h3><p class="pre-sub">${esc(L10(PRE.offer.title))} · ${esc(T('preServed', { date: fromDate(PRE.offer.serve_from) }))}</p>
+    <div class="pre-lines" id="preLines"></div>
+    <form id="preForm" novalidate>
+      <div class="pre-lbl">${esc(T('preHow'))}</div>
+      <div class="pre-modes" role="radiogroup" aria-label="${esc(T('preHow'))}">${modes.map(([v, l, sub]) => `<button type="button" role="radio" data-pm="${v}" aria-checked="${preMode === v}">${PRE_ICON[v]}<b>${esc(T(l))}</b><small>${esc(T(sub))}</small></button>`).join('')}</div>
+      <div class="row2"><label class="f"><span>${esc(T('preDay'))}</span><input name="date" type="date" min="${preMinDate()}" required></label>
+        <label class="f"><span>${esc(T('preTime'))}</span><input name="time" type="time" min="11:00" max="21:30" step="900" required></label></div>
+      <div class="pre-g" data-for="helyben"><label class="f"><span>${esc(T('preGuests'))}</span><input name="guests" type="number" min="1" max="200" inputmode="numeric"></label></div>
+      <div class="pre-g" data-for="kiszallitas"><label class="f"><span>${esc(T('preTown'))}</span><select name="city" id="preCity"><option value="">${esc(T('preTownPick'))}</option>${towns}</select></label>
+        <label class="f"><span>${esc(T('preStreet'))}</span><input name="street" autocomplete="street-address"></label></div>
+      <div class="pre-g" data-for="elvitel kiszallitas"><div class="pre-lbl">${esc(T('prePay'))}</div><div class="seg seg-pay" role="radiogroup">${['Készpénz', 'Kártya'].map(v => `<button type="button" role="radio" data-pp="${v}" aria-checked="${prePay === v}">${esc(T(v === 'Kártya' ? 'prePayCard' : 'prePayCash'))}</button>`).join('')}</div></div>
+      <div class="row2"><label class="f"><span>${esc(T('preName'))}</span><input name="name" autocomplete="name" required></label>
+        <label class="f"><span>${esc(T('prePhone'))}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label></div>
+      <label class="f"><span>${esc(T('preEmail'))}</span><input name="email" type="email" autocomplete="email"></label>
+      <label class="f"><span>${esc(T('preNote'))}</span><textarea name="note" rows="2"></textarea></label>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="pre-sum" id="preSum"></div>
+      <p class="form-err" id="preErr" role="alert"></p>
+      <button class="btn btn-red btn-lg btn-wide" type="submit" id="preSend"></button>
+      <p class="pre-note" id="preNote"></p>
+    </form>`;
+  preBuilt = lang;
+}
+function syncPre() {
+  const f = $('preForm'); if (!f) return;
+  $$('[data-pm]', f).forEach(b => b.setAttribute('aria-checked', String(b.dataset.pm === preMode)));
+  $$('[data-pp]', f).forEach(b => b.setAttribute('aria-checked', String(b.dataset.pp === prePay)));
+  $$('.pre-g', f).forEach(g => { g.hidden = !g.dataset.for.split(' ').includes(preMode); });
+  const t = preTotals();
+  $('preLines').innerHTML = preItems().filter(it => preQty[it.k]).map(it => `<div><span>${preQty[it.k]}× ${esc(L10(it.d.name))}</span><b>${huf(preQty[it.k] * it.p)} Ft</b></div>`).join('') +
+    `<button type="button" class="linkish" data-close>${esc(T('preEdit'))}</button>`;
+  const row = (k, v) => `<div><span>${esc(k)}</span><span>${v}</span></div>`;
+  $('preSum').innerHTML = row(T('preFood'), huf(t.food) + ' Ft') + (t.pack ? row(T('preBoxes', { n: t.n }), huf(t.pack) + ' Ft') : '') +
+    (preMode === 'kiszallitas' ? row(T('preFee'), t.fee === null ? '–' : huf(t.fee) + ' Ft') : '') +
+    `<div class="tot"><span>${esc(T('preTotal'))}</span><span>${huf(t.total)} Ft</span></div>`;
+  $('preSend').textContent = T('preSend', { p: huf(t.total) });
+  $('preNote').textContent = T(preMode === 'helyben' ? 'prePayDine' : preMode === 'elvitel' ? 'prePayTake' : 'prePayDel') + ' ' + T('preConfirm');
+}
+function openPre() {
+  if (!PRE || !preTotals().n) return;
+  if (preBuilt !== lang || !$('preForm')) buildPreDlg();
+  const f = $('preForm'), t = preTotals();
+  if (!f.elements.date.value) f.elements.date.value = preMinDate();
+  if (!+f.elements.guests.value && t.mains) f.elements.guests.value = t.mains;
+  syncPre(); $('preErr').textContent = '';
+  openModal($('preDlg')); track('ev', { n: 'pre_open' });
+}
+$('preDlg').addEventListener('click', e => {
+  const t = tgt(e); if (!t) return;
+  const m = t.closest('[data-pm]'), pp = t.closest('[data-pp]');
+  if (m) { preMode = m.dataset.pm; syncPre(); }
+  else if (pp) { prePay = pp.dataset.pp; syncPre(); }
+});
+$('preDlg').addEventListener('change', e => { if (tgt(e)?.name === 'city') syncPre(); });
+$('preDlg').addEventListener('input', e => tgt(e)?.closest('.f')?.classList.remove('bad'));
+$('preDlg').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = $('preForm'), v = Object.fromEntries(new FormData(f)), err = $('preErr');
+  const bad = (name, msg) => { const el = f.elements[name]; el.closest('.f')?.classList.add('bad'); el.focus(); err.textContent = msg; };
+  err.textContent = '';
+  const min = preMinDate();
+  if (!v.date || v.date < min) return bad('date', T('preErrDate', { date: fromDate(min) }));
+  if (!v.time || v.time < '11:00' || v.time > '21:30') return bad('time', T('errTime'));
+  if (preMode === 'helyben' && !(+v.guests >= 1 && +v.guests <= 200)) return bad('guests', T('preErrGuests'));
+  if (preMode === 'kiszallitas' && !v.city) return bad('city', T('preErrTown'));
+  if (preMode === 'kiszallitas' && !v.street.trim()) return bad('street', T('preErrStreet'));
+  if (!v.name.trim()) return bad('name', T('errName'));
+  if (v.phone.replace(/\D/g, '').length < 6) return bad('phone', T('preErrPhone'));
+  if (v.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email.trim())) return bad('email', T('errEmail'));
+  const btn = $('preSend'); btn.disabled = true; btn.textContent = T('preSending');
+  const items = {}; for (const k in preQty) if (preQty[k]) items[k] = preQty[k];
+  try {
+    const r = await fetch('/api/public/preorder', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, mode: preMode, date: v.date, time: v.time, guests: +v.guests || 0, city: preMode === 'kiszallitas' ? v.city : '', street: preMode === 'kiszallitas' ? v.street : '',
+        name: v.name, phone: v.phone, email: v.email, note: v.note, payment: prePay, lang, website: v.website }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.ok) { btn.disabled = false; syncPre(); err.textContent = (lang === 'hu' && d.error) || (r.status >= 500 ? T('preErrNet') : T('preErrCheck')); return; }
+    track('ev', { n: 'pre_sent', v: preMode });
+    const when = fmtDay(v.date, { month: 'long', day: 'numeric', weekday: 'long' }) + ', ' + v.time;
+    $('preBody').innerHTML = `<div class="pre-done"><div class="ic">${SVG_CHECK}</div><h3>${esc(T('preDone'))}</h3><p>${esc(T(preMode === 'helyben' ? 'preDine' : preMode === 'elvitel' ? 'preTake' : 'preDel'))} · ${esc(when)}</p><p>${esc(T('preDoneText'))}</p><button type="button" class="btn btn-red btn-lg" data-close>${esc(T('preClose'))}</button></div>`;
+    preQty = {}; preBuilt = false; renderPre();
+  } catch (x) { btn.disabled = false; syncPre(); err.textContent = T('preErrNet'); }
+});
+const SVG_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 function weekRange(m) {
   try { return new Intl.DateTimeFormat(LOC(), { month: 'long', day: 'numeric' }).formatRange(isoDay(m.from), isoDay(m.to)); }
   catch (e) { return fmtDay(m.from, { month: 'long', day: 'numeric' }) + ' – ' + fmtDay(m.to, { month: 'long', day: 'numeric' }); }
@@ -536,8 +628,6 @@ form.addEventListener('submit', async e => {
   if (kind !== 'egyeb' && v.time && (v.time < '11:00' || v.time > '21:30')) return bad('time', 'errTime');
   if (kind !== 'egyeb' && v.guests && !(+v.guests >= 1 && +v.guests <= 500)) return bad('guests', 'errGuests');
   if (kind === 'egyeb' && !v.text.trim()) return bad('text', 'errText');
-  const mt = OFF && OFF.marton;
-  if (mt && kind === 'asztal' && v.text.includes(MT_HEAD) && (v.date < mt.from || v.date > mt.to)) { const r = mtRange(mt); bad('date', 'errText'); $('formErr').textContent = T('errMarton', { range: r }); return; }
   const btn = $('sendBtn'); btn.disabled = true; btn.textContent = T('sending');
   try {
     const body = { kind, name: v.name, phone: v.phone, email: v.email, text: v.text, lang, website: v.website };
@@ -692,5 +782,6 @@ document.addEventListener('click', e => {
 }, true);
 loadMenu();
 loadOffers();
+loadPre();
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
 })();

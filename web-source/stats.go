@@ -731,7 +731,7 @@ type beacon struct {
 
 var allowedEvents = map[string]bool{"add": true, "wheel": true, "wheel_order": true, "town": true, "form": true, "lang": true, "call": true,
 	"route": true, "fb": true, "order_sent": true, "order_page": true, "order_btn": true, "consent_yes": true, "consent_no": true, "drinks": true, "search": true, "gallery": true, "alg": true, "quick": true,
-	"quick_open": true, "weekend_order": true, "weekly_order": true, "marton_book": true}
+	"quick_open": true, "weekend_order": true, "weekly_order": true, "pre_open": true, "pre_sent": true}
 var allowedSections = map[string]bool{"hero": true, "rolunk": true, "etlap": true, "rendezvenyek": true, "kiszallitas": true, "galeria": true, "kapcsolat": true}
 
 func campaignOf(q string) string {

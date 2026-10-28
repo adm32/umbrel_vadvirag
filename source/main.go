@@ -71,6 +71,8 @@ type Config struct {
 	Okok           []string       `json:"elutasitas_okai"`
 	// Online rendelés szüneteltetése (pl. zárva vagy túl sok a munka) – a vendég ezt látja.
 	OnlineSzunetel bool `json:"online_szunetel,omitempty"`
+	// Elfogyott: az előrendelhető alkalmi ajánlatok (elorendeles.json id) – ami itt true, az nem látszik a weboldalon
+	Elfogyott map[string]bool `json:"elfogyott,omitempty"`
 	// Saját telefonszámok kódja (ownKey): az innen jövő rendelések tesztnek számítanak
 	SajatTelefonok []string `json:"sajat_telefonok,omitempty"`
 	OnlineUzenet   string   `json:"online_uzenet,omitempty"`
@@ -1003,6 +1005,7 @@ type OrderView struct {
 }
 
 func (a *App) handleList(w http.ResponseWriter, r *http.Request) {
+	preNew, preToday := a.preCounts()
 	a.st.mu.Lock()
 	views := make([]OrderView, 0, len(a.st.Orders))
 	for _, o := range a.st.Orders {
@@ -1030,6 +1033,9 @@ func (a *App) handleList(w http.ResponseWriter, r *http.Request) {
 			"online_paused": a.conf().OnlineSzunetel,
 			"online_note":   a.conf().OnlineUzenet,
 			"messages":      a.unreadMessages(),
+			"preorder_on":   preOff != nil,
+			"preorders":     preNew,
+			"preorders_day": preToday,
 		},
 	})
 }
@@ -1302,6 +1308,11 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("POST /api/public/quick", a.handlePublicQuick)
 	mux.HandleFunc("GET /api/public/order/{token}", a.handlePublicStatus)
 	mux.HandleFunc("POST /api/public/message", a.handlePublicMessage)
+	mux.HandleFunc("GET /api/public/preorder", a.handlePublicPreorder)
+	mux.HandleFunc("POST /api/public/preorder", a.handlePublicPreorderPost)
+	mux.HandleFunc("GET /api/preorders", a.requireAuth(a.handlePreorders))
+	mux.HandleFunc("POST /api/preorders/soldout", a.requireAuth(a.handlePreorderSoldOut))
+	mux.HandleFunc("POST /api/preorders/{id}/status", a.requireAuth(a.handlePreorderStatus))
 	mux.HandleFunc("GET /api/messages", a.requireAuth(a.handleMessages))
 	mux.HandleFunc("POST /api/messages/{id}/done", a.requireAuth(a.handleMessageDone))
 	for _, f := range []string{"sw.js", "manifest.json", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "logo.png"} {

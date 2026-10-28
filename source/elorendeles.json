@@ -1,0 +1,88 @@
+{
+ "_info": "Előrendelhető alkalmi ajánlat (most: Márton-nap). A weboldal Ajánlataink részén látszik, amíg a Rendelések appban nincs „Elfogyott”-ra kapcsolva. serve_from: ettől a naptól lehet kérni (helyben, elvitelre vagy kiszállítással). Új ajánlatnál új id kell.",
+ "id": "marton",
+ "title": {
+  "hu": "Márton-napi ajánlatunk",
+  "en": "Our St. Martin's Day special",
+  "de": "Unser Angebot zum Martinstag"
+ },
+ "serve_from": "2026-11-10",
+ "main_price": 6500,
+ "dessert_price": 1590,
+ "mains": [
+  {
+   "name": {
+    "hu": "Konfitált rozmaringos-fokhagymás libacomb",
+    "en": "Confit goose leg with rosemary and garlic",
+    "de": "Konfierte Gänsekeule mit Rosmarin und Knoblauch"
+   },
+   "desc": {
+    "hu": "vörösboros-almás párolt lilakáposztával, hagymás törtburgonyával",
+    "en": "red cabbage braised with red wine and apple, crushed potatoes with onion",
+    "de": "Rotkraut mit Rotwein und Apfel, Kartoffelstampf mit Zwiebeln"
+   }
+  },
+  {
+   "name": {
+    "hu": "Konfitált libacomb muskotályos-birsalma mártással",
+    "en": "Confit goose leg with muscat and quince sauce",
+    "de": "Konfierte Gänsekeule mit Muskateller-Quittensoße"
+   },
+   "desc": {
+    "hu": "házi pirított dödöllével",
+    "en": "homemade toasted dödölle (potato dumplings)",
+    "de": "hausgemachte geröstete Dödölle (Kartoffelnocken)"
+   }
+  },
+  {
+   "name": {
+    "hu": "Rozé libamell narancsos-kakukkfüves jus-vel",
+    "en": "Rosé goose breast with orange and thyme jus",
+    "de": "Rosa Gänsebrust mit Orangen-Thymian-Jus"
+   },
+   "desc": {
+    "hu": "burgonyakrokettel",
+    "en": "potato croquettes",
+    "de": "Kartoffelkroketten"
+   }
+  },
+  {
+   "name": {
+    "hu": "Rozé libamell krémes édesburgonya-pürével",
+    "en": "Rosé goose breast with creamy sweet potato purée",
+    "de": "Rosa Gänsebrust mit cremigem Süßkartoffelpüree"
+   },
+   "desc": {
+    "hu": "gránátalmás-erdei gyümölcsös redukcióval",
+    "en": "pomegranate and forest berry reduction",
+    "de": "Granatapfel-Waldbeeren-Reduktion"
+   }
+  }
+ ],
+ "desserts": [
+  {
+   "name": {
+    "hu": "Részeges lúdláb szelet",
+    "en": "Tipsy lúdláb slice",
+    "de": "Beschwipste Lúdláb-Schnitte"
+   },
+   "desc": {
+    "hu": "újborban párolt meggyes réteggel, krémes csoki ganache-sal",
+    "en": "sour cherries stewed in new wine, creamy chocolate ganache",
+    "de": "in jungem Wein gedünstete Sauerkirschen, cremige Schokoladenganache"
+   }
+  },
+  {
+   "name": {
+    "hu": "Gesztenyés palacsinta",
+    "en": "Chestnut pancake",
+    "de": "Kastanienpfannkuchen"
+   },
+   "desc": {
+    "hu": "forró rumos csokiszósszal",
+    "en": "with hot rum chocolate sauce",
+    "de": "mit heißer Rum-Schokoladensoße"
+   }
+  }
+ ]
+}

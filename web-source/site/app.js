@@ -169,7 +169,57 @@ function renderOffers() {
   }
   el.hidden = !w;
   renderWeekly();
+  renderMarton();
 }
+
+// ---- Márton-napi ajánlat: az ételeket itt választja ki a vendég, és asztalfoglalásként küldi el
+// (a Rendelések app Üzenetek részébe érkezik, nem rendelésként). A szöveg mindig magyar, a személyzetnek.
+let mtQty = {};
+const MT_HEAD = 'Márton-napi előrendelés:';
+function mtRange(b) { return weekRange(b); }
+function mtItems(b) { return [...b.mains.map((d, i) => ({ k: 'm' + i, d, p: b.main_price })), ...b.desserts.map((d, i) => ({ k: 'd' + i, d, p: b.dessert_price }))]; }
+function mtTotals(b) { let n = 0, p = 0; for (const it of mtItems(b)) { const q = mtQty[it.k] || 0; n += q; p += q * it.p; } return { n, p }; }
+function renderMarton() {
+  const b = OFF && OFF.marton, el = $('offMarton');
+  el.hidden = !b;
+  if (!b) return;
+  const dish = it => { const q = mtQty[it.k] || 0; return `<div class="mt-dish${q ? ' on' : ''}"><div class="tx"><div class="n">${esc(L10(it.d.name))}</div>${L10(it.d.desc) ? `<div class="d">${esc(L10(it.d.desc))}</div>` : ''}</div>
+    <div class="mt-step"><button type="button" data-mt="${it.k}" data-d="-1" aria-label="${esc(T('martonMinus') + ': ' + L10(it.d.name))}"${q ? '' : ' disabled'}>−</button><b aria-live="polite">${q}</b><button type="button" class="plus" data-mt="${it.k}" data-d="1" aria-label="${esc(T('martonPlus') + ': ' + L10(it.d.name))}">+</button></div></div>`; };
+  const items = mtItems(b), t = mtTotals(b);
+  el.innerHTML = `<div class="mt-head"><div><span class="off-tag hot">${esc(T(b.started ? 'martonTagNow' : 'martonTagPre'))}</span><h3>${esc(L10(b.title))}</h3></div><div class="mt-dates">${esc(T('martonDates', { range: mtRange(b) }))}</div></div>
+    <p class="mt-lead">${esc(T('martonLead'))}</p>
+    <div class="mt-cols">
+      <div class="mt-col"><h4><span>${esc(T('martonMains'))}</span><b>${esc(T('martonPer', { p: huf(b.main_price) }))}</b></h4>${items.filter(i => i.k[0] === 'm').map(dish).join('')}</div>
+      <div class="mt-col"><h4><span>${esc(T('martonDesserts'))}</span><b>${esc(T('martonPer', { p: huf(b.dessert_price) }))}</b></h4>${items.filter(i => i.k[0] === 'd').map(dish).join('')}
+        <div class="mt-sum"><div class="t"><span>${esc(T('martonSum', { n: t.n }))}</span><b>${huf(t.p)} Ft</b></div>
+          <button type="button" class="btn btn-red btn-lg" id="mtBook"${t.n ? '' : ' disabled'}>${esc(T(t.n ? 'martonBook' : 'martonPick'))}</button>
+          <small>${esc(T('martonConfirm'))}</small></div></div>
+    </div>`;
+}
+function martonText(b) {
+  const lines = mtItems(b).filter(it => mtQty[it.k]).map(it => `${mtQty[it.k]}× ${it.d.name.hu} (${huf(it.p)} Ft/adag)`);
+  return MT_HEAD + '\n' + lines.join('\n') + '\nÖsszesen: ' + huf(mtTotals(b).p) + ' Ft';
+}
+function martonBook() {
+  const b = OFF.marton, t = mtTotals(b); if (!t.n) return;
+  setKind('asztal');
+  const f = form.elements, today = OFF.today || f.date.min;
+  const first = today > b.from ? today : b.from;
+  if (!f.date.value || f.date.value < b.from || f.date.value > b.to || f.date.value < today) f.date.value = first;
+  const mains = mtItems(b).filter(i => i.k[0] === 'm').reduce((s, i) => s + (mtQty[i.k] || 0), 0);
+  if (mains && (!+f.guests.value || +f.guests.value < mains)) f.guests.value = mains;
+  const block = martonText(b), old = f.text.value.replace(/Márton-napi előrendelés:[\s\S]*?Összesen: [\d\s\u00a0]+Ft\n*/, '').trim();
+  f.text.value = block + (old ? '\n\n' + old : '');
+  track('ev', { n: 'marton_book', v: String(t.n) });
+  $('kapcsolat').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  setTimeout(() => { (f.name.value ? f.time : f.name).focus({ preventScroll: true }); toast(T('martonAdded')); }, 450);
+}
+$('offMarton').addEventListener('click', e => {
+  const t = tgt(e); if (!t) return;
+  const s = t.closest('[data-mt]');
+  if (s) { const k = s.dataset.mt; mtQty[k] = Math.max(0, Math.min(50, (mtQty[k] || 0) + +s.dataset.d)); renderMarton(); $('offMarton').querySelector(`[data-mt="${k}"][data-d="${s.dataset.d}"]:not(:disabled)`)?.focus(); }
+  else if (t.closest('#mtBook')) martonBook();
+});
 function weekRange(m) {
   try { return new Intl.DateTimeFormat(LOC(), { month: 'long', day: 'numeric' }).formatRange(isoDay(m.from), isoDay(m.to)); }
   catch (e) { return fmtDay(m.from, { month: 'long', day: 'numeric' }) + ' – ' + fmtDay(m.to, { month: 'long', day: 'numeric' }); }
@@ -486,6 +536,8 @@ form.addEventListener('submit', async e => {
   if (kind !== 'egyeb' && v.time && (v.time < '11:00' || v.time > '21:30')) return bad('time', 'errTime');
   if (kind !== 'egyeb' && v.guests && !(+v.guests >= 1 && +v.guests <= 500)) return bad('guests', 'errGuests');
   if (kind === 'egyeb' && !v.text.trim()) return bad('text', 'errText');
+  const mt = OFF && OFF.marton;
+  if (mt && kind === 'asztal' && v.text.includes(MT_HEAD) && (v.date < mt.from || v.date > mt.to)) { const r = mtRange(mt); bad('date', 'errText'); $('formErr').textContent = T('errMarton', { range: r }); return; }
   const btn = $('sendBtn'); btn.disabled = true; btn.textContent = T('sending');
   try {
     const body = { kind, name: v.name, phone: v.phone, email: v.email, text: v.text, lang, website: v.website };

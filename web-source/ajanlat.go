@@ -55,7 +55,27 @@ type weeklyMenu struct {
 	Upcoming bool        `json:"upcoming"` // még nem kezdődött el (jövő heti menü)
 }
 
+// Alkalmi ajánlat asztalfoglalással (pl. Márton-nap): show_from-tól látszik, from–to között lehet
+// vele asztalt foglalni. Nem rendelésként, hanem asztalfoglalásként érkezik.
+type dishL10n struct {
+	Name L10n `json:"name"`
+	Desc L10n `json:"desc"`
+}
+
+type bookingOffer struct {
+	ShowFrom     string     `json:"show_from"`
+	From         string     `json:"from"`
+	To           string     `json:"to"`
+	Title        L10n       `json:"title"`
+	MainPrice    int        `json:"main_price"`
+	DessertPrice int        `json:"dessert_price"`
+	Mains        []dishL10n `json:"mains"`
+	Desserts     []dishL10n `json:"desserts"`
+	Started      bool       `json:"started"` // from napja már elérkezett
+}
+
 type offersFile struct {
+	Marton  *bookingOffer `json:"marton"`
 	Weekend *weekendOffer `json:"weekend"`
 	Weekly  *weeklyMenu   `json:"weekly"`
 }
@@ -96,6 +116,19 @@ func activeOffers(now time.Time) map[string]any {
 			cp := *w
 			cp.DaysLeft = int(to.Sub(today).Hours()/24 + 0.5)
 			out["weekend"] = cp
+		}
+	}
+	if b := offers.Marton; b != nil {
+		from, ok1 := day(b.From)
+		to, ok2 := day(b.To)
+		show, ok3 := day(b.ShowFrom)
+		if !ok3 {
+			show = from
+		}
+		if ok1 && ok2 && !today.Before(show) && !today.After(to) {
+			cp := *b
+			cp.Started = !today.Before(from)
+			out["marton"] = cp
 		}
 	}
 	if m := offers.Weekly; m != nil {

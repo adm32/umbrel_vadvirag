@@ -165,6 +165,7 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .msg .mh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .msg .mk{font-size:12px;font-weight:700;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--teal) 16%,transparent);color:var(--teal)}
 .msg .mk.rendezveny{background:color-mix(in srgb,var(--purple) 15%,transparent);color:var(--purple)}
+.msg .mk.pre{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
 .msg .mk.asztal{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
 .msg .mn{font-weight:600;font-size:16px}
 .msg .mt{margin-left:auto;color:var(--label2);font-size:13px}
@@ -590,7 +591,9 @@ function renderMsgs(){
   $('msgBody').innerHTML='<div class="hint" style="padding:2px 2px 0">A weboldalról érkezett üzenetek. Ha válaszoltál, jelöld „Kész”-nek.</div>'+MSGS.map(m=>{
     const when=new Date(m.at);const d=[m.date&&new Date(m.date+'T12:00').toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'}),m.time,m.guests?m.guests+' fő':''].filter(Boolean).join(' · ');
     const lang=m.lang&&m.lang!=='hu'?` <span class="mk">${esc(m.lang.toUpperCase())}</span>`:'';
-    return `<div class="msg${m.done?' done':''}"><div class="mh"><span class="mk ${esc(m.kind)}">${MK[m.kind]||'Üzenet'}</span>${lang}<span class="mn">${esc(m.name)}</span><span class="mt">${fmtDay(m.at)} ${fmtTime(m.at)}</span></div>
+    // alkalmi ajánlat előrendelése (pl. „Márton-napi előrendelés:” az első sor) – külön címkét kap
+    const pre=(/^(.{3,40}?) előrendelés:/.exec(m.text||'')||[])[1];const preTag=pre?` <span class="mk pre">${esc(pre.replace(/-napi$/,'-nap'))} · előrendelés</span>`:'';
+    return `<div class="msg${m.done?' done':''}"><div class="mh"><span class="mk ${esc(m.kind)}">${MK[m.kind]||'Üzenet'}</span>${preTag}${lang}<span class="mn">${esc(m.name)}</span><span class="mt">${fmtDay(m.at)} ${fmtTime(m.at)}</span></div>
     ${d?`<div class="md">${esc(d)}</div>`:''}${m.text?`<div class="mx">${esc(m.text)}</div>`:''}
     <div class="ma">${m.phone?`<a href="tel:${esc(m.phone.replace(/[^0-9+]/g,''))}">${I.phone}${esc(m.phone)}</a>`:''}${m.email?`<a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Vadvirág Étterem – '+(MK[m.kind]||'Üzenet'))}">${I.mail}${esc(m.email)}</a>`:''}<button onclick="msgDone(${m.id},${!m.done})" style="margin-left:auto;color:${m.done?'var(--label2)':'var(--green)'}">${m.done?I.undo+'Visszaállít':I.check+'Kész'}</button></div></div>`}).join('');
 }

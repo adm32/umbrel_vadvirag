@@ -97,12 +97,13 @@
 </section>
 
 <!-- ============ AJÁNLATOK ============ -->
-<!-- A hétvégi ajánlatot és a heti menüt az /api/ajanlat tölti ki (adatok: ajanlatok.json). -->
+<!-- Az ajánlatokat (Márton-nap, hétvégi és napi ajánlat) az /api/ajanlat tölti ki (adatok: ajanlatok.json). -->
 <section class="offers wrap" id="ajanlat">
   <div class="sec-head">
     <h2 data-t="offersTitle">Ajánlataink</h2>
-    <p class="sec-sub" data-t="offersSub">Napi és hétvégi ajánlat – rendeld meg pár koppintással.</p>
+    <p class="sec-sub" data-t="offersSub">Napi, hétvégi és alkalmi ajánlataink – rendeld meg vagy foglald le pár koppintással.</p>
   </div>
+  <article class="marton" id="offMarton" hidden></article>
   <div class="off-grid">
     <article class="off-card off-weekend" id="offWeekend" hidden></article>
     <article class="off-card off-kocs" id="kocsonya" hidden>

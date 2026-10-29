@@ -80,6 +80,7 @@
         <a class="btn btn-ghost btn-lg hero-call" href="tel:+36203395099" aria-label="Hívás: 06 20 339 5099" data-ta="call"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6.6 3h3l1.5 4.5-2 1.4a12 12 0 0 0 6 6l1.4-2 4.5 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.4 5.2 2 2 0 0 1 6.6 3Z"/></svg></a>
       </div>
       <a class="hero-pre" id="heroPre" href="#ajanlat" hidden></a>
+      <a class="hero-pre hero-gw" id="heroGw" href="#nyeremeny" hidden></a>
       <p class="hero-quick"><a href="/rendeles#leiras" data-t="quickOrder">Egyszerűbb leírni, mit kérsz? Írd le itt, mi összerakjuk ›</a></p>
       <nav class="quick" aria-label="Gyors elérés">
         <a href="#etlap"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M9 9h6M9 13h6"/></svg><span data-t="navMenu">Étlap</span></a>
@@ -97,13 +98,14 @@
 </section>
 
 <!-- ============ AJÁNLATOK ============ -->
-<!-- A hétvégi és a napi ajánlatot az /api/ajanlat tölti ki (ajanlatok.json); az előrendelhető alkalmi ajánlatot (Márton-nap) a rendeléskezelő (/api/public/preorder). -->
+<!-- A hétvégi és a napi ajánlatot az /api/ajanlat tölti ki (ajanlatok.json); az előrendelhető alkalmi ajánlatot (Márton-nap) a rendeléskezelő (/api/public/preorder), a nyereményjátékot szintén (/api/public/giveaway). -->
 <section class="offers wrap" id="ajanlat">
   <div class="sec-head">
-    <h2 data-t="offersTitle">Ajánlataink</h2>
+    <h2><span data-t="offersTitle">Ajánlataink</span><svg class="sprig" viewBox="0 0 48 32" aria-hidden="true"><path d="M2 28C14 26 26 19 40 6"/><path d="M12 25.5c-1-4.5 1.5-8.5 6-10 1 4.5-1.5 8.5-6 10Z"/><path d="M21 21c3.5-3 8-3.2 11.5-.5-3.5 3-8 3.2-11.5.5Z"/><path d="M26 15.5c-.5-4.5 2.2-8.2 6.6-9.4.5 4.5-2.2 8.2-6.6 9.4Z"/><path d="M34 10.5c3.2-2.6 7.2-2.8 10.4-.4-3.2 2.6-7.2 2.8-10.4.4Z"/></svg></h2>
     <p class="sec-sub" data-t="offersSub">Napi, hétvégi és alkalmi ajánlataink – rendeld meg vagy foglald le pár koppintással.</p>
   </div>
   <article class="preoff" id="offPre" hidden></article>
+  <article class="gwoff" id="nyeremeny" hidden></article>
   <div class="off-grid">
     <article class="off-card off-weekend" id="offWeekend" hidden></article>
     <article class="off-card off-kocs" id="kocsonya" hidden>

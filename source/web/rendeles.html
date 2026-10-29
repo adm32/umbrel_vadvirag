@@ -156,6 +156,8 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .notice.act{background:var(--card);border:1.5px solid var(--line);color:var(--ink);cursor:pointer;box-shadow:0 6px 18px #0000000d}
 .notice.act .tx{flex:1}.notice.act small{display:block;color:var(--ink2);font-size:13px}
 .notice.act .go{color:var(--red);font-weight:700;white-space:nowrap}
+.notice.gw{background:#fff6e8;border:1.5px solid #f2c27a;color:#5a3a12}.notice.gw svg{color:#c4620a}.notice.gw small{display:block;color:#7a5a32;font-size:13px;margin-top:2px}
+.sum .gw{display:block;margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff6e8;color:#7a4a12;font-size:14px;line-height:1.35}.sum .gw.ok{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--ink)}
 .how{display:grid;gap:10px;padding:14px 16px}
 .how div{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--ink2)}
 .how b{color:var(--ink);display:block;font-weight:600}
@@ -330,6 +332,7 @@ let active=null;
 function renderNotices(){let h='';
   if(closedToday)h+=`<div class="notice off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><div><b>Ma már bezártunk.</b> Holnap 11:00-tól újra rendelhetsz online. Az étlapot addig is megnézheted, későbbi napra pedig előrendelést leadhatsz az <a href="/#ajanlat" style="color:inherit;font-weight:700">ajánlatoknál</a>.</div></div>`;
   else if(!isOpen)h+=`<div class="notice off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg><div><b>Az online rendelés most szünetel.</b>${M&&M.notice?esc(M.notice)+' ':''}Az étlapot megnézheted, rendelni most telefonon tudsz: <a href="${telHref()}" style="color:inherit;font-weight:700">${esc(phone)}</a></div></div>`;
+  const g=gwOn();if(g&&isOpen)h+=`<div class="notice gw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7c-1.5-3-5-3.5-5-1.2C7 7 9.5 7 12 7zM12 7c1.5-3 5-3.5 5-1.2C17 7 14.5 7 12 7z"/></svg><div><b>${esc(g.title.hu)}</b><small>Rendelj itt a weboldalon ${gwTill(g)}-ig ${huf(g.above)} Ft felett (szállítási díj nélkül), és automatikusan részt veszel a sorsoláson. ${g.winners} nyertest sorsolunk, mindegyikük ${esc(g.prize.hu)} kap. Sorsolás: ${esc(g.draw.slice(11,16)||'')}-kor, a nyerteseket e-mailben értesítjük, és Facebookon is kihirdetjük.</small></div></div>`;
   if(active)h+=`<div class="notice act" onclick="showStatus('${active.tok}')"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="tx">Legutóbbi rendelésed: <b>#${active.id}</b><small>${{new:'Visszaigazolásra vár',preparing:'Elfogadva',done:'Elfogadva'}[active.status]||''}</small></span><span class="go">Megnézem ›</span></div>`;
   $('notices').innerHTML=h}
 async function checkActive(){const tok=store.get('vv_last',null);if(!tok)return;
@@ -416,20 +419,28 @@ function renderCheckout(){
     return `<div class="ln"><span class="tx">${esc(label(id,v))}<small>${huf(price(id,v))} Ft / db · ${huf(price(id,v)*q)} Ft${box}</small></span><div class="step"><button onclick="chg('${k}',-1)">${q===1?SVG.trash:SVG.minus}</button><b>${q}</b><button onclick="chg('${k}',1)">${SVG.plus}</button></div></div>`}).join('')}
   renderSum();
 }
+// Nyereményjáték (a rendeléskezelő küldi az étlappal): futó játéknál mutatjuk, mennyi hiányzik még
+function gwOn(){const g=M&&M.giveaway;return g&&g.active&&g.running?g:null}
+function gwTill(g){const d=new Date(g.until.slice(0,10)+'T12:00');return d.toLocaleDateString('hu-HU',{weekday:'long'})+' ('+d.toLocaleDateString('hu-HU',{month:'long',day:'numeric'})+') '+(g.until.slice(11,16)||'23:59')}
+function gwLine(v){const g=gwOn();if(!g)return '';
+  const em=$('email').value.trim()?'':' Add meg az e-mail-címed, hogy értesíthessünk, ha nyersz.';
+  if(v==null)return `<span class="gw">🍂 ${huf(g.above)} Ft feletti rendeléssel (szállítási díj nélkül) részt veszel a pizzakoszorú-sorsoláson.${em}</span>`;
+  return v>g.above?`<span class="gw ok">✓ Ezzel a rendeléssel részt veszel a pizzakoszorú-sorsoláson!${em}</span>`:`<span class="gw">🍂 Még <b>${huf(g.above-v+1)} Ft</b>, és részt veszel a pizzakoszorú-sorsoláson (${huf(g.above)} Ft felett, szállítás nélkül).</span>`}
 function renderSum(){if(quick)return renderQuickSum();const t=totals();let feeTxt='';
   if(mode==='delivery'){feeTxt=t.fee===null?'válassz települést':t.fee<0?'egyeztetjük telefonon':huf(t.fee)+' Ft'}
   const tot=t.sub+t.pk+(t.fee>0?t.fee:0);
-  $('sum').innerHTML=`<div><span>Ételek</span><span>${huf(t.sub)} Ft</span></div>${t.pk?`<div><span>Csomagolás (elviteles dobozok)</span><span>${huf(t.pk)} Ft</span></div>`:''}${mode==='delivery'?`<div><span>Szállítás</span><span>${feeTxt}</span></div>`:''}<div class="tot"><span>Végösszeg</span><span>${huf(tot)} Ft</span></div>`;
+  $('sum').innerHTML=`<div><span>Ételek</span><span>${huf(t.sub)} Ft</span></div>${t.pk?`<div><span>Csomagolás (elviteles dobozok)</span><span>${huf(t.pk)} Ft</span></div>`:''}${mode==='delivery'?`<div><span>Szállítás</span><span>${feeTxt}</span></div>`:''}<div class="tot"><span>Végösszeg</span><span>${huf(tot)} Ft</span></div>${t.n&&isOpen?gwLine(t.sub+t.pk):''}`;
   $('send').textContent=closedToday?'Ma már bezártunk':!isOpen?'Az online rendelés most szünetel':t.n?`Rendelés elküldése · ${huf(tot)}${mode==='delivery'&&t.fee<0?' Ft + szállítás':' Ft'}`:'A kosár üres';$('send').disabled=!t.n||!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':t.fee<0?'Erre a településre egyedileg egyeztetjük a díjat – visszahívunk.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
 function renderQuickSum(){const t=totals();const free=dailyFree();
   const fee=mode==='delivery'?(t.fee===null?'válassz települést':free?'ingyenes (előrendelés 11:00 előtt)':huf(t.fee)+' Ft'):'';
-  $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>`;
+  $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>${isOpen?gwLine(null):''}`;
   $('send').textContent=closedToday?'Ma már bezártunk':!isOpen?'Az online rendelés most szünetel':'Rendelés elküldése';$('send').disabled=!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':free?'A napi ajánlat 11:00 előtti előrendelésénél ide nincs szállítási díj.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
 $('qtext').addEventListener('input',()=>{if(quick)renderSum()});
+$('email').addEventListener('input',()=>{if(gwOn())renderSum()});
 function setMode(v){mode=v;document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('addr').style.display=v==='delivery'?'block':'none';$('pickupHint').style.display=v==='delivery'?'none':'block';renderSum()}
 document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.v));
 document.querySelectorAll('#paySeg button').forEach(b=>b.onclick=()=>{pay=b.dataset.v;document.querySelectorAll('#paySeg button').forEach(x=>x.classList.toggle('on',x===b))});

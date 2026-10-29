@@ -111,6 +111,7 @@ func (a *App) handlePublicMenu(w http.ResponseWriter, r *http.Request) {
 		"notice":       c.OnlineUzenet,
 		"sections":     publicMenu,
 		"fees":         fees,
+		"giveaway":     publicGiveaway(time.Now()),
 	})
 }
 

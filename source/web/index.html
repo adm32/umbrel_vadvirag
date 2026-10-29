@@ -267,6 +267,7 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .pausebar b{display:block;color:var(--red);font-size:17px;margin-bottom:2px}.pausebar div{flex:1}
 .pausebar button{flex:none;background:var(--green);color:#fff;font-weight:700;border:0;border-radius:12px;height:42px;padding:0 16px;font-size:15px}
 .rf-count{font-size:15px;color:var(--label2);padding:8px 16px 0}.rf-count b{color:var(--label)}
+.rf-load{flex:none;background:var(--purple);color:#fff;font-weight:600;font-size:15px;padding:8px 14px;border-radius:12px;border:0}.rf-load:disabled{opacity:.4}
 .rf-step{display:flex;align-items:center;gap:6px}.rf-step button{width:34px;height:34px;border-radius:50%;background:var(--fill2);color:var(--blue);font-size:20px;font-weight:600;line-height:1}.rf-step b{min-width:26px;text-align:center;font-size:17px}
 .rf-help{margin:0;padding:6px 16px 0 34px;color:var(--label2);font-size:13px;line-height:1.5}
 .rf-stage{position:relative;margin:6px 0 0;background:var(--card);border-radius:20px;padding:26px 16px 22px;text-align:center;overflow:hidden;box-shadow:var(--shadow)}
@@ -700,7 +701,7 @@ function renderMore(){
   $('moreBody').innerHTML=`<div class="mgroup" style="margin-top:4px">`+
     r(I.bell,'var(--red)','Értesítések a böngészőben',N.on?'Bekapcsolva ezen az eszközön':'Ezen az eszközön nincs bekapcsolva','dMore.close();openNotif()')+
     r(soundOn?I.spk:I.spkoff,'var(--blue)','Hangjelzés',soundOn?'Bekapcsolva – csipog, ha új rendelés jön':'Kikapcsolva','toggleSound();renderMore()')+`</div><div class="mgroup">`+
-    r(I.gift,'var(--purple)','Nyereményjáték sorsolás','Facebook-játék nyertesének kihúzása','dMore.close();openRaffle()')+
+    r(I.gift,'var(--purple)','Nyereményjáték sorsolás','Facebook- vagy weboldalas játék sorsolása','dMore.close();openRaffle()')+
     r(I.gear,'#8e8e93','Beállítások','ntfy értesítés, e-mail, jelszó, mentés','dMore.close();openSettings()')+`</div><div class="mgroup">`+
     r(I.out,'#8e8e93','Kilépés','','location.href=\'/logout\'')+`</div>`;
 }
@@ -794,23 +795,33 @@ function prePrint(d){
 if(location.hash==='#elorendeles')setTimeout(openPre,600);
 
 // ---- Nyereményjáték sorsolás
-let RF={title:'',link:'',names:'',winners:1,reserves:1,clean:[],off:new Set(),hist:[]},rfT=0;
+let RF={title:'',link:'',names:'',winners:1,reserves:1,clean:[],off:new Set(),hist:[],src:'',gw:null},rfT=0;
 const I_GIFT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>';
-async function openRaffle(){dRaffle.showModal();rfForm();try{RF.hist=await api('/api/raffle');rfForm()}catch(e){}}
+async function openRaffle(){dRaffle.showModal();rfForm();try{const [h,g]=await Promise.all([api('/api/raffle'),api('/api/giveaway').catch(()=>null)]);RF.hist=h;RF.gw=g&&g.active?g:null;rfForm()}catch(e){}}
+// Weboldalas nyereményjáték: a jogosult rendelők (telefonszámonként egyszer) betöltése a sorsolóba
+function rfGwCard(){const g=RF.gw;if(!g)return '';const G=g.giveaway,n=g.entries.length;
+  const till=new Date(G.until.replace(' ','T')).toLocaleDateString('hu-HU',{month:'long',day:'numeric',weekday:'long'})+' '+G.until.slice(11,16);
+  return `<div class="flabel">Weboldalas nyereményjáték</div><div class="list"><div class="row"><span class="tx" style="flex:1"><b style="display:block">${esc(G.title.hu)}</b><small style="display:block;color:var(--label2);font-size:13px;margin-top:3px">Weboldalas rendelés ${huf(G.above)} Ft felett (szállítás nélkül), ${esc(till)}-ig · telefonszámonként egyszer · sorsolás: ${esc(G.draw.slice(11,16)||G.draw)}<br>${g.running?'<b style="color:var(--orange)">A játék még tart</b> – a végleges listát a zárás után töltsd be.':'<b style="color:var(--green)">A játék lezárult</b> – lehet sorsolni.'}</small></span></div>
+  <div class="row"><span class="tx" style="flex:1"><b>${n}</b> résztvevő${g.running?' eddig':''}</span><button class="rf-load" onclick="rfLoadGw(this)" ${n?'':'disabled'}>Résztvevők betöltése</button></div></div>`}
+async function rfLoadGw(b){if(b)b.disabled=true;try{const g=await api('/api/giveaway');RF.gw=g.active?g:null;if(!RF.gw)return;const G=g.giveaway;
+  RF.src='orders';RF.title=G.title.hu;RF.link='';RF.names=g.entries.map(e=>e.line).join('\n');RF.winners=Math.min(G.winners||1,Math.max(1,g.entries.length));RF.reserves=Math.min(1,Math.max(0,g.entries.length-RF.winners));RF.off=new Set();rfForm();rfCount()}catch(e){if($('rfErr'))$('rfErr').textContent=e.message}finally{if(b)b.disabled=false}}
+function rfFb(){RF.src='';RF.names='';RF.title='';RF.clean=[];RF.off=new Set();RF.winners=1;rfForm()}
 function rfForm(){
   const n=RF.clean.length;
-  $('rfBody').innerHTML=`<div class="hint" style="padding-top:2px">Húzz nyertest a Facebook-poszt hozzászólói (vagy más résztvevők) közül. A sorsolás véletlenszerű, és minden sorsolás mentésre kerül.</div>
-  <div class="flabel">Nyereményjáték</div>
+  const ord=RF.src==='orders';
+  $('rfBody').innerHTML=`<div class="hint" style="padding-top:2px">${ord?'A résztvevők a weboldalas rendelésekből jöttek. A sorsolás véletlenszerű, és minden sorsolás mentésre kerül.':'Húzz nyertest a Facebook-poszt hozzászólói (vagy más résztvevők) közül. A sorsolás véletlenszerű, és minden sorsolás mentésre kerül.'}</div>
+  ${ord?'':rfGwCard()}
+  <div class="flabel">${ord?'Nyereményjáték':RF.gw?'Facebook-játék':'Nyereményjáték'}</div>
   <div class="list">
     <div class="row"><span class="k">Neve</span><input id="rfTitle" placeholder="pl. Karácsonyi pizza nyeremény" value="${esc(RF.title)}" oninput="RF.title=this.value"></div>
-    <div class="row"><span class="k">Poszt linkje</span><input id="rfLink" inputmode="url" placeholder="https://www.facebook.com/…" value="${esc(RF.link)}" oninput="RF.link=this.value"></div>
+    ${ord?'':`<div class="row"><span class="k">Poszt linkje</span><input id="rfLink" inputmode="url" placeholder="https://www.facebook.com/…" value="${esc(RF.link)}" oninput="RF.link=this.value"></div>`}
   </div>
   <div class="flabel">Résztvevők</div>
   <div class="list"><div class="row"><textarea id="rfNames" style="min-height:150px" placeholder="Másold vagy írd ide a résztvevők nevét, soronként egyet." oninput="RF.names=this.value;rfCount()">${esc(RF.names)}</textarea></div></div>
   <div class="rf-count" id="rfCount">${rfCountTxt()}</div>
   <div id="rfChips">${rfChips()}</div>
-  <ol class="rf-help"><li>Nyisd meg a posztot, és kapcsold a hozzászólásokat <b>„Az összes hozzászólás”</b> nézetre.</li><li>Másold ki a hozzászólók nevét (vagy írd be őket), és illeszd be ide. Az ismétlődéseket és a gombfeliratokat a program kiszűri.</li><li>Ha egy sor nem név (pl. egy hozzászólás szövege), koppints rá a fenti listában, és kimarad a sorsolásból.</li></ol>
-  <div class="hint">A megosztókat a Facebook nem mutatja meg (a csak ismerősöknek szóló megosztások rejtettek), és a Facebook szabályai szerint a megosztás nem is lehet a részvétel feltétele. A „kommentelj és nyerj” játék szabályos és teljesen ellenőrizhető.</div>
+  ${ord?`<div class="hint">Minden sor: név – telefonszám – rendelés száma (E = előrendelés). Ha valakit ki kell hagyni (pl. saját dolgozó), koppints a nevére. <a href="#" onclick="event.preventDefault();rfFb()">Inkább Facebook-játékot sorsolok</a></div>`:`<ol class="rf-help"><li>Nyisd meg a posztot, és kapcsold a hozzászólásokat <b>„Az összes hozzászólás”</b> nézetre.</li><li>Másold ki a hozzászólók nevét (vagy írd be őket), és illeszd be ide. Az ismétlődéseket és a gombfeliratokat a program kiszűri.</li><li>Ha egy sor nem név (pl. egy hozzászólás szövege), koppints rá a fenti listában, és kimarad a sorsolásból.</li></ol>
+  <div class="hint">A megosztókat a Facebook nem mutatja meg (a csak ismerősöknek szóló megosztások rejtettek), és a Facebook szabályai szerint a megosztás nem is lehet a részvétel feltétele. A „kommentelj és nyerj” játék szabályos és teljesen ellenőrizhető.</div>`}
   <div class="list" style="margin-top:16px">
     <div class="row"><span class="tx" style="flex:1">Nyertesek</span><span class="rf-step"><button onclick="rfStep('winners',-1)">−</button><b>${RF.winners}</b><button onclick="rfStep('winners',1)">+</button></span></div>
     <div class="row"><span class="tx" style="flex:1">Pótnyertes <small style="color:var(--label2);font-size:13px">ha a nyertes nem jelentkezik</small></span><span class="rf-step"><button onclick="rfStep('reserves',-1)">−</button><b>${RF.reserves}</b><button onclick="rfStep('reserves',1)">+</button></span></div>
@@ -827,7 +838,8 @@ function rfCount(){clearTimeout(rfT);rfT=setTimeout(async()=>{try{const d=await 
 function rfStep(k,d){const min=k==='winners'?1:0;RF[k]=Math.max(min,Math.min(10,RF[k]+d));const st=$('rfNames').scrollTop;rfForm();$('rfNames').scrollTop=st}
 async function rfDraw(btn){
   const err=m=>{$('rfErr').textContent=m};
-  if(!/^https?:\/\/\S+\.\S+/.test(RF.link.trim()))return err('Illeszd be a Facebook-poszt linkjét.');
+  if(RF.src!=='orders'&&!/^https?:\/\/\S+\.\S+/.test(RF.link.trim()))return err('Illeszd be a Facebook-poszt linkjét.');
+  if(!rfActive().length)return err('Még nincs résztvevő.');
   btn.disabled=true;let d;
   try{d=await api('/api/raffle',{title:RF.title,link:RF.link.trim(),names:rfActive().join('\n'),winners:RF.winners,reserves:RF.reserves})}catch(e){btn.disabled=false;return err(e.message)}
   // pörgetés
@@ -836,20 +848,28 @@ async function rfDraw(btn){
   await new Promise(res=>{const tick=()=>{wh.textContent=pool[Math.floor(Math.random()*pool.length)];const el=performance.now()-t0;if(el>3200){res();return}delay=el<1800?45:delay*1.18;setTimeout(tick,delay)};tick()});
   rfResult(d);RF.hist.unshift(d);
 }
+async function rfNotify(b,winners){b.disabled=true;b.textContent='Küldés…';
+  try{const d=await api('/api/giveaway/notify',{winners});
+    $('rfMail').innerHTML=d.results.map(x=>`<div class="row"><span class="tx" style="flex:1"><b style="display:block">${esc(x.name)}</b><small style="display:block;color:${x.ok?'var(--green)':'var(--red)'};font-size:13px;margin-top:2px">${x.ok?'✓ E-mail elküldve: '+esc(x.email):esc(x.error)}</small></span></div>`).join('')}
+  catch(e){b.disabled=false;b.textContent='Újra';toast(e.message)}}
 function rfCopy(b){const ta=$('rfAnn');const done=()=>{b.textContent='Kimásolva ✓';setTimeout(()=>b.textContent='Bejelentés másolása',2000)};
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(ta.value).then(done);else{ta.select();document.execCommand('copy');done()}}
 function rfResult(d){
-  const W=d.winners,multi=W.length>1;
-  const ann=`🎉 ${d.title?d.title+' – ':''}${multi?'A nyertesek':'A nyertes'}: ${W.join(', ')}! Gratulálunk! ${multi?'Kérjük, írjatok':'Kérjük, írj'} nekünk üzenetet a nyeremény átvételéhez. 🌸 Vadvirág Étterem`;
+  const W=d.winners,multi=W.length>1,ord=W.some(w=>/ – #?E?\d+$/.test(w));
+  // a bejelentésbe csak a név kerül (a telefonszám és a rendelésszám nem)
+  const pub=W.map(w=>ord?w.split(' – ')[0]:w);
+  const ann=ord?`🎉 ${d.title?d.title+' – ':''}${multi?'a nyertesek':'a nyertes'}: ${pub.join(', ')}! Gratulálunk! ${multi?'A nyeremény átvételéről e-mailben is értesítünk titeket':'A nyeremény átvételéről e-mailben is értesítünk'}. Köszönjük mindenkinek, aki a weboldalunkon rendelt! 🍂 Vadvirág Étterem`
+    :`🎉 ${d.title?d.title+' – ':''}${multi?'A nyertesek':'A nyertes'}: ${W.join(', ')}! Gratulálunk! ${multi?'Kérjük, írjatok':'Kérjük, írj'} nekünk üzenetet a nyeremény átvételéhez. 🌸 Vadvirág Étterem`;
   const cols=['#ff3b30','#ff9500','#ffcc00','#34c759','#007aff','#af52de'];
   const conf=Array.from({length:60},()=>`<i style="left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*cols.length)]};--dx:${(Math.random()*120-60)|0}px;--r:${(Math.random()*720-360)|0}deg;animation-delay:${(Math.random()*.5).toFixed(2)}s"></i>`).join('');
   $('rfBody').innerHTML=`<div class="rf-stage"><div class="rf-conf">${conf}</div>
     <div class="rf-win"><div class="rf-crown">${I_GIFT}</div><div class="rf-k">${multi?'A nyertesek':'A nyertes'}</div>
-    ${W.map(w=>`<div class="rf-name">${esc(w)}</div>`).join('')}
+    ${W.map(w=>ord?`<div class="rf-name">${esc(w.split(' – ')[0])}</div><div class="rf-sub" style="margin:-2px 0 6px">${esc(w.split(' – ').slice(1).join(' · '))}</div>`:`<div class="rf-name">${esc(w)}</div>`).join('')}
     <div class="rf-sub">Gratulálunk! 🎉</div>
     ${d.reserves&&d.reserves.length?`<div class="rf-res">Pótnyertes: <b>${esc(d.reserves.join(', '))}</b></div>`:''}</div></div>
   <div class="hint" style="text-align:center">${esc(d.title||'Sorsolás')} · ${fmtDay(d.at)} ${fmtTime(d.at)} · ${d.count} résztvevő közül · #${d.id}</div>
-  <div class="flabel">Bejelentés szövege</div>
+  ${ord?`<div class="flabel">Értesítés e-mailben</div><div class="list" id="rfMail"><div class="row"><span class="tx" style="flex:1">A nyertesek e-mailt kapnak arról, hogy nyertek, és hogyan vehetik át a nyereményt.</span><button class="rf-load" onclick='rfNotify(this,${esc(JSON.stringify(W))})'>Küldés</button></div></div>`:''}
+  <div class="flabel">Bejelentés szövege${ord?' (Facebookra)':''}</div>
   <div class="list"><div class="row"><textarea id="rfAnn" style="min-height:90px">${esc(ann)}</textarea></div></div>
   <button class="bigbtn blue" onclick="rfCopy(this)">Bejelentés másolása</button>
   ${d.link?`<a class="bigbtn ghost" style="display:grid;place-items:center;margin-top:10px" href="${esc(d.link)}" target="_blank" rel="noopener">Poszt megnyitása</a>`:''}

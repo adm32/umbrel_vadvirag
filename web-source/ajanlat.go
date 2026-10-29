@@ -2,8 +2,10 @@ package main
 
 // Ajánlatok: hétvégi ajánlat és heti menü. Az adatok az ajanlatok.json fájlban vannak;
 // hetente csak azt kell frissíteni. Hogy mi látszik, azt a szerver dönti el a budapesti
-// dátum alapján, így a hétvégi ajánlat hétfőtől magától eltűnik, a heti menü pedig csak a
-// saját hetén (és az azt megelőző hétvégén, „jövő heti menüként”) látszik.
+// dátum alapján, így a hétvégi ajánlat hétfőtől magától eltűnik. A napi ajánlatokból (heti
+// menük, "weeks") mindig az látszik, amelyiknek a megjelenési ideje ("show_from") már elmúlt és
+// még nem járt le; ha több is, a legkésőbb megjelenő. Így a jövő heti menü előre beírható, és
+// pl. péntek 15:00-kor magától átvált („jövő heti menü”, majd hétfőtől az aktuális).
 
 import (
 	_ "embed"
@@ -41,8 +43,9 @@ type weekendOffer struct {
 
 type weeklyDay struct {
 	Date  string `json:"date"`
-	Soups []L10n `json:"soups"`
-	Mains []L10n `json:"mains"`
+	Soups   []L10n `json:"soups"`
+	Mains   []L10n `json:"mains"`
+	Dessert L10n   `json:"dessert,omitempty"` // a háromfogásos menü desszertje
 }
 
 type weeklyMenu struct {
@@ -57,7 +60,8 @@ type weeklyMenu struct {
 
 type offersFile struct {
 	Weekend *weekendOffer `json:"weekend"`
-	Weekly  *weeklyMenu   `json:"weekly"`
+	Weeks   []weeklyMenu  `json:"weeks"`
+	Weekly  *weeklyMenu   `json:"weekly,omitempty"` // régi formátum (egy hét)
 }
 
 var (
@@ -77,6 +81,20 @@ func init() {
 	if err := json.Unmarshal(offersJSON, &offers); err != nil {
 		log.Printf("ajanlatok.json hibás, az ajánlatok nem jelennek meg: %v", err)
 	}
+	if offers.Weekly != nil {
+		offers.Weeks = append(offers.Weeks, *offers.Weekly)
+		offers.Weekly = nil
+	}
+}
+
+// showTime: a "show_from" értéke ("2026-10-30" vagy "2026-10-30 15:00"); alapból 3 nappal a hét előtt.
+func showTime(m weeklyMenu, from time.Time) time.Time {
+	for _, f := range []string{"2006-01-02 15:04", "2006-01-02T15:04", "2006-01-02"} {
+		if t, err := time.ParseInLocation(f, m.ShowFrom, budapestTZ); err == nil {
+			return t
+		}
+	}
+	return from.AddDate(0, 0, -3)
 }
 
 func day(s string) (time.Time, bool) {
@@ -98,18 +116,25 @@ func activeOffers(now time.Time) map[string]any {
 			out["weekend"] = cp
 		}
 	}
-	if m := offers.Weekly; m != nil {
+	var best *weeklyMenu
+	var bestShow time.Time
+	for i := range offers.Weeks {
+		m := &offers.Weeks[i]
 		from, ok1 := day(m.From)
 		to, ok2 := day(m.To)
-		show := from.AddDate(0, 0, -3)
-		if s, ok := day(m.ShowFrom); ok {
-			show = s
+		if !ok1 || !ok2 {
+			continue
 		}
-		if ok1 && ok2 && !today.Before(show) && !today.After(to) {
-			cp := *m
-			cp.Upcoming = today.Before(from)
-			out["weekly"] = cp
+		show := showTime(*m, from)
+		if !now.Before(show) && !today.After(to) && (best == nil || show.After(bestShow)) {
+			best, bestShow = m, show
 		}
+	}
+	if best != nil {
+		from, _ := day(best.From)
+		cp := *best
+		cp.Upcoming = today.Before(from)
+		out["weekly"] = cp
 	}
 	return out
 }

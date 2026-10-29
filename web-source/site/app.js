@@ -49,7 +49,7 @@ function setLang(l, push) {
   if (push) { const path = lang === 'hu' ? '/' : '/' + lang; history.replaceState(null, '', path + location.hash); }
   renderStatus(); renderHours(); renderFacts(); setKind(kind);
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
-  renderDrinks(); renderAlg(); renderOffers(); renderPre();
+  renderDrinks(); renderAlg(); renderOffers(); renderPre(); renderGw();
 }
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); hideLangHint(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
 
@@ -172,6 +172,28 @@ function renderOffers() {
   }
   el.hidden = !w;
   renderWeekly();
+}
+
+// ---- Nyereményjáték a weboldalas rendelők között (a rendeléskezelő nyeremenyjatek.json-ja alapján).
+// A szabályt a rendeléskezelő ellenőrzi; itt csak bemutatjuk. A játék után a sorsolás napjáig a „lezárult” szöveg látszik.
+let GW = null;
+async function loadGw() {
+  try { const r = await fetch('/api/public/giveaway', { cache: 'no-store' }); if (!r.ok) throw 0; const d = await r.json(); GW = d.active ? d : null; } catch (e) { GW = null; }
+  renderGw();
+}
+function renderGw() {
+  const el = $('nyeremeny'), hc = $('heroGw');
+  el.hidden = hc.hidden = !GW;
+  if (!GW) return;
+  const end = isoDay(GW.until.slice(0, 10)), draw = isoDay(GW.draw.slice(0, 10));
+  const dayFmt = d => lang === 'hu' ? d.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + d.toLocaleDateString('hu-HU', { month: 'long', day: 'numeric' }) + ')' : d.toLocaleDateString(LOC(), { weekday: 'long', day: 'numeric', month: 'long' });
+  const p = { n: GW.winners, min: huf(GW.above), date: dayFmt(end), time: GW.until.slice(11, 16) || '23:59', draw: dayFmt(draw), dtime: GW.draw.slice(11, 16) || '21:00' };
+  el.innerHTML = `<div class="gw-pic"><img src="/img/pizzakoszoru.webp" alt="${esc(T('gwAlt'))}" width="564" height="564" loading="lazy"></div>
+    <div class="gw-body"><span class="off-tag">${esc(T('gwTag'))}</span><h3>${esc(T('gwTitle', p))}</h3>
+    <p>${esc(T(GW.running ? 'gwText' : 'gwEnded', p))}</p>
+    ${GW.running ? `<div class="gw-act"><a class="btn btn-red btn-lg" href="/rendeles">${esc(T('gwBtn'))}</a><small>${esc(T('gwNote', p))}</small></div>` : ''}</div>`;
+  hc.hidden = !GW.running;
+  hc.innerHTML = `<span class="gi"><img src="/img/pizzakoszoru-xs.webp" alt="" width="44" height="44"></span><span><b>${esc(T('gwTitle', p))}</b><small>${esc(T('gwHero', p))}</small></span><span class="go">›</span>`;
 }
 
 // ---- Előrendelhető alkalmi ajánlat (most: Márton-nap). Az ajánlat és az árak a rendeléskezelőből
@@ -342,6 +364,7 @@ function renderWeekly() {
       <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklySoups'))}</h4></legend>${d.soups.map((s, i) => opt('wkSoup', i, '•', L10(s))).join('')}</fieldset>
       <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklyMains'))}</h4></legend>${d.mains.map((s, i) => opt('wkMain', i, letter(i), L10(s))).join('')}</fieldset>
     </div>
+    ${d.dessert ? `<p class="wk-dessert${wkCourses === 3 ? ' on' : ''}"><span class="k">${esc(T('weeklyDessert'))}</span><span>${esc(L10(d.dessert))}</span></p>` : ''}
     <div class="wk-foot">${wkFoot(m, d)}</div>`;
   if ($('wkOrder')) $('wkOrder').href = quickHref(weeklyText(m, d));
 }
@@ -373,7 +396,7 @@ function weeklyText(m, d) {
   return 'Napi ajánlat – ' + dd.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + dd.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) + '), ' +
     (three ? 'háromfogásos (' + huf(m.three) + ' Ft)' : 'kétfogásos (' + huf(m.two) + ' Ft)') +
     '\nLeves: ' + d.soups[wkSoup].hu + '\nFőétel: ' + String.fromCharCode(65 + wkMain) + ') ' + d.mains[wkMain].hu +
-    (three ? '\nDesszert: a háromfogásos menü desszertje' : '');
+    (three ? '\nDesszert: ' + (d.dessert ? d.dessert.hu : 'a háromfogásos menü desszertje') : '');
 }
 $('offWeekly').addEventListener('click', e => {
   const t = tgt(e); if (!t) return;
@@ -661,6 +684,9 @@ function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('sh
 const cv = $('petals'), ctx = cv.getContext('2d'), hero = $('hero');
 let W = 0, H = 0, FH = 0, petals = [], running = false, visible = true, last = 0;
 const COLORS = ['#c4140a', '#d9261b', '#a5100a', '#e0412f', '#b81d12'];
+// Ősszel (szeptember–november) a pipacsszirmok közé falevelek is hullanak; a koppintásra kirobbanó szirmok maradnak pipacsok.
+const AUTUMN = [8, 9, 10].includes(new Date().getMonth());
+const LEAVES = ['#c8641e', '#d98a2b', '#a8501a', '#b8862f', '#8f3f12', '#c9a03a'];
 // FH: meddig hullanak a szirmok. Telefonon a kép van felül, a szöveg alatta – ott csak a képen hullanak, hogy ne takarják a szöveget.
 function resize() {
   const dpr = Math.min(devicePixelRatio || 1, 2); W = hero.clientWidth; H = hero.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -668,14 +694,20 @@ function resize() {
   FH = art && innerWidth < 760 ? art.getBoundingClientRect().bottom - hero.getBoundingClientRect().top : H;
 }
 function petal(x, y, burstV) {
-  const s = 7 + Math.random() * 9;
-  return { x, y, s, r: Math.random() * 6.28, vr: (Math.random() - .5) * .05, vx: burstV ? (Math.random() - .5) * burstV : (Math.random() - .3) * .5, vy: burstV ? -Math.random() * burstV * .8 : .35 + Math.random() * .6,
-    sw: Math.random() * 6.28, c: COLORS[(Math.random() * COLORS.length) | 0], life: burstV ? 1 : -1, flip: Math.random() * 6.28 };
+  const leaf = AUTUMN && !burstV && Math.random() < .45;
+  const s = leaf ? 8 + Math.random() * 7 : 7 + Math.random() * 9;
+  return { leaf, c: leaf ? LEAVES[(Math.random() * LEAVES.length) | 0] : COLORS[(Math.random() * COLORS.length) | 0], x, y, s, r: Math.random() * 6.28, vr: (Math.random() - .5) * .05, vx: burstV ? (Math.random() - .5) * burstV : (Math.random() - .3) * .5, vy: burstV ? -Math.random() * burstV * .8 : .35 + Math.random() * .6,
+    sw: Math.random() * 6.28, life: burstV ? 1 : -1, flip: Math.random() * 6.28 };
 }
 function drawPetal(p) {
   ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(1, Math.abs(Math.cos(p.flip)) * .7 + .3);
   ctx.globalAlpha = p.life > 0 ? Math.min(1, p.life * 1.5) : .9;
   ctx.fillStyle = p.c; ctx.beginPath();
+  if (p.leaf) {
+    ctx.moveTo(0, -p.s); ctx.quadraticCurveTo(p.s * .8, -p.s * .3, 0, p.s); ctx.quadraticCurveTo(-p.s * .8, -p.s * .3, 0, -p.s); ctx.fill();
+    ctx.globalAlpha *= .45; ctx.strokeStyle = '#4a2208'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -p.s * .8); ctx.lineTo(0, p.s * 1.3); ctx.stroke();
+    ctx.restore(); return;
+  }
   ctx.moveTo(0, -p.s); ctx.bezierCurveTo(p.s * .9, -p.s * .8, p.s * .9, p.s * .6, 0, p.s * .55); ctx.bezierCurveTo(-p.s * .9, p.s * .6, -p.s * .9, -p.s * .8, 0, -p.s);
   ctx.fill(); ctx.globalAlpha *= .25; ctx.fillStyle = '#3a0904'; ctx.beginPath(); ctx.ellipse(0, p.s * .3, p.s * .18, p.s * .12, 0, 0, 6.28); ctx.fill();
   ctx.restore();
@@ -723,7 +755,7 @@ function miniBurst(x, y, n) {
 }
 if (!reduced) {
   resize();
-  const n = innerWidth < 760 ? 3 : 6;
+  const n = (innerWidth < 760 ? 3 : 6) + (AUTUMN ? 2 : 0);
   for (let i = 0; i < n; i++) petals.push(petal(Math.random() * W, Math.random() * FH));
   addEventListener('resize', resize); addEventListener('load', resize);
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(hero);
@@ -791,5 +823,7 @@ document.addEventListener('click', e => {
 loadMenu();
 loadOffers();
 loadPre();
+loadGw();
+if (AUTUMN) document.documentElement.classList.add('autumn');
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
 })();

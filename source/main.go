@@ -241,6 +241,9 @@ func openStore(path string) (*Store, error) {
 
 // saveLocked: hívó tartja a zárat.
 func (s *Store) saveLocked() {
+	if s.path == "" { // memóriában tartott tár (tesztek): nincs mit menteni
+		return
+	}
 	data, _ := json.MarshalIndent(s, "", " ")
 	tmp := s.path + ".tmp"
 	if err := os.WriteFile(tmp, data, 0o600); err != nil {
@@ -1307,11 +1310,14 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("GET /api/raffle", a.requireAuth(a.handleRaffleList))
 	mux.HandleFunc("POST /api/raffle", a.requireAuth(a.handleRaffleDraw))
 	mux.HandleFunc("POST /api/raffle/preview", a.requireAuth(a.handleRafflePreview))
+	mux.HandleFunc("GET /api/giveaway", a.requireAuth(a.handleGiveaway))
+	mux.HandleFunc("POST /api/giveaway/notify", a.requireAuth(a.handleGiveawayNotify))
 	mux.HandleFunc("GET /api/backup", a.requireAuth(a.handleBackup))
 	mux.HandleFunc("POST /api/import", a.requireAuth(a.handleImport))
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("GET /rendeles", a.servePublicPage)
 	mux.HandleFunc("GET /api/public/menu", a.handlePublicMenu)
+	mux.HandleFunc("GET /api/public/giveaway", a.handlePublicGiveaway)
 	mux.HandleFunc("POST /api/public/order", a.handlePublicOrder)
 	mux.HandleFunc("POST /api/public/quick", a.handlePublicQuick)
 	mux.HandleFunc("GET /api/public/order/{token}", a.handlePublicStatus)

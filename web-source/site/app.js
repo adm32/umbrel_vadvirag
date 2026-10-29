@@ -187,7 +187,7 @@ function renderGw() {
   if (!GW) return;
   const end = isoDay(GW.until.slice(0, 10)), draw = isoDay(GW.draw.slice(0, 10));
   const dayFmt = d => lang === 'hu' ? d.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + d.toLocaleDateString('hu-HU', { month: 'long', day: 'numeric' }) + ')' : d.toLocaleDateString(LOC(), { weekday: 'long', day: 'numeric', month: 'long' });
-  const p = { n: GW.winners, min: huf(GW.above), date: dayFmt(end), time: GW.until.slice(11, 16) || '23:59', draw: dayFmt(draw), dtime: GW.draw.slice(11, 16) || '21:00' };
+  const p = { n: GW.winners, min: huf(GW.min), date: dayFmt(end), time: GW.until.slice(11, 16) || '23:59', draw: dayFmt(draw), dtime: GW.draw.slice(11, 16) || '21:00' };
   el.innerHTML = `<div class="gw-pic"><img src="/img/pizzakoszoru.webp" alt="${esc(T('gwAlt'))}" width="564" height="564" loading="lazy"></div>
     <div class="gw-body"><span class="off-tag">${esc(T('gwTag'))}</span><h3>${esc(T('gwTitle', p))}</h3>
     <p>${esc(T(GW.running ? 'gwText' : 'gwEnded', p))}</p>

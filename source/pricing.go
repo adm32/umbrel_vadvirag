@@ -60,8 +60,11 @@ func refs() []menuRef {
 var synonyms = map[string]string{"rizzsel": "rizs", "rizzsal": "rizs", "rizses": "rizs", "krumpli": "hasabburgonya",
 	"krumplival": "hasabburgonya", "sultkrumpli": "hasabburgonya", "kola": "cola", "kolat": "cola", "coca": "coca"}
 
+// A „pizza koszorú” különírva is a pizzakoszorút jelenti (az étlapon egybeírva szerepel).
+var koszoruRe = regexp.MustCompile(`pizza[\s-]+koszoru`)
+
 func tokens(s string) []string {
-	s = norm(s)
+	s = koszoruRe.ReplaceAllString(norm(s), "pizzakoszoru")
 	t := strings.FieldsFunc(s, func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsDigit(r) })
 	for i, x := range t {
 		if y, ok := synonyms[x]; ok {

@@ -277,21 +277,21 @@
      "id": "pizzak-kivansag-pizza"
     },
     {
-     "name": "Pizza koszorú – Sonkás",
+     "name": "Pizzakoszorú – Sonkás",
      "desc": "paradicsomos alap, sonka, sajt, kukorica · kis adag salátával és választható mártogatóssal",
      "alg": "1, 7",
      "price": 4390,
      "id": "pizzak-pizza-koszoru-sonkas"
     },
     {
-     "name": "Pizza koszorú – Csirkés",
+     "name": "Pizzakoszorú – Csirkés",
      "desc": "paradicsomos alap, grillezett csirkemell, lilahagyma, füstölt sajt · kis adag salátával és választható mártogatóssal",
      "alg": "1, 7",
      "price": 4590,
      "id": "pizzak-pizza-koszoru-csirkes"
     },
     {
-     "name": "Pizza koszorú – Csülkös",
+     "name": "Pizzakoszorú – Csülkös",
      "desc": "tejfölös-tormás alap, füstölt csülök, lilahagyma, sajt · kis adag salátával és választható mártogatóssal",
      "alg": "1, 7",
      "price": 4790,

@@ -1,7 +1,7 @@
 package main
 
 // Nyereményjáték a weboldalas rendelők között (nyeremenyjatek.json). Aki a játék ideje alatt a
-// weboldalon rendel, és a rendelése a szállítási díj nélkül több mint a megadott összeg,
+// weboldalon rendel, és a rendelése a szállítási díj nélkül eléri a megadott összeget,
 // automatikusan bekerül – telefonszámonként egyszer. A sorsolás a meglévő sorsolóval megy:
 // a Rendelések appban a „Résztvevők betöltése” gomb ebből tölti be a listát.
 
@@ -25,7 +25,7 @@ type Giveaway struct {
 	Prize     map[string]string `json:"prize"`
 	PrizeNote string            `json:"prize_note,omitempty"`
 	Winners   int               `json:"winners"`
-	Above     int               `json:"above"`
+	Min       int               `json:"min"` // legalább ennyi Ft (szállítás nélkül)
 	From      string            `json:"from"`
 	Until     string            `json:"until"`
 	Draw      string            `json:"draw"`
@@ -116,7 +116,7 @@ func (a *App) giveawayEntries(g *Giveaway) []giveawayEntry {
 			if o.Source != "web" || o.Test || o.Status == StRejected || !in(o.Created) {
 				continue
 			}
-			if v := orderValue(o); v > g.Above {
+			if v := orderValue(o); v >= g.Min {
 				all = append(all, giveawayEntry{Name: strings.TrimSpace(o.Name), Phone: strings.TrimSpace(o.Phone), Email: strings.TrimSpace(o.Email), Ref: fmt.Sprintf("#%d", o.ID), Value: v, At: o.Created})
 			}
 		}
@@ -126,7 +126,7 @@ func (a *App) giveawayEntries(g *Giveaway) []giveawayEntry {
 		if p.Status == "lemondva" || !in(p.At) {
 			continue
 		}
-		if v := p.Food + p.Pack; v > g.Above {
+		if v := p.Food + p.Pack; v >= g.Min {
 			all = append(all, giveawayEntry{Name: strings.TrimSpace(p.Name), Phone: strings.TrimSpace(p.Phone), Email: strings.TrimSpace(p.Email), Ref: fmt.Sprintf("E%d", p.ID), Value: v, At: p.At})
 		}
 	}
@@ -262,6 +262,6 @@ func publicGiveaway(now time.Time) map[string]any {
 	if g == nil || now.Before(g.start()) || !now.Before(g.showEnd()) {
 		return map[string]any{"active": false}
 	}
-	return map[string]any{"active": true, "id": g.ID, "title": g.Title, "prize": g.Prize, "winners": g.Winners, "above": g.Above,
+	return map[string]any{"active": true, "id": g.ID, "title": g.Title, "prize": g.Prize, "winners": g.Winners, "min": g.Min,
 		"from": g.From, "until": g.Until, "draw": g.Draw, "running": now.Before(g.end())}
 }

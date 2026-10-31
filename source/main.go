@@ -1132,6 +1132,37 @@ func (a *App) handleSimple(status string) http.HandlerFunc {
 	}
 }
 
+// POST /api/orders/{id}/remove {"how":"close"|"delete"} – eltávolítás a listából a vendég
+// értesítése nélkül (pl. ha egy már lezárt rendelést véletlenül visszaállítottak újnak).
+// "close": lezárt (kész) lesz, a statisztikában megmarad; "delete": véglegesen törlődik.
+func (a *App) handleRemove(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		How string `json:"how"`
+	}
+	readJSON(r, &in, 1<<10)
+	id, ok := a.orderID(r)
+	a.st.mu.Lock()
+	defer a.st.mu.Unlock()
+	o := a.find(id)
+	if !ok || o == nil {
+		writeJSON(w, 404, map[string]string{"error": "nincs ilyen rendelés"})
+		return
+	}
+	switch in.How {
+	case "delete":
+		for i, x := range a.st.Orders {
+			if x == o {
+				a.st.Orders = append(a.st.Orders[:i], a.st.Orders[i+1:]...)
+				break
+			}
+		}
+	default:
+		o.Status, o.StatusAt = StDone, time.Now()
+	}
+	a.st.saveLocked()
+	writeJSON(w, 200, map[string]bool{"ok": true})
+}
+
 func (a *App) handleResend(w http.ResponseWriter, r *http.Request) {
 	id, ok := a.orderID(r)
 	if !ok {
@@ -1292,6 +1323,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("POST /api/orders/{id}/done", a.requireAuth(a.handleSimple(StDone)))
 	mux.HandleFunc("POST /api/orders/{id}/reopen", a.requireAuth(a.handleSimple(StNew)))
 	mux.HandleFunc("POST /api/orders/{id}/resend", a.requireAuth(a.handleResend))
+	mux.HandleFunc("POST /api/orders/{id}/remove", a.requireAuth(a.handleRemove))
 	mux.HandleFunc("POST /api/orders/{id}/mailed", a.requireAuth(a.handleMarkMailed))
 	mux.HandleFunc("POST /webhook/{key}", a.handleWebhook)
 	mux.HandleFunc("GET /api/push/key", a.requireAuth(a.handlePushKey))

@@ -1,8 +1,7 @@
 package main
 
 // Nyereményjáték a weboldalas rendelők között (nyeremenyjatek.json). Aki a játék ideje alatt a
-// weboldalon rendel, és a rendelése a szállítási díj nélkül eléri a megadott összeget,
-// automatikusan bekerül – telefonszámonként egyszer. A sorsolás a meglévő sorsolóval megy:
+// weboldalon pizzakoszorút rendel (összeghatár nincs), automatikusan bekerül – telefonszámonként egyszer. A sorsolás a meglévő sorsolóval megy:
 // a Rendelések appban a „Résztvevők betöltése” gomb ebből tölti be a listát.
 
 import (
@@ -25,7 +24,8 @@ type Giveaway struct {
 	Prize     map[string]string `json:"prize"`
 	PrizeNote string            `json:"prize_note,omitempty"`
 	Winners   int               `json:"winners"`
-	Min       int               `json:"min"` // legalább ennyi Ft (szállítás nélkül)
+	Item      string            `json:"item"`       // a rendelésben ilyen nevű étel legyen (ékezet nélkül, pl. "koszoru")
+	ItemLabel map[string]string `json:"item_label"` // a vendégnek mutatott név
 	From      string            `json:"from"`
 	Until     string            `json:"until"`
 	Draw      string            `json:"draw"`
@@ -83,6 +83,12 @@ func phoneKey(p string) string {
 	return s
 }
 
+// hasItem: a rendelés szövegében szerepel-e a játékhoz szükséges étel (pl. pizzakoszorú).
+func (g *Giveaway) hasItem(items string) bool {
+	k := norm(g.Item)
+	return k == "" || strings.Contains(norm(items), k)
+}
+
 // orderValue: a rendelés értéke szállítási díj nélkül (ételek + dobozok).
 func orderValue(o *Order) int {
 	if o.Food > 0 {
@@ -116,20 +122,14 @@ func (a *App) giveawayEntries(g *Giveaway) []giveawayEntry {
 			if o.Source != "web" || o.Test || o.Status == StRejected || !in(o.Created) {
 				continue
 			}
-			if v := orderValue(o); v >= g.Min {
+			if g.hasItem(o.Items) {
+				v := orderValue(o)
 				all = append(all, giveawayEntry{Name: strings.TrimSpace(o.Name), Phone: strings.TrimSpace(o.Phone), Email: strings.TrimSpace(o.Email), Ref: fmt.Sprintf("#%d", o.ID), Value: v, At: o.Created})
 			}
 		}
 		a.st.mu.Unlock()
 	}
-	for _, p := range a.loadPreorders() {
-		if p.Status == "lemondva" || !in(p.At) {
-			continue
-		}
-		if v := p.Food + p.Pack; v >= g.Min {
-			all = append(all, giveawayEntry{Name: strings.TrimSpace(p.Name), Phone: strings.TrimSpace(p.Phone), Email: strings.TrimSpace(p.Email), Ref: fmt.Sprintf("E%d", p.ID), Value: v, At: p.At})
-		}
-	}
+	// Az előrendelésekben (Márton-nap) nincs pizzakoszorú, ezek nem vesznek részt.
 	sort.SliceStable(all, func(i, j int) bool { return all[i].At.Before(all[j].At) })
 	seen := map[string]bool{}
 	var out []giveawayEntry
@@ -262,6 +262,6 @@ func publicGiveaway(now time.Time) map[string]any {
 	if g == nil || now.Before(g.start()) || !now.Before(g.showEnd()) {
 		return map[string]any{"active": false}
 	}
-	return map[string]any{"active": true, "id": g.ID, "title": g.Title, "prize": g.Prize, "winners": g.Winners, "min": g.Min,
+	return map[string]any{"active": true, "id": g.ID, "title": g.Title, "prize": g.Prize, "winners": g.Winners, "item": g.ItemLabel,
 		"from": g.From, "until": g.Until, "draw": g.Draw, "running": now.Before(g.end())}
 }

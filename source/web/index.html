@@ -90,6 +90,7 @@ main{max-width:1240px;margin:0 auto;padding:8px 20px 120px}
 .mail.ok{color:var(--green)}.mail.bad{color:var(--red)}
 .mail .lnk{color:var(--blue);font-weight:500}
 .acts{display:flex;gap:10px;padding:16px 18px 18px}
+.rmv{margin:-6px 18px 14px;font-size:14px}.rmv .lnk{color:var(--label2);font-weight:500;text-decoration:underline;text-underline-offset:3px}
 .btn{flex:1;height:50px;border-radius:14px;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .12s,filter .12s}
 .btn:active{transform:scale(.97);filter:brightness(.92)}
 .btn.fill-green{background:var(--green);color:#fff}
@@ -314,6 +315,16 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
   </div>
 </div></div></dialog>
 
+<dialog id="dRemove"><div class="dwrap" onclick="if(event.target===this)dRemove.close()"><div class="sheet">
+  <div class="shd"><button class="tb" onclick="dRemove.close()">Mégse</button><h2>Eltávolítás</h2><span class="tb"></span></div>
+  <div class="sbody">
+    <div class="hint" id="rmHint" style="padding-top:4px"></div>
+    <button class="bigbtn blue" onclick="doRemove('close')">Lezárás e-mail nélkül</button>
+    <div class="hint">Átkerül a Lezárt fülre, a vendég nem kap értesítést. Ha a rendelést már átadtátok, ezt válaszd.</div>
+    <button class="bigbtn red" style="margin-top:14px" onclick="doRemove('delete')">Végleges törlés</button>
+    <div class="hint">Teljesen eltűnik (a statisztikából és a nyereményjátékból is). Duplikált vagy hibás rendelésnél használd. Nem vonható vissza.</div>
+  </div>
+</div></div></dialog>
 <dialog id="dReject"><div class="dwrap" onclick="if(event.target===this)dReject.close()"><div class="sheet">
   <div class="shd"><button class="tb" onclick="dReject.close()">Mégse</button><h2>Elutasítás</h2><span class="tb"></span></div>
   <div class="sbody">
@@ -503,12 +514,16 @@ function card(o){
   ${o.status==='rejected'&&o.reason?`<div class="note">Elutasítás oka: ${esc(o.reason)}</div>`:''}
   ${mail}
   <div class="acts">${acts}<button class="btn tint sq" title="Nyomtatás" onclick="printOrder(${o.id})">${I.print}</button></div>
+  ${o.status==='new'||o.status==='preparing'?`<div class="rmv"><button class="lnk" onclick="askRemove(${o.id})">Eltávolítás e-mail nélkül</button></div>`:''}
   </div>`;
 }
 function mailto(o){
   if(!o.mail)return'';
   return ` <a class="lnk" href="mailto:${encodeURIComponent(o.mail.to)}?subject=${encodeURIComponent(o.mail.subject)}&body=${encodeURIComponent(o.mail.body)}" onclick="api('/api/orders/${o.id}/mailed',{})">Megnyitás levelezőben</a>`;
 }
+let rmID=0;
+function askRemove(id){rmID=id;const o=orders.find(x=>x.id===id);$('rmHint').textContent=o?`#${o.id} · ${o.name||'Névtelen'} – a vendég nem kap e-mailt.`:'';dRemove.showModal()}
+async function doRemove(how){if(how==='delete'&&!confirm('Biztosan véglegesen törlöd ezt a rendelést?'))return;try{await api(`/api/orders/${rmID}/remove`,{how});dRemove.close();toast(how==='delete'?'Törölve':'Lezárva, e-mail nélkül');load()}catch(e){toast(e.message)}}
 async function act(id,what){try{await api(`/api/orders/${id}/${what}`,{});toast(what==='done'?'Lezárva':what==='reopen'?'Visszaállítva':'Kész');load()}catch(e){toast(e.message)}}
 async function resend(id){await act(id,'resend');toast('Újraküldés…')}
 
@@ -801,7 +816,7 @@ async function openRaffle(){dRaffle.showModal();rfForm();try{const [h,g]=await P
 // Weboldalas nyereményjáték: a jogosult rendelők (telefonszámonként egyszer) betöltése a sorsolóba
 function rfGwCard(){const g=RF.gw;if(!g)return '';const G=g.giveaway,n=g.entries.length;
   const till=new Date(G.until.replace(' ','T')).toLocaleDateString('hu-HU',{month:'long',day:'numeric',weekday:'long'})+' '+G.until.slice(11,16);
-  return `<div class="flabel">Weboldalas nyereményjáték</div><div class="list"><div class="row"><span class="tx" style="flex:1"><b style="display:block">${esc(G.title.hu)}</b><small style="display:block;color:var(--label2);font-size:13px;margin-top:3px">Weboldalas rendelés ${huf(G.min)} Ft-tól (szállítás nélkül), ${esc(till)}-ig · telefonszámonként egyszer · sorsolás: ${esc(G.draw.slice(11,16)||G.draw)}<br>${g.running?'<b style="color:var(--orange)">A játék még tart</b> – a végleges listát a zárás után töltsd be.':'<b style="color:var(--green)">A játék lezárult</b> – lehet sorsolni.'}</small></span></div>
+  return `<div class="flabel">Weboldalas nyereményjáték</div><div class="list"><div class="row"><span class="tx" style="flex:1"><b style="display:block">${esc(G.title.hu)}</b><small style="display:block;color:var(--label2);font-size:13px;margin-top:3px">Weboldalas rendelés pizzakoszorúval, ${esc(till)}-ig · telefonszámonként egyszer · sorsolás: ${esc(G.draw.slice(11,16)||G.draw)}<br>${g.running?'<b style="color:var(--orange)">A játék még tart</b> – a végleges listát a zárás után töltsd be.':'<b style="color:var(--green)">A játék lezárult</b> – lehet sorsolni.'}</small></span></div>
   <div class="row"><span class="tx" style="flex:1"><b>${n}</b> résztvevő${g.running?' eddig':''}</span><button class="rf-load" onclick="rfLoadGw(this)" ${n?'':'disabled'}>Résztvevők betöltése</button></div></div>`}
 async function rfLoadGw(b){if(b)b.disabled=true;try{const g=await api('/api/giveaway');RF.gw=g.active?g:null;if(!RF.gw)return;const G=g.giveaway;
   RF.src='orders';RF.title=G.title.hu;RF.link='';RF.names=g.entries.map(e=>e.line).join('\n');RF.winners=Math.min(G.winners||1,Math.max(1,g.entries.length));RF.reserves=Math.min(1,Math.max(0,g.entries.length-RF.winners));RF.off=new Set();rfForm();rfCount()}catch(e){if($('rfErr'))$('rfErr').textContent=e.message}finally{if(b)b.disabled=false}}

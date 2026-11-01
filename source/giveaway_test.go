@@ -1,15 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
 )
 
 func TestGiveawayEntries(t *testing.T) {
-	if giveaway == nil {
-		t.Fatal("nyeremenyjatek.json not loaded")
-	}
+	useTestGiveaway(t)
 	at := func(s string) time.Time { return bpTime(s) }
 	st := &Store{}
 	st.Orders = []*Order{
@@ -54,10 +53,30 @@ func TestGiveawayEntries(t *testing.T) {
 }
 
 func TestGiveawayMail(t *testing.T) {
+	useTestGiveaway(t)
 	b := giveawayMailBody(giveaway, "Kiss Anna", "06 20 339 5099")
 	for _, want := range []string{"Kedves Kiss Anna!", "nyertél egy szabadon választott pizzakoszorút (sonkás, csirkés vagy csülkös).", "06 20 339 5099"} {
 		if !strings.Contains(b, want) {
 			t.Errorf("mail body missing %q:\n%s", want, b)
 		}
 	}
+}
+
+// useTestGiveaway: a kiszállított nyeremenyjatek.json lehet kikapcsolva (üres id), ezért a tesztek
+// a benne lévő beállításokat egy teszt-azonosítóval töltik be.
+func useTestGiveaway(t *testing.T) {
+	t.Helper()
+	var g Giveaway
+	if err := json.Unmarshal(giveawayJSON, &g); err != nil {
+		t.Fatal(err)
+	}
+	g.ID = "pizzakoszoru-2026-11"
+	g.Title = map[string]string{"hu": "Teszt"}
+	g.Prize = map[string]string{"hu": "egy szabadon választott pizzakoszorút"}
+	g.PrizeNote = "sonkás, csirkés vagy csülkös"
+	g.Winners, g.Min = 2, 0
+	g.From, g.Until, g.Draw, g.ShowUntil = "2026-10-29 00:00", "2026-11-01 21:00", "2026-11-01 21:00", "2026-11-02 23:59"
+	old := giveaway
+	giveaway = &g
+	t.Cleanup(func() { giveaway = old })
 }

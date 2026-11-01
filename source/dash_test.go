@@ -35,7 +35,7 @@ func TestDashScheduleAndActions(t *testing.T) {
 	w := httptest.NewRecorder()
 	a.handleDashSchedule(w, httptest.NewRequest("GET", "/dash/schedule", nil))
 	var out map[string]any
-	if err := json.Unmarshal(w.Body.Bytes(), &out); err != nil || out["daily"] == nil || out["giveaway"] == nil {
+	if err := json.Unmarshal(w.Body.Bytes(), &out); err != nil || out["daily"] == nil {
 		t.Fatalf("schedule: %v %s", err, w.Body.String())
 	}
 }

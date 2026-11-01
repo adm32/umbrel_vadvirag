@@ -1,6 +1,6 @@
 {
-  "_info": "Nyereményjáték a weboldalas rendelők között. Aki 'from' és 'until' között (az 'until' perce már nem számít bele) (budapesti idő) a weboldalon rendel, és a rendelése a szállítási díj nélkül legalább 'min' Ft, automatikusan bekerül (telefonszámonként egyszer). Sorsolás: Rendelések app → Továbbiak → Nyereményjáték sorsolás → Résztvevők betöltése. A weboldal 'show_until'-ig mutatja.",
-  "id": "pizzakoszoru-2026-11",
+  "_info": "KIKAPCSOLVA: üres az 'id' – új játékhoz írj be egy azonosítót és az időpontokat. Nyereményjáték a weboldalas rendelők között. Aki 'from' és 'until' között (az 'until' perce már nem számít bele) (budapesti idő) a weboldalon rendel, és a rendelése a szállítási díj nélkül legalább 'min' Ft, automatikusan bekerül (telefonszámonként egyszer). Sorsolás: Rendelések app → Továbbiak → Nyereményjáték sorsolás → Résztvevők betöltése. A weboldal 'show_until'-ig mutatja.",
+  "id": "",
   "title": {"hu": "Nyereményjáték: 2 pizzakoszorút sorsolunk ki", "en": "Giveaway: we're giving away 2 pizza wreaths", "de": "Gewinnspiel: Wir verlosen 2 Pizzakränze"},
   "prize": {"hu": "egy szabadon választott pizzakoszorút", "en": "a pizza wreath of their choice", "de": "einen Pizzakranz nach Wahl"},
   "prize_note": "sonkás, csirkés vagy csülkös",

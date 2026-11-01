@@ -21,7 +21,7 @@ func TestGiveawayEntries(t *testing.T) {
 		{ID: 6, Source: "manual", Name: "Telefonos", Phone: "06701115555", Created: at("2026-10-30 12:00"), Food: 9000, Status: StDone},                                           // nem weboldalas
 		{ID: 7, Source: "web", Name: "Elutasított", Phone: "06701116666", Created: at("2026-10-30 12:00"), Food: 9000, Status: StRejected},                                        // elutasítva
 		{ID: 8, Source: "web", Name: "Teszt", Phone: "06701117777", Created: at("2026-10-30 12:00"), Food: 9000, Status: StDone, Test: true},                                      // teszt
-		{ID: 9, Source: "web", Name: "Korai", Phone: "06701118888", Created: at("2026-10-29 23:59"), Food: 9000, Status: StDone},                                                  // még nem indult
+		{ID: 9, Source: "web", Name: "Korai", Phone: "06701118888", Created: at("2026-10-28 23:59"), Food: 9000, Status: StDone},                                                  // még nem indult
 	}
 	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, st)
 	a.dataDir = t.TempDir()
@@ -30,7 +30,7 @@ func TestGiveawayEntries(t *testing.T) {
 	for _, e := range es {
 		got[e.Ref] = true
 	}
-	if len(es) != 2 || !got["#1"] || !got["#4"] {
+	if len(es) != 3 || !got["#1"] || !got["#3"] || !got["#4"] { // bármekkora összeg számít
 		t.Fatalf("entries: %+v", es)
 	}
 	if es[0].Line != "Kiss Anna – 06 30 123 4567 – #1" {
@@ -42,7 +42,7 @@ func TestGiveawayEntries(t *testing.T) {
 	if p := publicGiveaway(at("2026-10-30 12:00")); p["active"] != true || p["running"] != true {
 		t.Error("should be running")
 	}
-	if p := publicGiveaway(at("2026-10-29 22:00")); p["active"] != false {
+	if p := publicGiveaway(at("2026-10-28 22:00")); p["active"] != false {
 		t.Error("should not show before Oct 30")
 	}
 	if p := publicGiveaway(at("2026-11-01 21:00")); p["active"] != true || p["running"] != false {

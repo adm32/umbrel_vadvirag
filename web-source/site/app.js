@@ -706,12 +706,13 @@ const PAL = {
   star: ['#e7b53c', '#f2cb5d', '#d9a12a'],
   snow: ['#fff'],
 };
+const LEAF_P = {}, LEAF_VP = {};
 const pickOf = mix => { let r = Math.random(); for (const k in mix) if ((r -= mix[k]) <= 0) return k; return Object.keys(mix)[0]; };
 function particle(kind, x, y, burstV) {
   const R = Math.random, pal = PAL[kind];
   const s = kind === 'snow' ? 1.3 + R() * (SEASON === 'christmas2' ? 3.2 : 2.6) : kind === 'star' ? 4 + R() * 4 : kind === 'conf' ? 5 + R() * 4 : kind === 'leaf' ? 9 + R() * 9 : 7 + R() * 9;
   const fall = kind === 'snow' ? .4 + R() * .7 + s * .08 : kind === 'conf' ? .6 + R() * .7 : .35 + R() * .6;
-  return { kind, c: pal[(R() * pal.length) | 0], x, y, s, r: R() * 6.28, vr: (R() - .5) * (kind === 'conf' ? .14 : .05),
+  return { kind, shape: kind === 'leaf' ? ['maple', 'oak', 'long', 'long'][(R() * 4) | 0] : '', c: pal[(R() * pal.length) | 0], x, y, s, r: R() * 6.28, vr: (R() - .5) * (kind === 'conf' ? .14 : .05),
     vx: burstV ? (R() - .5) * burstV : (R() - .3) * .5, vy: burstV ? -R() * burstV * .8 : fall, sw: R() * 6.28, life: burstV ? 1 : -1, flip: R() * 6.28 };
 }
 function star5(g, r) { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .45 : r; g.lineTo(Math.cos(a) * q, Math.sin(a) * q); } g.closePath(); }
@@ -720,7 +721,7 @@ function drawP(g, p) {
   g.globalAlpha = p.life > 0 ? Math.min(1, p.life * 1.5) : .92;
   if (p.kind === 'snow') {
     g.beginPath(); g.arc(0, 0, p.s, 0, 6.29); g.fillStyle = '#fff'; g.fill();
-    g.lineWidth = .9; g.strokeStyle = 'rgba(100,128,160,.55)'; g.stroke(); g.restore(); return;
+    g.lineWidth = .8; g.strokeStyle = 'rgba(150,125,105,.4)'; g.stroke(); g.restore(); return;
   }
   g.rotate(p.r);
   if (p.kind === 'star') {
@@ -731,8 +732,8 @@ function drawP(g, p) {
   g.fillStyle = p.c; g.beginPath();
   if (p.kind === 'conf') { g.fillRect(-p.s / 2, -p.s * .22, p.s, p.s * .44); g.restore(); return; }
   if (p.kind === 'leaf') {
-    g.moveTo(0, -p.s); g.quadraticCurveTo(p.s * .8, -p.s * .3, 0, p.s); g.quadraticCurveTo(-p.s * .8, -p.s * .3, 0, -p.s); g.fill();
-    g.globalAlpha *= .45; g.strokeStyle = '#4a2208'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, -p.s * .8); g.lineTo(0, p.s * 1.3); g.stroke(); g.restore(); return;
+    const k = p.shape || 'long', sc = p.s / 50; g.scale(sc, sc); g.translate(-50, -50);
+    g.fill(LEAF_P[k]); g.globalAlpha *= .5; g.strokeStyle = '#fff3dc'; g.lineWidth = 2; g.stroke(LEAF_VP[k]); g.restore(); return;
   }
   g.moveTo(0, -p.s); g.bezierCurveTo(p.s * .9, -p.s * .8, p.s * .9, p.s * .6, 0, p.s * .55); g.bezierCurveTo(-p.s * .9, p.s * .6, -p.s * .9, -p.s * .8, 0, -p.s);
   g.fill(); g.globalAlpha *= .25; g.fillStyle = '#3a0904'; g.beginPath(); g.ellipse(0, p.s * .3, p.s * .18, p.s * .12, 0, 0, 6.28); g.fill();
@@ -855,7 +856,32 @@ function archLights() {
   };
   draw(); addEventListener('resize', draw); addEventListener('load', draw);
 }
+// ősz: néhány igazi falevél a pipacsos kép két alsó sarkában, lassan ringatózva
+const LEAF = {
+  maple: 'M50 6C52 14 55 20 58 24L66 16C66 24 65 30 63 36C70 32 78 30 86 30C82 37 78 43 74 47C80 48 86 50 92 54C84 58 76 61 68 62C70 67 72 72 72 77C64 74 57 71 52 68V86H48V68C43 71 36 74 28 77C28 72 30 67 32 62C24 61 16 58 8 54C14 50 20 48 26 47C22 43 18 37 14 30C22 30 30 32 37 36C35 30 34 24 34 16L42 24C45 20 48 14 50 6Z',
+  oak: 'M50 8C58 12 60 18 58 22C66 20 70 26 66 31C74 31 76 38 70 42C78 44 78 52 71 55C77 59 75 67 67 67C70 74 64 80 57 77C56 83 53 87 50 88C47 87 44 83 43 77C36 80 30 74 33 67C25 67 23 59 29 55C22 52 22 44 30 42C24 38 26 31 34 31C30 26 34 20 42 22C40 18 42 12 50 8Z',
+  long: 'M50 8C61 28 64 56 50 88C36 56 39 28 50 8Z',
+};
+const LEAF_V = { maple: 'M50 98V12M50 60 78 36M50 60 22 36M50 66 86 54M50 66 14 54', oak: 'M50 98V14M50 34 64 27M50 34 36 27M50 50 70 44M50 50 30 44M50 64 66 62M50 64 34 62', long: 'M50 98V14M50 40 58 32M50 40 42 32M50 58 58 50M50 58 42 50' };
+const LEAF_G = [['#ec6a22', '#b3230e'], ['#f2b53c', '#d8701b'], ['#c98a2c', '#8a4515'], ['#e9c64c', '#c4861d'], ['#d9481a', '#8f1f0c']];
+function leafDeco() {
+  const box = document.createElement('div'); box.className = 'leaf-deco'; box.setAttribute('aria-hidden', 'true'); hero.appendChild(box);
+  // [alak, szín, x (a kép szélességének aránya), y (a kép aljától, arány), méret, elforgatás, ringatózás]
+  const L = [['maple', 0, -.07, .02, .27, -24, 3], ['oak', 2, .12, -.03, .2, 28, 4], ['long', 3, -.04, .17, .13, -62, 5], ['maple', 1, .79, -.02, .23, 20, 3.5], ['long', 4, .93, .13, .12, 64, 5], ['oak', 1, .66, -.05, .14, -12, 4]];
+  const draw = () => {
+    const w = ART.w, h = ART.h; if (!w) return;
+    box.style.cssText = `left:${ART.x}px;top:${ART.y}px;width:${w}px;height:${h}px`;
+    box.innerHTML = L.map(([k, gi, x, y, sz, rot, sw], i) => {
+      const s = Math.round(w * sz), [c1, c2] = LEAF_G[gi], id = 'lg' + i;
+      return `<svg viewBox="0 0 100 100" width="${s}" height="${s}" style="left:${Math.round(w * x)}px;top:${Math.round(h * (1 - y) - s * .82)}px;transform:rotate(${rot}deg)"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>` +
+        `<g class="lf" style="--ld:${(.5 + i * .14).toFixed(2)}s;--sd:${(3.6 + (i % 3) * .9).toFixed(1)}s;--sw:${sw}deg;--fx:${x < .5 ? -30 : 30}px;--fr:${x < .5 ? -60 : 60}deg"><path d="${LEAF[k]}" fill="url(#${id})" stroke="${c2}" stroke-width="1.2" stroke-linejoin="round"/><path d="${LEAF_V[k]}" fill="none" stroke="#fff3dc" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/></g></svg>`;
+    }).join('');
+  };
+  draw(); addEventListener('resize', draw); addEventListener('load', draw);
+}
 resize();
+for (const k in LEAF) { LEAF_P[k] = new Path2D(LEAF[k]); LEAF_VP[k] = new Path2D(LEAF_V[k]); }
+if (SEASON === 'autumn') leafDeco();
 if (SEASON === 'christmas' || SEASON === 'christmas2') garland();
 if (SEASON === 'christmas2') archLights();
 addEventListener('resize', resize); addEventListener('load', resize);

@@ -537,12 +537,11 @@ func refHost(ref, host string) string {
 // ---------------------------------------------------------------- eszköz, rendszer, böngésző
 
 var (
-	reAndroid   = regexp.MustCompile(`Android (\d+)`)
-	reAndModel  = regexp.MustCompile(`Android [\d.]+; (?:[a-zA-Z-]+; )?([^;)]+?)(?: Build/[^;)]*)?\)`)
-	reIOS       = regexp.MustCompile(`OS (\d+)[_\d]* like Mac OS X`)
-	reWin       = regexp.MustCompile(`Windows NT (\d+\.\d+)`)
-	reSamsung   = regexp.MustCompile(`^SM-([A-Z])(\d)(\d)`)
-	reChromeVer = regexp.MustCompile(`(?:Chrome|CriOS)/(\d+)`)
+	reAndroid  = regexp.MustCompile(`Android (\d+)`)
+	reAndModel = regexp.MustCompile(`Android [\d.]+; (?:[a-zA-Z-]+; )?([^;)]+?)(?: Build/[^;)]*)?\)`)
+	reIOS      = regexp.MustCompile(`OS (\d+)[_\d]* like Mac OS X`)
+	reWin      = regexp.MustCompile(`Windows NT (\d+\.\d+)`)
+	reSamsung  = regexp.MustCompile(`^SM-([A-Z])(\d)(\d)`)
 )
 
 // Samsung típuskódok → nevek (a legelterjedtebbek)
@@ -732,7 +731,7 @@ type beacon struct {
 var allowedEvents = map[string]bool{"add": true, "wheel": true, "wheel_order": true, "town": true, "form": true, "lang": true, "call": true,
 	"route": true, "fb": true, "order_sent": true, "order_page": true, "order_btn": true, "consent_yes": true, "consent_no": true, "drinks": true, "search": true, "gallery": true, "alg": true, "quick": true,
 	"quick_open": true, "weekend_order": true, "weekly_order": true, "pre_open": true, "pre_sent": true}
-var allowedSections = map[string]bool{"hero": true, "rolunk": true, "etlap": true, "rendezvenyek": true, "kiszallitas": true, "galeria": true, "kapcsolat": true}
+var allowedSections = map[string]bool{"hero": true, "ajanlat": true, "rolunk": true, "etlap": true, "rendezvenyek": true, "kiszallitas": true, "galeria": true, "kapcsolat": true}
 
 func campaignOf(q string) string {
 	v, err := url.ParseQuery(strings.TrimPrefix(q, "?"))
@@ -1024,6 +1023,8 @@ func statsServer() {
 	mux.HandleFunc("GET /sessions", handleSessions)
 	mux.HandleFunc("POST /exclude", handleExclude)
 	mux.HandleFunc("GET /staff-token", handleStaffToken)
+	mux.HandleFunc("GET /schedule", handleSchedule)
+	mux.HandleFunc("POST /schedule", handleScheduleSet)
 	// GET /known?ck=a,b,c – a sütit elfogadó látogatók (a rendelésekhez: honnan jött, hányadszorra rendelt)
 	mux.HandleFunc("GET /known", func(w http.ResponseWriter, r *http.Request) {
 		st.Lock()

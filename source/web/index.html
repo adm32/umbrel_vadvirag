@@ -84,7 +84,7 @@ main{max-width:1240px;margin:0 auto;padding:8px 20px 120px}
 .r .acc{color:var(--label2);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .r .acc.warn{color:var(--orange)}
 .items{margin:14px 18px 0;font-size:17px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
-.items .lbl,.sec-lbl{display:block;font-size:13px;color:var(--label2);text-transform:uppercase;letter-spacing:.02em;margin-bottom:4px;font-weight:500}
+.items .lbl{display:block;font-size:13px;color:var(--label2);text-transform:uppercase;letter-spacing:.02em;margin-bottom:4px;font-weight:500}
 .note{margin:10px 18px 0;font-size:15px;color:var(--label2)}
 .mail{margin:12px 18px 0;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--label2)}
 .mail.ok{color:var(--green)}.mail.bad{color:var(--red)}
@@ -152,15 +152,6 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 #toast{transition:transform .45s cubic-bezier(.2,1.2,.3,1),opacity .25s,visibility .25s}
 #toast svg{width:20px;height:20px;color:var(--green)}
 .offline{background:color-mix(in srgb,var(--red) 12%,transparent);color:var(--red);border-radius:12px;padding:10px 14px;font-size:15px;margin-bottom:12px}
-.banner{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:16px 18px;display:flex;gap:14px;align-items:center;margin-bottom:16px;animation:in .35s both}
-.banner .bi{width:44px;height:44px;border-radius:12px;background:var(--red);color:#fff;display:grid;place-items:center;flex:none}
-.banner .bi svg{width:24px;height:24px}
-.banner .bt{flex:1;min-width:0;font-size:15px;color:var(--label2)}
-.banner .bt b{display:block;color:var(--label);font-size:17px;margin-bottom:2px}
-.banner .bb{flex:none;background:var(--blue);color:#fff;font-weight:600;font-size:15px;height:36px;padding:0 16px;border-radius:18px}
-.banner .bx{flex:none;width:30px;height:30px;border-radius:50%;background:var(--fill2);color:var(--label2);display:grid;place-items:center}
-.banner .bx svg{width:14px;height:14px}
-@media (max-width:600px){.banner{flex-wrap:wrap}.banner .bb{order:3;width:100%;height:44px;border-radius:12px}}
 .msg{background:var(--card2);border-radius:14px;padding:12px 14px;margin-top:10px}
 .msg.done{opacity:.55}
 .msg .mh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -175,7 +166,6 @@ dialog[open] .sheet{animation:sheet .38s cubic-bezier(.2,.9,.25,1) both}
 .msg .ma a,.msg .ma button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;background:var(--fill2);color:var(--blue);font-size:14px;font-weight:600}
 .msg .ma svg{width:16px;height:16px}
 .ibtn .cnt{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
-.ibtn .bdg{position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--bg)}
 .ibtn{position:relative}
 .ibtn[hidden]{display:none}
 /* ---- Továbbiak menü és a mai nyitvatartás */
@@ -728,7 +718,7 @@ async function openMsgs(){dMsg.showModal();$('msgBody').innerHTML='<div class="h
 function renderMsgs(){
   if(!MSGS.length){$('msgBody').innerHTML='<div class="hint" style="padding-top:2px">Még nincs üzenet. Ide érkeznek a weboldal „Kapcsolat” és „Rendezvények” részén küldött asztalfoglalások, ajánlatkérések és kérdések.</div>';return}
   $('msgBody').innerHTML='<div class="hint" style="padding:2px 2px 0">A weboldalról érkezett üzenetek. Ha válaszoltál, jelöld „Kész”-nek.</div>'+MSGS.map(m=>{
-    const when=new Date(m.at);const d=[m.date&&new Date(m.date+'T12:00').toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'}),m.time,m.guests?m.guests+' fő':''].filter(Boolean).join(' · ');
+    const d=[m.date&&new Date(m.date+'T12:00').toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'}),m.time,m.guests?m.guests+' fő':''].filter(Boolean).join(' · ');
     const lang=m.lang&&m.lang!=='hu'?` <span class="mk">${esc(m.lang.toUpperCase())}</span>`:'';
     return `<div class="msg${m.done?' done':''}"><div class="mh"><span class="mk ${esc(m.kind)}">${MK[m.kind]||'Üzenet'}</span>${lang}<span class="mn">${esc(m.name)}</span><span class="mt">${fmtDay(m.at)} ${fmtTime(m.at)}</span></div>
     ${d?`<div class="md">${esc(d)}</div>`:''}${m.text?`<div class="mx">${esc(m.text)}</div>`:''}

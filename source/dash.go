@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -200,6 +201,8 @@ func (a *App) startDash() {
 		}
 		writeJSON(w, 200, out)
 	})
+	mux.HandleFunc("GET /dash/schedule", a.handleDashSchedule)
+	mux.HandleFunc("POST /dash/action", a.handleDashAction)
 	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	go func() {
 		log.Printf("irányítópult adatcsatorna: %s", addr)
@@ -225,4 +228,102 @@ func custID(salt, phone string) string {
 	}
 	h := sha256.Sum256([]byte(salt + "|" + string(digits)))
 	return hex.EncodeToString(h[:6])
+}
+
+// GET /dash/schedule – ami a rendeléskezelőben magától változik (és mikor), az irányítópult
+// „Automatikus” nézetéhez: napi ajánlat idősávjai, korábbi zárás (éjfélkor lejár), szüneteltetés,
+// előrendelés, nyereményjáték. Személyes adat nincs benne (a nyertesekből csak a név).
+func (a *App) handleDashSchedule(w http.ResponseWriter, r *http.Request) {
+	now := budapestNow(time.Now())
+	c := a.conf()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, 1)
+	out := map[string]any{
+		"now":           now,
+		"online_paused": c.OnlineSzunetel,
+		"paused_note":   c.OnlineUzenet,
+		"closed_today":  a.closedToday(),
+		"closed_until":  midnight,
+		"daily": map[string]any{"from": hhmm(dailyFrom), "free_til": hhmm(dailyFreeTil), "to": hhmm(dailyTo),
+			"towns": dailyFreeTowns, "weekdays": true},
+	}
+	if p := a.preInfo(); p != nil {
+		p["first"], p["last"] = preFirst, preLast
+		out["preorder"] = p
+	}
+	if g := giveaway; g != nil {
+		n := len(a.giveawayEntries(g))
+		out["giveaway"] = map[string]any{"title": g.Title["hu"], "from": g.From, "until": g.Until, "draw": g.Draw,
+			"show_until": g.ShowUntil, "min": g.Min, "entries": n, "running": !now.Before(g.start()) && now.Before(g.end()),
+			"ended": !now.Before(g.end()), "shown": publicGiveaway(time.Now())["active"]}
+	}
+	if rs := a.loadRaffles(); len(rs) > 0 {
+		last := rs[len(rs)-1]
+		names := func(ls []string) []string {
+			out := make([]string, 0, len(ls))
+			for _, l := range ls {
+				out = append(out, strings.TrimSpace(strings.Split(l, " – ")[0]))
+			}
+			return out
+		}
+		out["last_raffle"] = map[string]any{"at": last.At, "title": last.Title, "count": last.Count, "winners": names(last.Winners), "reserves": names(last.Reserves)}
+	}
+	var off []string
+	for _, s := range menuSections {
+		if s.Off {
+			off = append(off, s.Name)
+		}
+	}
+	out["menu_off"] = off
+	writeJSON(w, 200, out)
+}
+
+// POST /dash/action {"do":"pause"|"resume"|"close_today"|"open_today"|"preorder_soldout"|"preorder_available","note":"…"}
+// Ugyanazok a kapcsolók, mint a Rendelések appban – az irányítópultról is elérhetők.
+func (a *App) handleDashAction(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Do   string `json:"do"`
+		Note string `json:"note"`
+	}
+	if readJSON(r, &in, 4<<10) != nil {
+		writeJSON(w, 400, map[string]string{"error": "hibás kérés"})
+		return
+	}
+	var f func(c *Config)
+	switch in.Do {
+	case "pause":
+		f = func(c *Config) { c.OnlineSzunetel, c.OnlineUzenet = true, clip(strings.TrimSpace(in.Note), 200) }
+	case "resume":
+		f = func(c *Config) { c.OnlineSzunetel, c.OnlineUzenet = false, "" }
+	case "close_today":
+		f = func(c *Config) { c.KorabbanZarva = todayBudapest(time.Now()) }
+	case "open_today":
+		f = func(c *Config) { c.KorabbanZarva = "" }
+	case "preorder_soldout", "preorder_available":
+		if preOff == nil {
+			writeJSON(w, 400, map[string]string{"error": "nincs előrendelhető ajánlat"})
+			return
+		}
+		sold := in.Do == "preorder_soldout"
+		f = func(c *Config) {
+			m := map[string]bool{}
+			for k, v := range c.Elfogyott {
+				m[k] = v
+			}
+			if sold {
+				m[preOff.ID] = true
+			} else {
+				delete(m, preOff.ID)
+			}
+			c.Elfogyott = m
+		}
+	default:
+		writeJSON(w, 400, map[string]string{"error": "ismeretlen művelet"})
+		return
+	}
+	if err := a.updateConf(f); err != nil {
+		writeJSON(w, 500, map[string]string{"error": "nem sikerült menteni"})
+		return
+	}
+	log.Printf("irányítópult: %s", in.Do)
+	writeJSON(w, 200, map[string]bool{"ok": true})
 }

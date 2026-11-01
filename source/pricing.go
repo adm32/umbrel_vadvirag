@@ -102,14 +102,6 @@ func tokMatch(seg, item string) bool {
 	return false
 }
 
-type estLine struct {
-	ref     *menuRef
-	variant string
-	qty     int
-	price   int // darabár
-	pack    int
-}
-
 // bestMatch: a legjobban illő étel a szövegrészhez; a felhasznált szavakat visszaadja.
 func bestMatch(seg []string, raw string) (*menuRef, []bool) {
 	var best *menuRef

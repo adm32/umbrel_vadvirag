@@ -25,6 +25,7 @@
 <link rel="preload" as="image" href="/img/pipacsmezo-s.webp" media="(max-width: 760px)">
 <link rel="preload" as="image" href="/img/pipacsmezo.webp" media="(min-width: 761px)">
 <link rel="stylesheet" href="/style.css?v=1">
+<script src="/season.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Restaurant","name":"Vadvirág Étterem","image":"https://www.vadviragetterem.com/img/og.jpg","url":"https://www.vadviragetterem.com/","telephone":"+36203395099","address":{"@type":"PostalAddress","addressLocality":"Zalaudvarnok","addressCountry":"HU"},"servesCuisine":["Magyar","Pizza","Burger"],"openingHours":"Mo-Su 11:00-22:00","sameAs":["https://www.facebook.com/vadviragetterem.zalaudvarnok"],"hasMenu":"https://www.vadviragetterem.com/#etlap","acceptsReservations":true}</script>
 </head>
 <body>
@@ -72,6 +73,7 @@
   <div class="hero-in">
     <div class="hero-text">
       <h1><img class="hero-logo" src="/img/logo.webp" alt="Vadvirág Étterem" width="1200" height="406"></h1>
+      <p class="season-note" id="seasonNote" hidden></p>
       <p class="hero-lead" data-t="heroLead">Házias ízek, tágas terasz és jó hangulat Zalaudvarnokon. Gyere el hozzánk, vagy rendelj, és kiszállítjuk.</p>
       <p class="status" id="status"><span class="dot"></span><span id="statusText" data-t="hours">Minden nap 11:00–22:00</span></p>
       <div class="hero-cta">
@@ -94,14 +96,14 @@
       <img src="/img/pipacsmezo.webp" srcset="/img/pipacsmezo-s.webp 800w, /img/pipacsmezo.webp 1396w" sizes="(max-width:760px) 88vw, 44vw" alt="" width="1396" height="1390" fetchpriority="high" decoding="async">
     </figure>
   </div>
-  <p class="hero-hint" data-t="petalHint" aria-hidden="true">Koppints a pipacsok közé!</p>
+  <p class="hero-hint" id="heroHint" data-t="petalHint" aria-hidden="true">Koppints a pipacsok közé!</p>
 </section>
 
 <!-- ============ AJÁNLATOK ============ -->
 <!-- A hétvégi és a napi ajánlatot az /api/ajanlat tölti ki (ajanlatok.json); az előrendelhető alkalmi ajánlatot (Márton-nap) a rendeléskezelő (/api/public/preorder), a nyereményjátékot szintén (/api/public/giveaway). -->
 <section class="offers wrap" id="ajanlat">
   <div class="sec-head">
-    <h2><span data-t="offersTitle">Ajánlataink</span><svg class="sprig" viewBox="0 0 48 32" aria-hidden="true"><path d="M2 28C14 26 26 19 40 6"/><path d="M12 25.5c-1-4.5 1.5-8.5 6-10 1 4.5-1.5 8.5-6 10Z"/><path d="M21 21c3.5-3 8-3.2 11.5-.5-3.5 3-8 3.2-11.5.5Z"/><path d="M26 15.5c-.5-4.5 2.2-8.2 6.6-9.4.5 4.5-2.2 8.2-6.6 9.4Z"/><path d="M34 10.5c3.2-2.6 7.2-2.8 10.4-.4-3.2 2.6-7.2 2.8-10.4.4Z"/></svg></h2>
+    <h2 data-t="offersTitle">Ajánlataink</h2>
     <p class="sec-sub" data-t="offersSub">Napi, hétvégi és alkalmi ajánlataink – rendeld meg vagy foglald le pár koppintással.</p>
   </div>
   <article class="preoff" id="offPre" hidden></article>
@@ -128,8 +130,8 @@
 <!-- ============ RÓLUNK ============ -->
 <section class="about wrap" id="rolunk">
   <div class="about-pics">
-    <img class="arch pic-a" src="/img/terem-nappal-s.webp" srcset="/img/terem-nappal-s.webp 800w, /img/terem-nappal.webp 1600w" sizes="(max-width:760px) 70vw, 30vw" alt="A nagyterem ünnepi terítéssel" data-ta="altHall" loading="lazy" width="800" height="597">
-    <img class="pic-b" src="/img/teritek-piros-s.webp" alt="Piros szalvéták és rózsa az asztalon" data-ta="altTable" loading="lazy" width="597" height="800">
+    <img class="arch pic-a unveil" src="/img/terem-nappal-s.webp" srcset="/img/terem-nappal-s.webp 800w, /img/terem-nappal.webp 1600w" sizes="(max-width:760px) 70vw, 30vw" alt="A nagyterem ünnepi terítéssel" data-ta="altHall" loading="lazy" width="800" height="597">
+    <img class="pic-b unveil" src="/img/teritek-piros-s.webp" alt="Piros szalvéták és rózsa az asztalon" data-ta="altTable" loading="lazy" width="597" height="800">
   </div>
   <div class="about-text">
     <h2 data-t="aboutTitle">Üdvözlünk a Vadvirágban</h2>
@@ -217,15 +219,15 @@
 <section class="gallery wrap" id="galeria">
   <div class="sec-head"><h2 data-t="galTitle">Galéria</h2></div>
   <div class="gal" id="gal">
-    <button class="g g-wide" data-full="/img/terem-nappal.webp"><img src="/img/terem-nappal-s.webp" alt="A nagyterem ünnepi terítéssel" data-ta="altHall" loading="lazy" width="800" height="597"></button>
-    <button class="g g-tall" data-full="/img/teritek-piros.webp"><img src="/img/teritek-piros-s.webp" alt="Piros szalvéták és rózsa az asztalon" data-ta="altTable" loading="lazy" width="597" height="800"></button>
-    <button class="g" data-full="/img/terem-este.webp"><img src="/img/terem-este-s.webp" alt="Az étterem este, lampionokkal" data-ta="altE2" loading="lazy" width="800" height="600"></button>
-    <button class="g g-tall" data-full="/img/foglalt-asztal.webp"><img src="/img/foglalt-asztal-s.webp" alt="Pöttyös szalvétás, foglalt asztal a teraszon" data-ta="altE1" loading="lazy" width="597" height="800"></button>
-    <button class="g" data-full="/img/burgerek.webp"><img src="/img/burgerek-s.webp" alt="Frissen összerakott burgerek a konyhában" data-ta="altBurger" loading="lazy" width="800" height="447"></button>
-    <button class="g g-tall" data-full="/img/gyertyas-asztal.webp"><img src="/img/gyertyas-asztal-s.webp" alt="Gyertyás asztal a kisteremben" data-ta="altE6" loading="lazy" width="599" height="800"></button>
-    <button class="g g-tall" data-full="/img/unnepi-asztal.webp"><img src="/img/unnepi-asztal-s.webp" alt="Hosszú, ünnepi terítésű asztal" data-ta="altE3" loading="lazy" width="644" height="800"></button>
-    <button class="g g-tall" data-full="/img/feher-terem.webp"><img src="/img/feher-terem-s.webp" alt="Piros futós, fehér terítésű asztal a kisteremben" data-ta="altE4" loading="lazy" width="597" height="800"></button>
-    <button class="g g-tall" data-full="/img/karacsonyi-gyertya.webp"><img src="/img/karacsonyi-gyertya-s.webp" alt="Karácsonyi gyertya az asztalon" data-ta="altE5" loading="lazy" width="600" height="800"></button>
+    <button class="g g-wide unveil" data-full="/img/terem-nappal.webp"><img src="/img/terem-nappal-s.webp" alt="A nagyterem ünnepi terítéssel" data-ta="altHall" loading="lazy" width="800" height="597"></button>
+    <button class="g g-tall unveil" data-full="/img/teritek-piros.webp"><img src="/img/teritek-piros-s.webp" alt="Piros szalvéták és rózsa az asztalon" data-ta="altTable" loading="lazy" width="597" height="800"></button>
+    <button class="g unveil" data-full="/img/terem-este.webp"><img src="/img/terem-este-s.webp" alt="Az étterem este, lampionokkal" data-ta="altE2" loading="lazy" width="800" height="600"></button>
+    <button class="g g-tall unveil" data-full="/img/foglalt-asztal.webp"><img src="/img/foglalt-asztal-s.webp" alt="Pöttyös szalvétás, foglalt asztal a teraszon" data-ta="altE1" loading="lazy" width="597" height="800"></button>
+    <button class="g unveil" data-full="/img/burgerek.webp"><img src="/img/burgerek-s.webp" alt="Frissen összerakott burgerek a konyhában" data-ta="altBurger" loading="lazy" width="800" height="447"></button>
+    <button class="g g-tall unveil" data-full="/img/gyertyas-asztal.webp"><img src="/img/gyertyas-asztal-s.webp" alt="Gyertyás asztal a kisteremben" data-ta="altE6" loading="lazy" width="599" height="800"></button>
+    <button class="g g-tall unveil" data-full="/img/unnepi-asztal.webp"><img src="/img/unnepi-asztal-s.webp" alt="Hosszú, ünnepi terítésű asztal" data-ta="altE3" loading="lazy" width="644" height="800"></button>
+    <button class="g g-tall unveil" data-full="/img/feher-terem.webp"><img src="/img/feher-terem-s.webp" alt="Piros futós, fehér terítésű asztal a kisteremben" data-ta="altE4" loading="lazy" width="597" height="800"></button>
+    <button class="g g-tall unveil" data-full="/img/karacsonyi-gyertya.webp"><img src="/img/karacsonyi-gyertya-s.webp" alt="Karácsonyi gyertya az asztalon" data-ta="altE5" loading="lazy" width="600" height="800"></button>
   </div>
 </section>
 

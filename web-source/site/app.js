@@ -11,7 +11,6 @@ const huf = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const store = { get(k){ try { return localStorage.getItem(k) } catch(e){ return null } }, set(k,v){ try { localStorage.setItem(k,v) } catch(e){} } };
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const PHONE = '06 20 339 5099';
 const HOURS = { open: 11, close: 22 };                 // minden nap 11:00–22:00
 const LANGS = ['hu', 'en', 'de'];
 
@@ -26,7 +25,7 @@ let errSent = 0;
 // csak a saját fájljaink hibáit jelentjük: a Facebook/Instagram és más alkalmazások beépített böngészője saját kódot fűz az oldalba, annak a hibái nem a mieink
 const ownErr = e => { try { const u = new URL(e.filename || '', location.href); return u.origin === location.origin && /\/(app|i18n)\.js$/.test(u.pathname); } catch (x) { return false; } };
 addEventListener('error', e => { if (ownErr(e) && errSent++ < 5) track('err', { msg: String(e.message || 'hiba'), src: (e.filename || '') + ':' + (e.lineno || 0) }); });
-addEventListener('unhandledrejection', e => { if (errSent++ < 5) track('err', { msg: 'Promise: ' + String(e.reason && e.reason.message || e.reason || '') }); });
+addEventListener('unhandledrejection', e => { const st = String(e.reason && e.reason.stack || ''); if (/\/(app|i18n)\.js/.test(st) && errSent++ < 5) track('err', { msg: 'Promise: ' + String(e.reason && e.reason.message || e.reason || '') }); });
 const T = (k, vars) => { let s = (I18N[lang] && I18N[lang][k]) ?? I18N.hu[k] ?? k; if (vars) for (const v in vars) s = s.replaceAll('{' + v + '}', vars[v]); return s; };
 
 /* ---------------------------------------------------------------- nyelv */
@@ -49,7 +48,7 @@ function setLang(l, push) {
   if (push) { const path = lang === 'hu' ? '/' : '/' + lang; history.replaceState(null, '', path + location.hash); }
   renderStatus(); renderHours(); renderFacts(); setKind(kind);
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
-  renderDrinks(); renderAlg(); renderOffers(); renderPre(); renderGw();
+  renderDrinks(); renderAlg(); renderOffers(); renderPre(); renderGw(); renderSeason();
 }
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); hideLangHint(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
 
@@ -105,7 +104,7 @@ const navLinks = $$('.nav a');
 const spy = new IntersectionObserver(es => es.forEach(en => {
   if (en.isIntersecting) navLinks.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id));
 }), { rootMargin: '-45% 0px -50% 0px' });
-['etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => spy.observe($(id)));
+['ajanlat', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => spy.observe($(id)));
 
 /* ---------------------------------------------------------------- nyitvatartás */
 function budapestNow() {
@@ -130,7 +129,7 @@ function renderHours() {
 }
 setInterval(renderStatus, 60000);
 // a nyitva/zárva állapotot (szünetel, korábban zártunk) 3 percenként frissítjük, ha az oldal nyitva marad
-setInterval(async () => { if (document.hidden || !M) return; try { const m = await (await fetch('/api/menu', { cache: 'no-store' })).json(); if (m && m.sections) { const ch = m.closed_today !== M.closed_today || m.open !== M.open; M.open = m.open; M.closed_today = m.closed_today; if (ch) { renderStatus(); renderWeekly(); } } } catch (e) {} }, 180000);
+setInterval(async () => { if (document.hidden || !M) return; try { const m = await (await fetch('/api/menu', { cache: 'no-store' })).json(); if (m && m.sections) { const ch = m.closed_today !== M.closed_today || m.open !== M.open; M.open = m.open; M.closed_today = m.closed_today; if (ch) { renderStatus(); renderWeekly(); renderFood(); } } } catch (e) {} }, 180000);
 
 /* ---------------------------------------------------------------- étlap */
 const trSec = s => (lang !== 'hu' && TR.sections[s.id] && TR.sections[s.id][lang]) || s.name;
@@ -144,7 +143,7 @@ const plus = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12
 /* ---------------------------------------------------------------- ajánlatok
    A szerver (/api/ajanlat) csak azt küldi, ami ma érvényes: a hétvégi ajánlat hétfőtől
    magától eltűnik, a heti menü a saját hetén (és az előtte lévő hétvégén) látszik. */
-let OFF = null, wkDay = null, wkCourses = 2, wkSoup = 0, wkMain = 0;
+let offersSettled = false, OFF = null, wkDay = null, wkCourses = 2, wkSoup = 0, wkMain = 0, wkSwap = 0;
 const L10 = o => (o && (o[lang] || o.hu)) || '';
 const LOC = () => (lang === 'hu' ? 'hu-HU' : lang === 'de' ? 'de-DE' : 'en-GB');
 const isoDay = iso => new Date(iso + 'T12:00:00');
@@ -171,7 +170,7 @@ function renderOffers() {
       (dz ? `<a class="btn btn-ghost btn-lg" href="${esc(quickHref(base + '\n+ desszert: ' + dz.name.hu + ' (' + huf(dz.price) + ' Ft)'))}">${esc(T('wkendOrderDessert', { p: huf(w.price + dz.price) }))}</a>` : '') + '</div>';
   }
   el.hidden = !w;
-  renderWeekly();
+  renderWeekly(); syncOffers();
 }
 
 // ---- Nyereményjáték a weboldalas rendelők között (a rendeléskezelő nyeremenyjatek.json-ja alapján).
@@ -184,7 +183,7 @@ async function loadGw() {
 function renderGw() {
   const el = $('nyeremeny'), hc = $('heroGw');
   el.hidden = hc.hidden = !GW;
-  if (!GW) return;
+  if (!GW) return syncOffers();
   const end = isoDay(GW.until.slice(0, 10)), draw = isoDay(GW.draw.slice(0, 10));
   const dayFmt = d => lang === 'hu' ? d.toLocaleDateString('hu-HU', { weekday: 'long' }) + ' (' + d.toLocaleDateString('hu-HU', { month: 'long', day: 'numeric' }) + ')' : d.toLocaleDateString(LOC(), { weekday: 'long', day: 'numeric', month: 'long' });
   const p = { n: GW.winners, min: huf(GW.min), date: dayFmt(end), time: GW.until.slice(11, 16) || '23:59', draw: dayFmt(draw), dtime: GW.draw.slice(11, 16) || '21:00' };
@@ -194,6 +193,7 @@ function renderGw() {
     ${GW.running ? `<div class="gw-act"><a class="btn btn-red btn-lg" href="/rendeles">${esc(T('gwBtn'))}</a><small>${esc(T('gwNote', p))}</small></div>` : ''}</div>`;
   hc.hidden = !GW.running;
   hc.innerHTML = `<span class="gi"><img src="/img/pizzakoszoru-xs.webp" alt="" width="44" height="44"></span><span><b>${esc(T('gwTitle', p))}</b><small>${esc(T('gwHero', p))}</small></span><span class="go">›</span>`;
+  syncOffers();
 }
 
 // ---- Előrendelhető alkalmi ajánlat (most: Márton-nap). Az ajánlat és az árak a rendeléskezelőből
@@ -223,7 +223,7 @@ function preTotals() {
 const GOOSE = '<svg viewBox="0 0 200 160" aria-hidden="true"><path d="M150 28c-11-1-19 7-19 17 0 9 6 15 6 25 0 9-8 15-19 15H78c-30 0-55 18-61 44 14 14 37 22 64 22h40c34 0 58-21 58-49 0-15-6-26-15-35-5-5-7-10-7-15 0-5 4-8 9-8h17c-4-10-15-16-27-16z"/><path d="M168 46h20M60 112c18 10 40 13 64 9M88 132c14 3 30 3 44-1"/><circle cx="152" cy="40" r="1.5"/></svg>';
 function renderPre() {
   const el = $('offPre'), hp = $('heroPre');
-  el.hidden = !PRE; hp.hidden = !PRE;
+  el.hidden = !PRE; hp.hidden = !PRE; syncOffers();
   if (!PRE) return;
   hp.innerHTML = `<span class="gi">${GOOSE}</span><span><b>${esc(L10(PRE.offer.title))}</b><small>${esc(T('preServed', { date: fromDate(PRE.offer.serve_from) }))} · ${esc(T('preHeroSub'))}</small></span><span class="go">›</span>`;
   const o = PRE.offer, t = preTotals();
@@ -244,7 +244,11 @@ function renderPre() {
 $('offPre').addEventListener('click', e => {
   const t = tgt(e); if (!t) return;
   const s = t.closest('[data-pq]');
-  if (s) { const k = s.dataset.pq; preQty[k] = Math.max(0, Math.min(50, (preQty[k] || 0) + +s.dataset.d)); renderPre(); $('offPre').querySelector(`[data-pq="${k}"][data-d="${s.dataset.d}"]:not(:disabled)`)?.focus(); }
+  if (s) {
+    const k = s.dataset.pq; preQty[k] = Math.max(0, Math.min(50, (preQty[k] || 0) + +s.dataset.d)); renderPre();
+    const btn = $('offPre').querySelector(`[data-pq="${k}"][data-d="${s.dataset.d}"]`); btn?.parentElement.querySelector('b')?.classList.add('bump');
+    if (btn && !btn.disabled) btn.focus();
+  }
   else if (t.closest('#preNext')) openPre();
 });
 
@@ -360,13 +364,14 @@ function renderWeekly() {
   el.innerHTML = `<div class="wk-head"><div><h3>${esc(T(m.upcoming ? 'weeklyNext' : 'weeklyTitle'))}</h3><div class="dates">${esc(weekRange(m))}</div></div>
     <div class="wk-prices" role="group">${price(2, m.two, 'weeklyTwoSub')}${price(3, m.three, 'weeklyThreeSub')}</div></div>
     <div class="wk-days" role="tablist">${m.days.map(x => `<button class="wk-day" role="tab" data-day="${x.date}" aria-selected="${x.date === wkDay}">${esc(fmtDay(x.date, { weekday: 'long' }))}<small>${esc(isoDay(x.date).toLocaleDateString(LOC(), { month: 'short', day: 'numeric' }))}</small>${x.date === OFF.today ? `<small class="today">${esc(T('weeklyToday'))}</small>` : ''}</button>`).join('')}</div>
-    <div class="wk-cols" role="tabpanel">
+    <div class="wk-cols${wkSwap ? ' swap' : ''}" role="tabpanel" style="--dir:${wkSwap * 14}px">
       <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklySoups'))}</h4></legend>${d.soups.map((s, i) => opt('wkSoup', i, '•', L10(s))).join('')}</fieldset>
       <fieldset class="wk-col" style="border:0;padding:0;margin:0"><legend><h4>${esc(T('weeklyMains'))}</h4></legend>${d.mains.map((s, i) => opt('wkMain', i, letter(i), L10(s))).join('')}</fieldset>
     </div>
     ${d.dessert ? `<p class="wk-dessert${wkCourses === 3 ? ' on' : ''}"><span class="k">${esc(T('weeklyDessert'))}</span><span>${esc(L10(d.dessert))}</span></p>` : ''}
     <div class="wk-foot">${wkFoot(m, d)}</div>`;
   if ($('wkOrder')) $('wkOrder').href = quickHref(weeklyText(m, d));
+  wkSwap = 0;
 }
 // Napi ajánlat: hétköznap 9:30–14:00 rendelhető, mindig az aznapi. 9:30 és 11:00 között előrendelés,
 // ilyenkor Zalaszentgrótra, Zalaudvarnokra és Zalaszentlászlóra nincs szállítási díj (a rendeléskezelő
@@ -401,7 +406,7 @@ function weeklyText(m, d) {
 $('offWeekly').addEventListener('click', e => {
   const t = tgt(e); if (!t) return;
   const dayB = t.closest('[data-day]'), pr = t.closest('[data-courses]');
-  if (dayB) { wkDay = dayB.dataset.day; wkSoup = 0; wkMain = 0; renderWeekly(); $('offWeekly').querySelector(`[data-day="${wkDay}"]`)?.focus(); }
+  if (dayB) { wkSwap = dayB.dataset.day > wkDay ? 1 : dayB.dataset.day < wkDay ? -1 : 0; wkDay = dayB.dataset.day; wkSoup = 0; wkMain = 0; renderWeekly(); $('offWeekly').querySelector(`[data-day="${wkDay}"]`)?.focus(); }
   else if (pr) { wkCourses = +pr.dataset.courses; renderWeekly(); }
   else if (t.closest('#wkOrder')) track('ev', { n: 'weekly_order' });
 });
@@ -442,7 +447,8 @@ function goSection(go) {
 $('chips').addEventListener('click', e => { const b = tgt(e)?.closest('[data-go]'); if (b) goSection(b.dataset.go); });
 $('etlap').addEventListener('click', e => { const b = tgt(e)?.closest('.pager [data-go]'); if (b) goSection(b.dataset.go); });
 
-function itemHTML(it) {
+function itemHTML(it, i = 0) {
+  const st = ` style="--i:${Math.min(i, 14)}"`;
   const { name, desc } = trItem(it);
   const vs = variants(it), paused = M && M.open === false;
   const al = it.alg ? `<div class="al">${esc(T('allergens'))}: ${it.alg.split(/\s*,\s*/).map(n => `<button data-alg="${esc(n)}">${esc(n)}</button>`).join(', ')}</div>` : '';
@@ -452,10 +458,10 @@ function itemHTML(it) {
     const pills = vs.map(v => paused
       ? `<span class="var">${esc(trVar(v.label))} <b>${huf(v.price)} Ft</b></span>`
       : `<a class="var add-v" href="${orderHref(it.id, v.label)}" aria-label="${esc(T('addToCart', { n: name + ' ' + trVar(v.label) }))}">${esc(trVar(v.label))} <b>${huf(v.price)} Ft</b>${plus}</a>`).join('');
-    return `<div class="mi mv" id="i-${esc(it.id)}"><div class="nm"><span>${esc(name)}${sup}</span></div>${ds}<div class="vars">${pills}</div>${al}</div>`;
+    return `<div class="mi mv" id="i-${esc(it.id)}"${st}><div class="nm"><span>${esc(name)}${sup}</span></div>${ds}<div class="vars">${pills}</div>${al}</div>`;
   }
   const btn = paused ? '' : `<a class="add" href="${orderHref(it.id, vs[0].label)}" aria-label="${esc(T('addToCart', { n: name }))}">${plus}</a>`;
-  return `<div class="mi" id="i-${esc(it.id)}"><div class="nm"><span>${esc(name)}${sup}</span></div><div class="pr">${huf(vs[0].price)} Ft ${btn}</div>${ds}${al}</div>`;
+  return `<div class="mi" id="i-${esc(it.id)}"${st}><div class="nm"><span>${esc(name)}${sup}</span></div><div class="pr">${huf(vs[0].price)} Ft ${btn}</div>${ds}${al}</div>`;
 }
 let secFood = null, secDrink = null;
 function pager(list, cur, nameOf, prefix) {
@@ -471,7 +477,7 @@ function renderFood() {
     if (!q && s.id !== secFood) continue;
     const items = s.items.filter(it => { if (!q) return true; const t = trItem(it); return norm(t.name + ' ' + t.desc + ' ' + it.name + ' ' + (it.desc || '')).includes(q); });
     if (!items.length) continue; n += items.length;
-    html += `<div class="msec${q ? '' : ' one'}" id="s-${esc(s.id)}"><h3>${esc(trSec(s))}</h3><div class="items">${items.map(itemHTML).join('')}</div></div>`;
+    html += `<div class="msec${q ? '' : ' one'}" id="s-${esc(s.id)}"><h3>${esc(trSec(s))}</h3><div class="items">${items.map((it, i) => itemHTML(it, i)).join('')}</div></div>`;
   }
   if (!q) html += pager(M.sections, secFood, trSecShort, 's-');
   $('food').innerHTML = n ? html : `<p class="empty">${esc(T('noResults', { q: $('q').value.trim() }))}</p>`;
@@ -516,8 +522,7 @@ document.addEventListener('click', e => {
   e.preventDefault(); toast(T('added'));
   try { track('ev', { n: 'add', v: new URL(a.href, location.href).searchParams.get('add') }); } catch (er) {}
   a.closest('.mi')?.classList.add('hit');
-  burst(e.clientX, e.clientY, 6);
-  setTimeout(() => { location.href = a.href; }, reduced ? 0 : 380);
+  setTimeout(() => { location.href = a.href; }, flyToCart(a));
 });
 
 /* ---------------------------------------------------------------- allergének */
@@ -680,52 +685,106 @@ form.addEventListener('submit', async e => {
 /* ---------------------------------------------------------------- toast */
 function toast(t) { const e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(e._h); e._h = setTimeout(() => e.classList.remove('show'), 1800); }
 
-/* ---------------------------------------------------------------- hulló pipacsszirmok */
-const cv = $('petals'), ctx = cv.getContext('2d'), hero = $('hero');
-let W = 0, H = 0, FH = 0, petals = [], running = false, visible = true, last = 0;
-const COLORS = ['#c4140a', '#d9261b', '#a5100a', '#e0412f', '#b81d12'];
-// Ősszel (szeptember–november) a pipacsszirmok közé falevelek is hullanak; a koppintásra kirobbanó szirmok maradnak pipacsok.
-const AUTUMN = [8, 9, 10].includes(new Date().getMonth());
-const LEAVES = ['#c8641e', '#d98a2b', '#a8501a', '#b8862f', '#8f3f12', '#c9a03a'];
-// FH: meddig hullanak a szirmok. Telefonon a kép van felül, a szöveg alatta – ott csak a képen hullanak, hogy ne takarják a szöveget.
+/* ---------------------------------------------------------------- évszakok: hulló díszek, füzér, tűzijáték
+   A téma a <html data-season> értéke: a /season.js állítja be a szerver órája szerint (az irányítópultról
+   felülbírálható). base = pipacsok (tavasz, nyár), autumn = ősz, winter = tél, christmas = karácsony,
+   christmas2 = dec. 23–25., newyear = szilveszter és újév. Előnézet: ?tema=tel, ?tema=karacsony2 stb. */
+const SEASON = document.documentElement.dataset.season || 'base';
+const SEASONS = {
+  base:       { n: [6, 3],   mix: { petal: 1 },                          burst: { petal: 1 } },
+  autumn:     { n: [16, 9],  mix: { leaf: .7, petal: .3 },             burst: { leaf: .5, petal: .5 } },
+  winter:     { n: [46, 26], mix: { snow: .88, petal: .12 },             burst: { snow: .7, petal: .3 } },
+  christmas:  { n: [44, 24], mix: { snow: .84, star: .06, petal: .1 },   burst: { star: .45, snow: .4, petal: .15 } },
+  christmas2: { n: [84, 46], mix: { snow: .88, star: .1, petal: .02 },   burst: { star: .6, snow: .4 } },
+  newyear:    { n: [26, 14], mix: { conf: .75, star: .25 },              burst: { conf: .6, star: .4 } },
+};
+const SZ = SEASONS[SEASON] || SEASONS.base;
+const PAL = {
+  petal: ['#c4140a', '#d9261b', '#a5100a', '#e0412f', '#b81d12'],
+  leaf: ['#c8641e', '#d98a2b', '#a8501a', '#b8862f', '#8f3f12', '#c9a03a'],
+  conf: ['#d4a52a', '#e8c25a', '#c4140a', '#2a8c8c', '#b9b9c9', '#f0d68a'],
+  star: ['#e7b53c', '#f2cb5d', '#d9a12a'],
+  snow: ['#fff'],
+};
+const pickOf = mix => { let r = Math.random(); for (const k in mix) if ((r -= mix[k]) <= 0) return k; return Object.keys(mix)[0]; };
+function particle(kind, x, y, burstV) {
+  const R = Math.random, pal = PAL[kind];
+  const s = kind === 'snow' ? 1.3 + R() * (SEASON === 'christmas2' ? 3.2 : 2.6) : kind === 'star' ? 4 + R() * 4 : kind === 'conf' ? 5 + R() * 4 : kind === 'leaf' ? 9 + R() * 9 : 7 + R() * 9;
+  const fall = kind === 'snow' ? .4 + R() * .7 + s * .08 : kind === 'conf' ? .6 + R() * .7 : .35 + R() * .6;
+  return { kind, c: pal[(R() * pal.length) | 0], x, y, s, r: R() * 6.28, vr: (R() - .5) * (kind === 'conf' ? .14 : .05),
+    vx: burstV ? (R() - .5) * burstV : (R() - .3) * .5, vy: burstV ? -R() * burstV * .8 : fall, sw: R() * 6.28, life: burstV ? 1 : -1, flip: R() * 6.28 };
+}
+function star5(g, r) { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .45 : r; g.lineTo(Math.cos(a) * q, Math.sin(a) * q); } g.closePath(); }
+function drawP(g, p) {
+  g.save(); g.translate(p.x, p.y);
+  g.globalAlpha = p.life > 0 ? Math.min(1, p.life * 1.5) : .92;
+  if (p.kind === 'snow') {
+    g.beginPath(); g.arc(0, 0, p.s, 0, 6.29); g.fillStyle = '#fff'; g.fill();
+    g.lineWidth = .9; g.strokeStyle = 'rgba(100,128,160,.55)'; g.stroke(); g.restore(); return;
+  }
+  g.rotate(p.r);
+  if (p.kind === 'star') {
+    g.globalAlpha *= .6 + .4 * Math.sin(p.sw * 3); star5(g, p.s); g.fillStyle = p.c; g.fill();
+    g.lineWidth = .8; g.strokeStyle = '#a87d16'; g.stroke(); g.restore(); return;
+  }
+  g.scale(1, Math.abs(Math.cos(p.flip)) * .7 + .3);
+  g.fillStyle = p.c; g.beginPath();
+  if (p.kind === 'conf') { g.fillRect(-p.s / 2, -p.s * .22, p.s, p.s * .44); g.restore(); return; }
+  if (p.kind === 'leaf') {
+    g.moveTo(0, -p.s); g.quadraticCurveTo(p.s * .8, -p.s * .3, 0, p.s); g.quadraticCurveTo(-p.s * .8, -p.s * .3, 0, -p.s); g.fill();
+    g.globalAlpha *= .45; g.strokeStyle = '#4a2208'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, -p.s * .8); g.lineTo(0, p.s * 1.3); g.stroke(); g.restore(); return;
+  }
+  g.moveTo(0, -p.s); g.bezierCurveTo(p.s * .9, -p.s * .8, p.s * .9, p.s * .6, 0, p.s * .55); g.bezierCurveTo(-p.s * .9, p.s * .6, -p.s * .9, -p.s * .8, 0, -p.s);
+  g.fill(); g.globalAlpha *= .25; g.fillStyle = '#3a0904'; g.beginPath(); g.ellipse(0, p.s * .3, p.s * .18, p.s * .12, 0, 0, 6.28); g.fill();
+  g.restore();
+}
+// egy részecske mozgatása; false, ha eltűnt
+function stepP(p, dt, sway) {
+  p.sw += .02 * dt; p.flip += .03 * dt; p.r += p.vr * dt;
+  if (p.life > 0) { p.vy += (p.kind === 'snow' ? .03 : .06) * dt; p.vx *= .985; p.life -= .009 * dt; }
+  p.x += (p.vx + Math.sin(p.sw) * sway) * dt; p.y += p.vy * dt;
+}
+const cv = $('petals'), ctx = cv.getContext('2d'), hero = $('hero'), heroArt = hero.querySelector('.hero-art'), heroIn = hero.querySelector('.hero-in');
+let W = 0, H = 0, FH = 0, ART = { x: 0, y: 0, w: 0, h: 0 }, parts = [], sparks = [], nextFw = performance.now() + 700, running = false, visible = true, last = 0;
+// FH: meddig hullanak a díszek. Telefonon a kép van felül, a szöveg alatta – ott csak a képen hullanak, hogy ne takarják a szöveget.
 function resize() {
   const dpr = Math.min(devicePixelRatio || 1, 2); W = hero.clientWidth; H = hero.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const art = hero.querySelector('.hero-art');
-  FH = art && innerWidth < 760 ? art.getBoundingClientRect().bottom - hero.getBoundingClientRect().top : H;
+  ART = { x: heroArt.offsetLeft + heroIn.offsetLeft, y: heroArt.offsetTop + heroIn.offsetTop, w: heroArt.offsetWidth, h: heroArt.offsetHeight };
+  FH = innerWidth < 760 ? ART.y + ART.h : H;
 }
-function petal(x, y, burstV) {
-  const leaf = AUTUMN && !burstV && Math.random() < .45;
-  const s = leaf ? 8 + Math.random() * 7 : 7 + Math.random() * 9;
-  return { leaf, c: leaf ? LEAVES[(Math.random() * LEAVES.length) | 0] : COLORS[(Math.random() * COLORS.length) | 0], x, y, s, r: Math.random() * 6.28, vr: (Math.random() - .5) * .05, vx: burstV ? (Math.random() - .5) * burstV : (Math.random() - .3) * .5, vy: burstV ? -Math.random() * burstV * .8 : .35 + Math.random() * .6,
-    sw: Math.random() * 6.28, life: burstV ? 1 : -1, flip: Math.random() * 6.28 };
+// tűzijáték (szilveszter): rakéta a kép egén, majd szikraeső
+const FW = ['#ffd25a', '#ff5a4e', '#ffffff', '#5ad1c8', '#ff9f43', '#c38bff'];
+function explode(x, y, n = 70) {
+  const c = FW[(Math.random() * FW.length) | 0];
+  for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = 1.6 + Math.random() * 3.4; sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, c: Math.random() < .2 ? '#fff' : c }); }
 }
-function drawPetal(p) {
-  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(1, Math.abs(Math.cos(p.flip)) * .7 + .3);
-  ctx.globalAlpha = p.life > 0 ? Math.min(1, p.life * 1.5) : .9;
-  ctx.fillStyle = p.c; ctx.beginPath();
-  if (p.leaf) {
-    ctx.moveTo(0, -p.s); ctx.quadraticCurveTo(p.s * .8, -p.s * .3, 0, p.s); ctx.quadraticCurveTo(-p.s * .8, -p.s * .3, 0, -p.s); ctx.fill();
-    ctx.globalAlpha *= .45; ctx.strokeStyle = '#4a2208'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -p.s * .8); ctx.lineTo(0, p.s * 1.3); ctx.stroke();
-    ctx.restore(); return;
+function rocket() { sparks.push({ rk: 1, x: ART.x + ART.w * (.2 + Math.random() * .6), y: ART.y + ART.h * .8, vx: (Math.random() - .5) * .5, vy: -(5.2 + Math.random() * 1.8), ty: ART.y + ART.h * (.1 + Math.random() * .28), life: 1, c: '#ffe7a8' }); }
+function drawSparks(dt) {
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const k = sparks[i];
+    if (k.rk) { k.vy += .05 * dt; k.x += k.vx * dt; k.y += k.vy * dt; if (k.y <= k.ty || k.vy > -1) { sparks.splice(i, 1); explode(k.x, k.y); continue; } }
+    else { k.vx *= .975; k.vy = k.vy * .975 + .04 * dt; k.x += k.vx * dt; k.y += k.vy * dt; k.life -= .0105 * dt; if (k.life <= 0) { sparks.splice(i, 1); continue; } }
+    const a = k.rk ? 1 : Math.max(0, k.life), r = k.rk ? 2.2 : 1 + 1.8 * k.life;
+    ctx.strokeStyle = ctx.fillStyle = k.c; ctx.lineWidth = k.rk ? 2 : 1.8;
+    ctx.globalAlpha = a * .22; ctx.beginPath(); ctx.arc(k.x, k.y, r * 3.2, 0, 6.29); ctx.fill();
+    ctx.globalAlpha = a; ctx.beginPath(); ctx.moveTo(k.x - k.vx * 4.5, k.y - k.vy * 4.5); ctx.lineTo(k.x, k.y); ctx.stroke();
+    ctx.beginPath(); ctx.arc(k.x, k.y, r, 0, 6.29); ctx.fill();
   }
-  ctx.moveTo(0, -p.s); ctx.bezierCurveTo(p.s * .9, -p.s * .8, p.s * .9, p.s * .6, 0, p.s * .55); ctx.bezierCurveTo(-p.s * .9, p.s * .6, -p.s * .9, -p.s * .8, 0, -p.s);
-  ctx.fill(); ctx.globalAlpha *= .25; ctx.fillStyle = '#3a0904'; ctx.beginPath(); ctx.ellipse(0, p.s * .3, p.s * .18, p.s * .12, 0, 0, 6.28); ctx.fill();
-  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 function frame(t) {
   if (!running) return;
   const dt = Math.min(3, (t - last) / 16.7 || 1); last = t;
   ctx.clearRect(0, 0, W, H);
-  for (let i = petals.length - 1; i >= 0; i--) {
-    const p = petals[i];
-    p.sw += .02 * dt; p.flip += .03 * dt; p.r += p.vr * dt;
-    if (p.life > 0) { p.vy += .06 * dt; p.vx *= .985; p.life -= .009 * dt; }
-    p.x += (p.vx + Math.sin(p.sw) * .45) * dt; p.y += p.vy * dt;
+  if (SEASON === 'newyear') { if (t > nextFw) { rocket(); if (Math.random() < .35) setTimeout(rocket, 260); nextFw = t + 1200 + Math.random() * 2000; } drawSparks(dt); }
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    stepP(p, dt, p.kind === 'snow' ? .3 : .45);
     if (p.life > 0 ? p.life <= 0 || p.y > H + 20 : p.y > (FH < H ? FH - 10 : H + 20)) {
-      if (p.life > 0) { petals.splice(i, 1); continue; }
-      Object.assign(p, petal(Math.random() * W, -20));
+      if (p.life > 0) { parts.splice(i, 1); continue; }
+      Object.assign(p, particle(pickOf(SZ.mix), Math.random() * W, -20));
     }
-    drawPetal(p);
+    drawP(ctx, p);
   }
   requestAnimationFrame(frame);
 }
@@ -735,35 +794,107 @@ function burst(x, y, n) {
   if (reduced) return;
   const r = hero.getBoundingClientRect();
   if (y < r.top || y > r.bottom) { miniBurst(x, y, n); return; }
-  for (let i = 0; i < n; i++) petals.push(petal(x - r.left, y - r.top, 7));
+  for (let i = 0; i < n; i++) parts.push(particle(pickOf(SZ.burst), x - r.left, y - r.top, 7));
+  if (SEASON === 'newyear') explode(x - r.left, y - r.top, 36);
   start();
 }
-// a szirmok a hősön kívül is kirobbanhatnak (pl. sorsolás, elküldött üzenet) – ehhez egy ideiglenes vászon kell
+// a díszek a hősön kívül is kirobbanhatnak (pl. sorsolás, elküldött üzenet) – ehhez egy ideiglenes vászon kell
 function miniBurst(x, y, n) {
   const c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70';
-  const host = document.querySelector('dialog[open]') || document.body; host.appendChild(c);
+  (document.querySelector('dialog[open]') || document.body).appendChild(c);
   const dpr = Math.min(devicePixelRatio || 1, 2), w = innerWidth, h = innerHeight; c.width = w * dpr; c.height = h * dpr;
   const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const ps = Array.from({ length: n }, () => petal(x, y, 8)); let lt = performance.now();
+  const ps = Array.from({ length: n }, () => particle(pickOf(SZ.burst), x, y, 8)); let lt = performance.now();
   (function loop(t) {
     const dt = Math.min(3, (t - lt) / 16.7 || 1); lt = t; g.clearRect(0, 0, w, h); let alive = 0;
-    for (const p of ps) { if (p.life <= 0) continue; alive++; p.vy += .06 * dt; p.vx *= .985; p.life -= .012 * dt; p.flip += .05 * dt; p.r += p.vr * dt; p.x += p.vx * dt; p.y += p.vy * dt;
-      g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.scale(1, Math.abs(Math.cos(p.flip)) * .7 + .3); g.globalAlpha = Math.min(1, p.life * 1.5); g.fillStyle = p.c; g.beginPath();
-      g.moveTo(0, -p.s); g.bezierCurveTo(p.s * .9, -p.s * .8, p.s * .9, p.s * .6, 0, p.s * .55); g.bezierCurveTo(-p.s * .9, p.s * .6, -p.s * .9, -p.s * .8, 0, -p.s); g.fill(); g.restore(); }
+    for (const p of ps) { if (p.life <= 0) continue; alive++; stepP(p, dt, 0); p.life -= .003 * dt; drawP(g, p); }
     if (alive) requestAnimationFrame(loop); else c.remove();
   })(lt);
 }
+// karácsonyi fényfüzér a fejléc alján (pointer-events nélkül, semmit nem takar le)
+const BULBS = ['#e0312b', '#f4c542', '#2f9e58', '#3d8bd9', '#f08a24'];
+const bulb = (x, y, rot, k, big) => `<g class="bulb" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)})" style="color:${BULBS[k % BULBS.length]};--d:${(1.6 + Math.random() * 1.8).toFixed(2)}s;--dl:-${(Math.random() * 3).toFixed(2)}s"><rect x="-1.7" y="-.6" width="3.4" height="3" rx=".8" fill="#34463a"/><ellipse cy="${big ? 6.2 : 5.4}" rx="${big ? 3.3 : 2.8}" ry="${big ? 4.5 : 3.9}" fill="currentColor"/></g>`;
+function garland() {
+  const g = document.createElement('div'); g.className = 'garland'; g.setAttribute('aria-hidden', 'true'); top.appendChild(g);
+  const big = SEASON === 'christmas2';
+  const draw = () => {
+    const w = top.clientWidth, sag = big ? 12 : 9, n = Math.max(3, Math.round(w / (big ? 66 : 96))), sw = w / n, hh = sag * 2 + 16;
+    let d = 'M0 1', b = '', k = 0;
+    for (let i = 0; i < n; i++) {
+      const x0 = i * sw, cx = x0 + sw / 2, x1 = x0 + sw, cy = 1 + sag * 2; d += ` Q${cx.toFixed(1)} ${cy} ${x1.toFixed(1)} 1`;
+      for (const t of big ? [.22, .5, .78] : [.3, .7]) {
+        const x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * cx + t * t * x1, y = (1 - t) * (1 - t) + 2 * (1 - t) * t * cy + t * t;
+        const ang = Math.atan2(2 * (1 - t) * (cy - 1) + 2 * t * (1 - cy), sw) * 180 / Math.PI;
+        b += bulb(x, y, ang * .5, k++, big);
+      }
+    }
+    g.innerHTML = `<svg width="${w}" height="${hh}" viewBox="0 0 ${w} ${hh}"><path d="${d}"/>${b}</svg>`;
+  };
+  draw(); addEventListener('resize', draw);
+}
+// dec. 23–25.: fényfüzér a pipacsos kép íve körül is
+function archLights() {
+  const box = document.createElement('div'); box.className = 'arch-lights'; box.setAttribute('aria-hidden', 'true'); hero.appendChild(box);
+  const draw = () => {
+    const w = heroArt.offsetWidth, h = heroArt.offsetHeight; if (!w) return;
+    const cs = getComputedStyle(heroArt), parts2 = cs.borderTopLeftRadius.split(' ');
+    const val = (v, ref) => v && v.endsWith('%') ? parseFloat(v) / 100 * ref : parseFloat(v);
+    const rx = val(parts2[0], w) || w / 2, ry = val(parts2[1] || parts2[0], h) || h * .3, pad = 8, bottom = h - 26;
+    const pts = [];
+    for (let y = bottom; y > ry; y -= 3) pts.push([-pad, y]);
+    for (let a = Math.PI; a <= 2 * Math.PI + .001; a += .008) pts.push([w / 2 + (rx + pad) * Math.cos(a), ry + (ry + pad) * Math.sin(a)]);
+    for (let y = ry; y < bottom; y += 3) pts.push([w + pad, y]);
+    let path = '', b = '', acc = 0, k = 0, step = innerWidth < 760 ? 26 : 30;
+    pts.forEach(([x, y], i) => {
+      path += (i ? 'L' : 'M') + (x + 20).toFixed(1) + ' ' + (y + 20).toFixed(1);
+      if (i) acc += Math.hypot(x - pts[i - 1][0], y - pts[i - 1][1]);
+      if (i === 0 || acc >= step) { acc = 0; b += bulb(x + 20, y + 20, 0, k++, false); }
+    });
+    box.style.cssText = `left:${ART.x - 20}px;top:${ART.y - 20}px;width:${w + 40}px;height:${h + 40}px`;
+    box.innerHTML = `<svg width="${w + 40}" height="${h + 40}"><path d="${path}"/>${b}</svg>`;
+  };
+  draw(); addEventListener('resize', draw); addEventListener('load', draw);
+}
+resize();
+if (SEASON === 'christmas' || SEASON === 'christmas2') garland();
+if (SEASON === 'christmas2') archLights();
+addEventListener('resize', resize); addEventListener('load', resize);
 if (!reduced) {
-  resize();
-  const n = (innerWidth < 760 ? 3 : 6) + (AUTUMN ? 2 : 0);
-  for (let i = 0; i < n; i++) petals.push(petal(Math.random() * W, Math.random() * FH));
-  addEventListener('resize', resize); addEventListener('load', resize);
+  const n = SZ.n[innerWidth < 760 ? 1 : 0];
+  for (let i = 0; i < n; i++) parts.push(particle(pickOf(SZ.mix), Math.random() * W, Math.random() * FH));
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? start() : stop(); }).observe(hero);
   document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-  hero.addEventListener('pointerdown', e => { if (tgt(e)?.closest('a,button')) return; burst(e.clientX, e.clientY, 8); document.querySelector('.hero-hint').classList.remove('show'); });
-  setTimeout(() => document.querySelector('.hero-hint').classList.add('show'), 3500);
-  setTimeout(() => document.querySelector('.hero-hint').classList.remove('show'), 11000);
+  hero.addEventListener('pointerdown', e => { if (tgt(e)?.closest('a,button')) return; burst(e.clientX, e.clientY, 8); $('heroHint').classList.remove('show'); });
+  setTimeout(() => $('heroHint').classList.add('show'), 3500);
+  setTimeout(() => $('heroHint').classList.remove('show'), 11000);
   start();
+}
+// a téma köszöntője a hős részben, és a koppintásra hívó felirat
+function renderSeason() {
+  const k = { christmas: 'seasonXmas', christmas2: 'seasonXmas2', newyear: 'seasonNY' }[SEASON], el = $('seasonNote');
+  const d = new Date(); el.hidden = !k; if (k) el.textContent = T(k, { y: d.getFullYear() + (d.getMonth() >= 6 ? 1 : 0) });
+  const hk = { autumn: 'hintAutumn', winter: 'hintSnow', christmas: 'hintXmas', christmas2: 'hintXmas', newyear: 'hintNY' }[SEASON];
+  if (hk) $('heroHint').textContent = T(hk);
+}
+{ const m = document.querySelector('meta[name=theme-color]'), c = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim(); if (m && c) m.content = c; }
+
+/* ---------------------------------------------------------------- finom megjelenések
+   A címsorok évszakos dísze és a képek csak akkor „érkeznek meg”, amikor a képernyőre görgetsz. */
+const seenIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add(e.target.matches('h2') ? 'seen' : 'in'); seenIO.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' }) : null;
+$$('main h2, .unveil').forEach((el, i) => seenIO ? seenIO.observe(el) : el.classList.add('seen', 'in'));
+$$('.unveil').forEach((el, i) => el.style.setProperty('--i', i % 6));
+// kosárba: a gomb „átrepül” a rendelés gombhoz, aztán megyünk a rendelési oldalra
+function flyToCart(from) {
+  if (reduced || !from.animate) return 0;
+  const target = [document.querySelector('.dock.show .btn-red'), document.querySelector('.btn-order')].find(e => e && e.getBoundingClientRect().width);
+  const a = from.getBoundingClientRect(), b = target ? target.getBoundingClientRect() : { left: innerWidth / 2 - 15, top: innerHeight - 46, width: 30, height: 30 };
+  const dot = document.createElement('div'); dot.className = 'fly'; dot.innerHTML = plus; document.body.appendChild(dot);
+  const sx = a.left + a.width / 2 - 15, sy = a.top + a.height / 2 - 15, ex = b.left + b.width / 2 - 15, ey = b.top + b.height / 2 - 15;
+  const mx = sx + (ex - sx) * .45, my = Math.min(sy, ey) - 90;
+  dot.animate([{ transform: `translate(${sx}px,${sy}px) scale(.6)` }, { transform: `translate(${sx}px,${sy}px) scale(1.15)`, offset: .12 },
+    { transform: `translate(${mx}px,${my}px) scale(1)`, offset: .55 }, { transform: `translate(${ex}px,${ey}px) scale(.45)`, opacity: .7 }],
+    { duration: 640, easing: 'cubic-bezier(.4,0,.3,1)' }).onfinish = () => { dot.remove(); target?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 280 }); };
+  return 660;
 }
 
 /* ---------------------------------------------------------------- süti hozzájárulás */
@@ -807,7 +938,7 @@ addEventListener('pagehide', pingNow);
 const seenSec = new Set();
 // a képernyő közepén áthaladó szakasz számít (a hosszú étlap is); ez az "éppen nézett" rész is
 const secObs = new IntersectionObserver(es => es.forEach(en => { if (!en.isIntersecting) return; const id = en.target.id; window.vvSec = id; window.vvScroll = Math.max(window.vvScroll, scrollPct()); if (!seenSec.has(id)) { seenSec.add(id); if (id !== 'hero') track('sec', { n: id }); } }), { rootMargin: '-45% 0px -45% 0px' });
-['hero', 'rolunk', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => $(id) && secObs.observe($(id)));
+['hero', 'ajanlat', 'rolunk', 'etlap', 'rendezvenyek', 'kiszallitas', 'galeria', 'kapcsolat'].forEach(id => $(id) && secObs.observe($(id)));
 document.addEventListener('click', e => {
   const a = tgt(e)?.closest('a,button'); if (!a) return;
   const h = a.getAttribute('href') || '';
@@ -820,10 +951,12 @@ document.addEventListener('click', e => {
   else if (a.dataset.tab === 'drinks') track('ev', { n: 'drinks' });
   if (a.closest('.quick')) track('ev', { n: 'quick', v: h });
 }, true);
-loadMenu();
-loadOffers();
-loadPre();
-loadGw();
-if (AUTUMN) document.documentElement.classList.add('autumn');
+// ha egy ajánlat sincs (se napi, se hétvégi, se alkalmi), az Ajánlataink rész és a menüpontja eltűnik
+function syncOffers() {
+  const any = ['offPre', 'nyeremeny', 'offWeekend', 'kocsonya', 'offWeekly'].some(id => !$(id).hidden);
+  if (!any && !offersSettled) return;
+  $('ajanlat').hidden = !any; $$('a[href="#ajanlat"]:not(.hero-pre)').forEach(a => { a.hidden = !any; });
+}
+Promise.allSettled([loadMenu(), loadOffers(), loadPre(), loadGw()]).then(() => { offersSettled = true; syncOffers(); });
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
 })();

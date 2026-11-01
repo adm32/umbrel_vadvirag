@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.11.3"
+const version = "1.12.0"
 
 var (
 	site    fs.FS
@@ -101,6 +101,7 @@ func main() {
 	}()
 	siteURL = strings.TrimRight(env("SITE_URL", "https://www.vadviragetterem.com"), "/")
 	statsInit()
+	switchesInit()
 	cleanupOnStart()
 	statsServer()
 	addr := ":" + env("PORT", "8080")
@@ -126,6 +127,7 @@ func routes() http.Handler {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("GET /api/menu", handleMenu)
 	mux.HandleFunc("GET /api/ajanlat", handleOffers)
+	mux.HandleFunc("GET /season.js", handleSeasonJS)
 	mux.HandleFunc("GET /sajat", handleStaffLink)
 	mux.HandleFunc("POST /api/t", handleBeacon)
 	mux.HandleFunc("GET /robots.txt", func(w http.ResponseWriter, r *http.Request) {

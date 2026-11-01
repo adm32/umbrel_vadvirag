@@ -42,7 +42,7 @@ type weekendOffer struct {
 }
 
 type weeklyDay struct {
-	Date  string `json:"date"`
+	Date    string `json:"date"`
 	Soups   []L10n `json:"soups"`
 	Mains   []L10n `json:"mains"`
 	Dessert L10n   `json:"dessert,omitempty"` // a háromfogásos menü desszertje
@@ -102,12 +102,13 @@ func day(s string) (time.Time, bool) {
 	return t, err == nil
 }
 
-// activeOffers: ami az adott napon látszik.
+// activeOffers: ami az adott pillanatban látszik (a kézi kapcsolókkal együtt, lásd schedule.go).
 func activeOffers(now time.Time) map[string]any {
 	now = now.In(budapestTZ)
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, budapestTZ)
 	out := map[string]any{"today": today.Format("2006-01-02"), "now_min": now.Hour()*60 + now.Minute()}
-	if w := offers.Weekend; w != nil {
+	sw := getSwitches()
+	if w := offers.Weekend; w != nil && sw.WeekendHidden != w.From {
 		from, ok1 := day(w.From)
 		to, ok2 := day(w.To)
 		if ok1 && ok2 && !today.Before(from) && !today.After(to) {
@@ -125,12 +126,19 @@ func activeOffers(now time.Time) map[string]any {
 		if !ok1 || !ok2 {
 			continue
 		}
+		if today.After(to) {
+			continue
+		}
+		if sw.WeekNow == m.From { // kézzel előrehozva: ez látszik, amíg tart
+			best = m
+			break
+		}
 		show := showTime(*m, from)
-		if !now.Before(show) && !today.After(to) && (best == nil || show.After(bestShow)) {
+		if !now.Before(show) && (best == nil || show.After(bestShow)) {
 			best, bestShow = m, show
 		}
 	}
-	if best != nil {
+	if best != nil && sw.WeeklyHidden != best.From {
 		from, _ := day(best.From)
 		cp := *best
 		cp.Upcoming = today.Before(from)

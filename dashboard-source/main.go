@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.5.0"
+const version = "1.6.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -169,6 +169,7 @@ type Order struct {
 	TestAuto    bool      `json:"test_auto,omitempty"`
 	Own         bool      `json:"own,omitempty"`
 	Customer    string    `json:"cust"`
+	Free        bool      `json:"free_delivery,omitempty"`
 	Visitor     string    `json:"visitor,omitempty"`
 }
 
@@ -987,6 +988,7 @@ func main() {
 	})
 	mux.HandleFunc("POST /api/test", handleTest)
 	registerCleanup(mux)
+	registerAutomation(mux)
 	mux.HandleFunc("POST /api/check-now", func(w http.ResponseWriter, r *http.Request) {
 		mon.Lock()
 		mon.lastPublic = time.Time{}

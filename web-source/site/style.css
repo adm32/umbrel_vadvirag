@@ -756,3 +756,47 @@ main h2::after{content:"";display:none;width:1.05em;height:.72em;margin-left:.3e
 @keyframes lfIn{from{opacity:0;transform:translate(var(--fx,-30px),-60px) rotate(var(--fr,-50deg))}}
 @keyframes lfSway{from{transform:rotate(calc(var(--sw,4deg) * -1))}to{transform:rotate(var(--sw,4deg))}}
 @media (prefers-reduced-motion:reduce){.leaf-deco .lf{animation:none}}
+
+/* ---- Heti akció: családi pizza + ajándék üdítő (sárga „pizzásdoboz” kártya, hogy elüssön a piros Márton-naptól) */
+.pzoff{position:relative;overflow:hidden;isolation:isolate;display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:28px;align-items:center;margin-bottom:26px;padding:26px 34px 26px 22px;border-radius:28px;color:#3a1204;
+  background:radial-gradient(90% 120% at 18% 40%,#ffe27a 0%,#ffc53a 45%,#ff9a1a 100%);box-shadow:0 26px 50px -30px #b0480acc}
+.pzoff[hidden]{display:none}
+.pzoff::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.13;background:repeating-conic-gradient(#b3120a 0 25%,transparent 0 50%) 0 0/44px 44px;-webkit-mask:radial-gradient(70% 90% at 22% 50%,#000 30%,transparent 75%);mask:radial-gradient(70% 90% at 22% 50%,#000 30%,transparent 75%)}
+.pz-art{position:relative;aspect-ratio:1.12}
+.pz-pizza{position:absolute;left:0;top:4%;width:80%;height:auto;animation:pzSpin 90s linear infinite}
+.pz-b{position:absolute;bottom:0;width:auto;height:66%;filter:drop-shadow(0 10px 10px #5a1a0055)}
+.pz-b1{right:15%;transform:rotate(-7deg);transform-origin:bottom center}
+.pz-b2{right:0;height:60%;transform:rotate(6deg);transform-origin:bottom center}
+.pz-cm{position:absolute;left:3%;bottom:6%;background:#3a1204;color:#ffd54a;font-weight:800;font-size:15px;padding:6px 12px;border-radius:999px;box-shadow:0 6px 14px -6px #000a}
+.pz-cm::before{content:"Ø ";opacity:.8}
+.pz-burst{position:absolute;right:-2%;top:-2%;width:31%;aspect-ratio:1;display:grid;place-content:center;text-align:center;color:#fff;font-weight:800;font-size:12px;line-height:1.1;text-transform:none;
+  background:#d3140b;clip-path:polygon(50% 0,59% 12%,73% 5%,76% 20%,91% 18%,86% 33%,100% 40%,89% 51%,98% 64%,83% 69%,85% 84%,70% 83%,63% 97%,51% 88%,38% 98%,33% 84%,17% 86%,19% 70%,3% 65%,12% 52%,1% 40%,15% 33%,10% 18%,25% 20%,28% 5%,41% 12%);transform:rotate(10deg);animation:pzPulse 2.6s ease-in-out infinite}
+.pz-burst b{display:block;font-size:24px;line-height:1;letter-spacing:-.5px}
+.pz-body{position:relative;z-index:1}
+.pzoff .off-tag{background:#3a1204;color:#ffd54a}
+.pzoff h3{font:italic 700 clamp(30px,3.8vw,46px)/1.05 var(--serif);color:#a50f08;margin-top:12px;text-wrap:balance}
+.pzoff p{margin-top:12px;max-width:52ch;font-size:17px;line-height:1.5;color:#4a1a06}
+.pz-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.pz-btn{background:#c4140a;color:#fff;box-shadow:0 12px 24px -12px #8f0f07}
+.pz-btn:hover{background:#a5100a}
+.pz-call{background:#fffaf0;color:#3a1204;border:0}
+.pz-note{display:block;margin-top:12px;font-size:13.5px;color:#6a3510;max-width:56ch}
+.hero-pz{background:linear-gradient(120deg,#ffcf3a,#ff9a1a);color:#3a1204;box-shadow:0 14px 30px -16px #c2600acc}
+.hero-pre:not([hidden]) ~ .hero-pre{margin-top:10px}
+.hero-pz small{color:#5a2a08}.hero-pz .gi{background:#ffffff66;border-radius:50%}
+.hero-pz .gi img{width:40px;height:40px;animation:pzSpin 30s linear infinite}
+/* érkezéskor a pizza „becsúszik”, az üvegek felugranak */
+.pzoff:not(.in) .pz-pizza{opacity:0;translate:-30px 0;rotate:-60deg}
+.pzoff:not(.in) .pz-b{opacity:0;translate:0 40px}
+.pzoff:not(.in) .pz-burst{opacity:0;scale:.4}
+.pz-pizza,.pz-b,.pz-burst{transition:opacity .6s,translate .8s cubic-bezier(.2,.9,.25,1.15),rotate 1s cubic-bezier(.2,.8,.25,1),scale .5s cubic-bezier(.3,1.6,.5,1)}
+.pz-b1{transition-delay:.25s}.pz-b2{transition-delay:.38s}.pz-burst{transition-delay:.6s}
+@keyframes pzSpin{to{transform:rotate(360deg)}}
+@keyframes pzPulse{50%{transform:rotate(4deg) scale(1.07)}}
+@media (max-width:760px){
+  .pzoff{grid-template-columns:1fr;gap:14px;padding:20px 20px 24px;border-radius:24px}
+  .pz-art{width:min(100%,340px);margin:0 auto}
+  .pzoff p{font-size:16px}
+  .pz-act .btn{flex:1 1 auto;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){.pz-pizza,.pz-burst,.hero-pz .gi img{animation:none}.pzoff .pz-pizza,.pzoff .pz-b,.pzoff .pz-burst{transition:none;opacity:1;translate:none;rotate:none;scale:none}}

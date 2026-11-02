@@ -112,6 +112,7 @@ func (a *App) handlePublicMenu(w http.ResponseWriter, r *http.Request) {
 		"sections":     publicMenu,
 		"fees":         fees,
 		"giveaway":     publicGiveaway(time.Now()),
+		"promo":        publicPromo(time.Now()),
 	})
 }
 
@@ -135,6 +136,7 @@ type publicOrderReq struct {
 	Note    string       `json:"note"`
 	Payment string       `json:"payment"`
 	Website string       `json:"website"` // csapda a robotoknak, embernek üres marad
+	Gifts   []string     `json:"gifts"`   // heti akció: a választott ajándék üdítők, jogosult tételenként sorban
 }
 
 var (
@@ -307,6 +309,10 @@ func (a *App) handlePublicOrder(w http.ResponseWriter, r *http.Request) {
 		packs = append(packs, packLine{it.Role, pk, l.Qty})
 		lines = append(lines, fmt.Sprintf("%d× %s – %s Ft", l.Qty, label, formatHUF(price*l.Qty)))
 	}
+	if len(in.Gifts) > 50 {
+		in.Gifts = in.Gifts[:50]
+	}
+	lines = append(lines, promoLines(in.Items, in.Gifts, time.Now())...)
 	pack := packTotal(packs)
 	if pack > 0 {
 		lines = append(lines, fmt.Sprintf("Csomagolás (elviteles dobozok) – %s Ft", formatHUF(pack)))

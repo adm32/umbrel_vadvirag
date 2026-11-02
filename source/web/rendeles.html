@@ -157,6 +157,15 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .notice.act .tx{flex:1}.notice.act small{display:block;color:var(--ink2);font-size:13px}
 .notice.act .go{color:var(--red);font-weight:700;white-space:nowrap}
 .notice.gw{background:#fff6e8;border:1.5px solid #f2c27a;color:#5a3a12}.notice.gw svg{color:#c4620a}.notice.gw small{display:block;color:#7a5a32;font-size:13px;margin-top:2px}
+/* heti akció: családi pizza + ajándék üdítő */
+.offer.pz{background:linear-gradient(120deg,#c4140a,#e0420c 60%,#f08a12);box-shadow:0 12px 26px -12px #e0420ccc}
+.offer.pz .ic{flex:none;width:40px;height:40px;border-radius:12px;background:#ffd23f;color:#7a1500;display:grid;place-items:center;font-size:22px;transform:rotate(-6deg)}
+.var .gf{position:absolute;top:-9px;left:8px;background:#ffd23f;color:#5a1a00;font-size:10.5px;font-weight:800;line-height:17px;padding:0 6px;border-radius:6px;white-space:nowrap;box-shadow:0 0 0 2px var(--card)}
+.ln.gift{background:#fff8e1}.ln.gift .tx{font-weight:600}
+.gseg{display:flex;gap:4px;background:#f1e6c8;border-radius:11px;padding:3px;flex:none}
+.gseg button{height:36px;padding:0 11px;border-radius:9px;font-size:14px;font-weight:700;color:#7a5a32;transition:background .15s,color .15s,box-shadow .15s}
+.gseg button.on{background:#fff;color:var(--red);box-shadow:0 2px 6px #0000001a}
+.ln.tip{background:#fff8e1;color:#6b4a12;font-size:14px}
 .sum .gw{display:block;margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff6e8;color:#7a4a12;font-size:14px;line-height:1.35}.sum .gw.ok{background:color-mix(in srgb,var(--green) 12%,transparent);color:var(--ink)}
 .how{display:grid;gap:10px;padding:14px 16px}
 .how div{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--ink2)}
@@ -290,6 +299,7 @@ function setConsent(yes){setCookie('vv_consent',yes?'1':'0',390);
 function showConsent(){if(getCookie('vv_consent'))return;const d=document.createElement('div');d.id='consent';d.className='consent';
   d.innerHTML='<p><b>Megjegyezzük az adataidat?</b> Ha elfogadod a sütit, legközelebb nem kell újra beírnod a nevedet, telefonszámodat és címedet. Enélkül is ugyanúgy rendelhetsz.</p><div class="cb"><button class="no">Nem kérem</button><button class="yes">Elfogadom</button></div>';
   d.querySelector('.yes').onclick=()=>setConsent(true);d.querySelector('.no').onclick=()=>setConsent(false);document.body.appendChild(d)}
+let gifts=store.get('vv_gifts',[]);
 let M=null, idx={}, cart=store.get('vv_cart',{}), mode='pickup', quick=false, pay='Készpénz', phone='06 20 339 5099', isOpen=true, closedToday=false;
 const telHref=()=>'tel:'+phone.replace(/[^+\d]/g,'');
 const key=(id,v)=>id+'|'+(v||'');
@@ -305,7 +315,7 @@ async function load(){
   }catch(e){$('menu').innerHTML=`<div class="empty">Az étlap most nem tölthető be.<br>Próbáld újra pár perc múlva, vagy rendelj telefonon: <a href="${telHref()}"><b>${phone}</b></a></div>`;return}
   phone=M.phone||phone;$('phoneTop').textContent=phone;$('callTop').href=telHref();$('callFoot').textContent=phone;$('callFoot').href=telHref();
   isOpen=M.open!==false;closedToday=!!M.closed_today;renderNotices();
-  M.sections.forEach(s=>s.items.forEach(it=>idx[it.id]=it));
+  M.sections.forEach(s=>s.items.forEach(it=>{idx[it.id]=it;it._s=s.id}));
   for(const k in cart){const [id,v]=k.split('|');if(!idx[id]||!price(id,v))delete cart[k]}
   const mn=Math.min(...M.fees.map(f=>f.fee));if(isFinite(mn))$('feeInfo').textContent=`Kiszállítás ${huf(mn)} Ft-tól, vagy elvitel`;
   $('city').innerHTML='<option value="">– válassz –</option>'+[...M.fees].sort((a,b)=>a.name.localeCompare(b.name,'hu')).map(f=>`<option value="${esc(f.name)}">${esc(f.name)} · ${huf(f.fee)} Ft</option>`).join('');
@@ -324,6 +334,7 @@ setInterval(()=>{if(!document.hidden)siteTrack('ping')},20000);addEventListener(
 function siteTrack(t,o){if(!viaSite)return;try{navigator.sendBeacon('/api/t',new Blob([JSON.stringify(Object.assign({t,p:'/rendeles'},o||{}))],{type:'application/json'}))}catch(e){}}
 function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toString())return;
   const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=meGet();me.city=ct;me.mode='delivery';meSet(me)}
+  const sc=qs.get('sec');if(sc&&document.getElementById('s_'+sc))setTimeout(()=>goSec(sc),150);
   const ad=qs.get('add');if(ad&&idx[ad]&&isOpen){const it=idx[ad];const vs=it.variants||[];let v=qs.get('v')||'';if(vs.length&&!vs.some(x=>x.label===v))v=vs[0].label;if(!vs.length)v='';
     if(!cart[key(ad,v)])add(ad,v||undefined);setTimeout(()=>{const e=document.getElementById('i_'+ad);if(e)e.scrollIntoView({block:'center',behavior:'smooth'})},120)}
   history.replaceState(null,'',location.pathname+location.hash)}
@@ -338,11 +349,26 @@ function renderNotices(){let h='';
 async function checkActive(){const tok=store.get('vv_last',null);if(!tok)return;
   try{const r=await fetch('/api/public/order/'+tok,{cache:'no-store'});if(!r.ok){store.set('vv_last',null);return}const o=await r.json();
     if((o.status==='new'||o.status==='preparing'||o.status==='done')&&Date.now()-new Date(o.created)<3*3600e3){active={tok,id:o.id,status:o.status};renderNotices()}}catch(e){}}
+// Heti akció (akcio.json): a jogosult (pl. 50 cm-es) pizzák mellé ajándék üdítő, a vendég választja ki
+function pz(){const p=M&&M.promo;return p&&p.active?p:null}
+function pzOk(id,v){const p=pz();return !!(p&&idx[id]&&idx[id]._s===p.section&&v===p.variant)}
+function pzN(){let n=0;for(const k in cart){const [id,v]=k.split('|');if(pzOk(id,v))n+=cart[k]}return n}
+function pzTill(p){return new Date(p.to+'T12:00').toLocaleDateString('hu-HU',{month:'long',day:'numeric'}).replace(/\.$/,'')}
+function pzOffer(){const p=pz();if(!p||!isOpen)return '';
+  return `<button class="offer pz" onclick="goSec('${p.section}')"><span class="ic" aria-hidden="true">🎁</span><span><b>${esc(p.title.hu)}</b><small>Minden ${esc(p.variant)}-es pizza mellé ${esc(p.gift)} ${p.choices.map(esc).join(' vagy ')} jár ajándékba · ${esc(p.days.hu)}, ${pzTill(p)}-ig</small></span><span class="go">Pizzák ›</span></button>`}
+function pickGift(i,c){gifts[i]=c;store.set('vv_gifts',gifts);renderCheckout()}
+function giftHTML(){const p=pz();if(!p)return '';const n=pzN();
+  if(!n){const small=Object.keys(cart).some(k=>{const [id]=k.split('|');return idx[id]&&idx[id]._s===p.section&&idx[id].variants});
+    return small?`<div class="ln tip">💡 ${esc(p.variant)}-es pizza mellé ${esc(p.gift)} ${p.choices.map(esc).join(' vagy ')} jár ajándékba (${esc(p.days.hu)}, ${pzTill(p)}-ig).</div>`:''}
+  let h='';for(let i=0;i<n;i++){const g=p.choices.includes(gifts[i])?gifts[i]:p.choices[0];
+    h+=`<div class="ln gift"><span class="tx">🎁 Ajándék ${esc(p.gift)} üdítő<small>${n>1?`${i+1}. családi pizzához`:'a családi pizzához'} · ingyen</small></span><div class="gseg" role="group" aria-label="Ajándék üdítő">${p.choices.map(c=>`<button class="${c===g?'on':''}" onclick="pickGift(${i},'${esc(c)}')">${esc(c)}</button>`).join('')}</div></div>`}
+  return h}
+function giftPicks(){const p=pz();if(!p)return [];const n=pzN();return Array.from({length:n},(_,i)=>p.choices.includes(gifts[i])?gifts[i]:p.choices[0])}
 function itemHTML(it){
   const al=it.alg?`<div class="al">Allergének: ${esc(it.alg)}</div>`:'';
   if(it.variants){
     return `<div class="it${it.variants.some(v=>cart[key(it.id,v.label)])?' in':''}" id="i_${it.id}"><div class="tx"><div class="nm">${esc(it.name)}</div>${it.desc?`<div class="ds">${esc(it.desc)}</div>`:''}${al}
-      <div class="vars">${it.variants.map(v=>{const q=cart[key(it.id,v.label)]||0;return `<button class="var" onclick="add('${it.id}','${v.label}')">${esc(v.label)} <small>${huf(v.price)} Ft</small>${q?`<span class="q">${q}</span>`:''}</button>`}).join('')}</div></div></div>`;
+      <div class="vars">${it.variants.map(v=>{const q=cart[key(it.id,v.label)]||0;return `<button class="var" onclick="add('${it.id}','${v.label}')">${pzOk(it.id,v.label)?`<span class="gf">+ ${esc(pz().gift)} üdítő</span>`:''}${esc(v.label)} <small>${huf(v.price)} Ft</small>${q?`<span class="q">${q}</span>`:''}</button>`}).join('')}</div></div></div>`;
   }
   const q=cart[key(it.id)]||0;
   return `<div class="it${q?' in':''}" id="i_${it.id}"><div class="tx"><div class="nm">${esc(it.name)}</div>${it.desc?`<div class="ds">${esc(it.desc)}</div>`:''}${al}<div class="pr">${huf(it.price)} Ft</div></div>
@@ -362,7 +388,7 @@ function renderMenu(){
   spy();
 }
 function rerenderItem(id){const el=$('i_'+id);if(el){const t=document.createElement('div');t.innerHTML=itemHTML(idx[id]);el.replaceWith(t.firstElementChild)}}
-function add(id,v){const k=key(id,v);cart[k]=(cart[k]||0)+1;afterChange(id);toast(`${label(id,v)} a kosárban`);const b=document.querySelector('.cartbar button');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}
+function add(id,v){const k=key(id,v);cart[k]=(cart[k]||0)+1;afterChange(id);toast(`${label(id,v)} a kosárban${pzOk(id,v)?' · 🎁 + ajándék üdítő':''}`);const b=document.querySelector('.cartbar button');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}
 function chg(k,d){cart[k]=(cart[k]||0)+d;if(cart[k]<=0)delete cart[k];afterChange(k.split('|')[0])}
 function afterChange(id){store.set('vv_cart',cart);rerenderItem(id);updateCart();if($('checkout').classList.contains('open'))renderCheckout()}
 // Dobozdíj: a köretre szoruló főételek dobozába főételenként egy köret belefér (nincs külön doboz).
@@ -386,7 +412,7 @@ $('q').addEventListener('input',()=>renderMenu());
 
 // ---- fizetés
 // Ajánlatok (hétvégi ajánlat, heti menü) – a weboldal küldi; a rendeléskezelő saját címén nincs, ilyenkor nem látszik.
-async function loadOffers(){try{const r=await fetch('/api/ajanlat',{cache:'no-store'});if(!r.ok)return;const o=await r.json();let h='';
+async function loadOffers(){$('offers').innerHTML=pzOffer();try{const r=await fetch('/api/ajanlat',{cache:'no-store'});if(!r.ok)return;const o=await r.json();let h='';
   const w=o.weekend;if(w&&isOpen){const names=w.courses.map(c=>c.name.hu).join(' + ');const tag=w.days_left<=0?'csak ma':w.days_left===1?'ma és holnap':'vasárnapig';
     h+=`<button class="offer" onclick="openQuick();$('qtext').value=this.dataset.t" data-t="${esc('Hétvégi ajánlat: '+names+' ('+huf(w.price)+' Ft)')}"><span><b>${esc(w.title.hu)} · <span style="white-space:nowrap">${huf(w.price)} Ft</span></b><small>${esc(names)} (${tag})</small></span><span class="go">Kérem ›</span></button>`}
   if(o.now_min!=null)dailyClock={min:o.now_min,t:Date.now()};
@@ -395,7 +421,7 @@ async function loadOffers(){try{const r=await fetch('/api/ajanlat',{cache:'no-st
     h+=`<a class="offer wk" href="/#ajanlat"><span><b>${td?'Mai napi ajánlat':m.upcoming?'Jövő heti napi ajánlatok':'Napi ajánlat'} · <span style="white-space:nowrap">${huf(m.two)} Ft-tól</span></b><small>${esc(sm)}</small></span><span class="go">${can?'Kérem ›':'Megnézem ›'}</span></a>`}
   try{const pr=await (await fetch('/api/public/preorder',{cache:'no-store'})).json();if(pr.open){const of=pr.offer;
     h=`<a class="offer" href="/#ajanlat"><span><b>${esc(of.title.hu)} · <span style="white-space:nowrap">${huf(of.main_price)} Ft-tól</span></b><small>Előrendelés helyben, elvitelre vagy kiszállítással</small></span><span class="go">Megnézem ›</span></a>`+h}}catch(e){}
-  $('offers').innerHTML=h}catch(e){}}
+  $('offers').innerHTML=pzOffer()+h}catch(e){}}
 // Napi ajánlat (a rendeléskezelő ugyanígy ellenőrzi): 9:30–14:00, 11:00-ig ingyenes kiszállítás három településre
 let dailyClock=null;const DAILY_FREE=['Zalaszentgrót','Zalaudvarnok','Zalaszentlászló'];
 function dailyMin(){return dailyClock?dailyClock.min+Math.floor((Date.now()-dailyClock.t)/60000):-1}
@@ -416,7 +442,7 @@ function renderCheckout(){
   if(!ks.length){$('lines').innerHTML='<div class="ln"><span class="tx">A kosár üres.</span></div>';}
   else{const fr=packCalc().free;$('lines').innerHTML=ks.map(k=>{const [id,v]=k.split('|');const q=cart[k];const f=fr[k]||0;
     const box=!pack(id,v)?'':f>=q?' <span style="white-space:nowrap">· a főétel dobozában</span>':f>0?` <span style="white-space:nowrap">· ${f} db a főétel dobozában, ${q-f} db + ${huf(pack(id,v))} Ft doboz</span>`:` <span style="white-space:nowrap">+ ${huf(pack(id,v))} Ft doboz / db</span>`;
-    return `<div class="ln"><span class="tx">${esc(label(id,v))}<small>${huf(price(id,v))} Ft / db · ${huf(price(id,v)*q)} Ft${box}</small></span><div class="step"><button onclick="chg('${k}',-1)">${q===1?SVG.trash:SVG.minus}</button><b>${q}</b><button onclick="chg('${k}',1)">${SVG.plus}</button></div></div>`}).join('')}
+    return `<div class="ln"><span class="tx">${esc(label(id,v))}<small>${huf(price(id,v))} Ft / db · ${huf(price(id,v)*q)} Ft${box}</small></span><div class="step"><button onclick="chg('${k}',-1)">${q===1?SVG.trash:SVG.minus}</button><b>${q}</b><button onclick="chg('${k}',1)">${SVG.plus}</button></div></div>`}).join('')+giftHTML()}
   renderSum();
 }
 // Nyereményjáték (a rendeléskezelő küldi az étlappal): futó játéknál mutatjuk, mennyi hiányzik még
@@ -435,7 +461,7 @@ function renderSum(){if(quick)return renderQuickSum();const t=totals();let feeTx
 }
 function renderQuickSum(){const t=totals();const free=dailyFree();
   const fee=mode==='delivery'?(t.fee===null?'válassz települést':free?'ingyenes (előrendelés 11:00 előtt)':huf(t.fee)+' Ft'):'';
-  $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>${isOpen?gwLine(null):''}`;
+  $('sum').innerHTML=`${mode==='delivery'?`<div><span>Szállítás</span><span>${fee}</span></div>`:''}<div><span>Ételek és csomagolás</span><span>visszaigazoláskor közöljük</span></div>${isOpen?gwLine(null):''}${pz()&&isOpen?`<span class="gw">🎁 ${esc(pz().variant)}-es pizza mellé ${esc(pz().gift)} ${pz().choices.map(esc).join(' vagy ')} jár ajándékba – írd mellé, melyiket kéred.</span>`:''}`;
   $('send').textContent=closedToday?'Ma már bezártunk':!isOpen?'Az online rendelés most szünetel':'Rendelés elküldése';$('send').disabled=!isOpen;
   $('feeHint').textContent=mode!=='delivery'?'':t.fee===null?'Csak a listában szereplő településekre szállítunk. Ha a tiéd nincs köztük, válaszd az elvitelt, vagy hívj minket.':free?'A napi ajánlat 11:00 előtti előrendelésénél ide nincs szállítási díj.':`Szállítási díj ide: ${huf(t.fee)} Ft.`;
 }
@@ -461,11 +487,11 @@ async function submitOrder(){
   const items=quick?[]:Object.keys(cart).map(k=>{const [id,vv]=k.split('|');return {id,variant:vv,qty:cart[k]}});
   $('send').disabled=true;$('send').textContent='Küldés…';$('msg').textContent='';
   try{
-    const r=await fetch(quick?'/api/public/quick':'/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,text:quick?v('qtext'):'',mode,city:mode==='delivery'?city:'',street:mode==='delivery'?v('street'):'',name:v('name'),phone:v('phone'),email:v('email'),note:v('note'),payment:pay,website:$('website').value})});
+    const r=await fetch(quick?'/api/public/quick':'/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,text:quick?v('qtext'):'',mode,city:mode==='delivery'?city:'',street:mode==='delivery'?v('street'):'',name:v('name'),phone:v('phone'),email:v('email'),note:v('note'),payment:pay,website:$('website').value,gifts:quick?[]:giftPicks()})});
     const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Nem sikerült elküldeni. Próbáld újra, vagy hívj minket!');
     meSet({name:v('name'),phone:v('phone'),email:v('email'),street:v('street'),city:v('city'),mode});
-    if(quick){$('qtext').value='';quick=false}else{cart={};store.set('vv_cart',cart)}store.set('vv_last',d.token);
+    if(quick){$('qtext').value='';quick=false}else{cart={};store.set('vv_cart',cart);gifts=[];store.set('vv_gifts',gifts)}store.set('vv_last',d.token);
     history.replaceState(null,'',location.pathname+'#r='+d.token);
     $('note').value='';renderMenu();updateCart();
     $('checkout').classList.remove('open');sheetPushed=false;siteTrack('ev',{n:'order_sent'});showStatus(d.token,true);

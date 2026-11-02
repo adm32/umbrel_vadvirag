@@ -1,0 +1,25 @@
+{
+ "_info": "Heti akció: a megadott napokon (from–to, budapesti idő, mindkét nap benne van) a 'section' rész 'variant' méretű ételei mellé ajándék jár. A weboldalon rendelőknél a kosárban lehet választani a 'choices' közül, és a rendelésben külön sorban látszik (0 Ft). A weboldal Ajánlataink részén is megjelenik. Kikapcsolás: üres 'id'. Új akcióhoz új 'id' kell.",
+ "id": "csaladi-pizza-2026-11",
+ "from": "2026-11-02",
+ "to": "2026-11-06",
+ "section": "pizzak",
+ "variant": "50 cm",
+ "gift": "1 l",
+ "choices": ["Coca-Cola", "Fanta"],
+ "title": {
+  "hu": "Családi pizza + ajándék üdítő",
+  "en": "Family pizza + a free soft drink",
+  "de": "Familienpizza + Gratis-Getränk"
+ },
+ "text": {
+  "hu": "Minden családi (50 cm-es) pizza mellé 1 literes Coca-Cola vagy Fanta jár ajándékba – helyben, elvitelre és kiszállításnál is.",
+  "en": "Every family-size (50 cm) pizza comes with a free 1-litre Coca-Cola or Fanta – dine in, takeaway or delivery.",
+  "de": "Zu jeder Familienpizza (50 cm) gibt es 1 Liter Coca-Cola oder Fanta gratis – im Restaurant, zum Mitnehmen und bei Lieferung."
+ },
+ "days": {
+  "hu": "hétfőtől péntekig",
+  "en": "Monday to Friday",
+  "de": "Montag bis Freitag"
+ }
+}

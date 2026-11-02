@@ -256,6 +256,10 @@ func (a *App) handleDashSchedule(w http.ResponseWriter, r *http.Request) {
 			"show_until": g.ShowUntil, "min": g.Min, "entries": n, "running": !now.Before(g.start()) && now.Before(g.end()),
 			"ended": !now.Before(g.end()), "shown": publicGiveaway(time.Now())["active"]}
 	}
+	if p := promo; p != nil {
+		out["promo"] = map[string]any{"title": p.Title["hu"], "from": p.From, "to": p.To, "variant": p.Variant, "gift": p.Gift,
+			"choices": p.Choices, "running": p.on(now), "ended": !now.Before(bpTime(p.To).AddDate(0, 0, 1)), "given": a.promoGiven(p)}
+	}
 	if rs := a.loadRaffles(); len(rs) > 0 {
 		last := rs[len(rs)-1]
 		names := func(ls []string) []string {

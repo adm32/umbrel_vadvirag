@@ -1350,6 +1350,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("GET /rendeles", a.servePublicPage)
 	mux.HandleFunc("GET /api/public/menu", a.handlePublicMenu)
 	mux.HandleFunc("GET /api/public/giveaway", a.handlePublicGiveaway)
+	mux.HandleFunc("GET /api/public/promo", a.handlePublicPromo)
 	mux.HandleFunc("POST /api/public/order", a.handlePublicOrder)
 	mux.HandleFunc("POST /api/public/quick", a.handlePublicQuick)
 	mux.HandleFunc("GET /api/public/order/{token}", a.handlePublicStatus)

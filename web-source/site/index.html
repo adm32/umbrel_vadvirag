@@ -81,6 +81,7 @@
         <a class="btn btn-ghost btn-lg hero-menu" href="#etlap" data-t="seeMenu">Étlap</a>
         <a class="btn btn-ghost btn-lg hero-call" href="tel:+36203395099" aria-label="Hívás: 06 20 339 5099" data-ta="call"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6.6 3h3l1.5 4.5-2 1.4a12 12 0 0 0 6 6l1.4-2 4.5 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.4 5.2 2 2 0 0 1 6.6 3Z"/></svg></a>
       </div>
+      <a class="hero-pre hero-pz" id="heroPz" href="#pizzaAkcio" hidden></a>
       <a class="hero-pre" id="heroPre" href="#ajanlat" hidden></a>
       <a class="hero-pre hero-gw" id="heroGw" href="#nyeremeny" hidden></a>
       <p class="hero-quick"><a href="/rendeles#leiras" data-t="quickOrder">Egyszerűbb leírni, mit kérsz? Írd le itt, mi összerakjuk ›</a></p>
@@ -100,12 +101,13 @@
 </section>
 
 <!-- ============ AJÁNLATOK ============ -->
-<!-- A hétvégi és a napi ajánlatot az /api/ajanlat tölti ki (ajanlatok.json); az előrendelhető alkalmi ajánlatot (Márton-nap) a rendeléskezelő (/api/public/preorder), a nyereményjátékot szintén (/api/public/giveaway). -->
+<!-- A hétvégi és a napi ajánlatot az /api/ajanlat tölti ki (ajanlatok.json); az előrendelhető alkalmi ajánlatot (Márton-nap) a rendeléskezelő (/api/public/preorder), a heti akciót (/api/public/promo) és a nyereményjátékot (/api/public/giveaway) szintén. -->
 <section class="offers wrap" id="ajanlat">
   <div class="sec-head">
     <h2 data-t="offersTitle">Ajánlataink</h2>
     <p class="sec-sub" data-t="offersSub">Napi, hétvégi és alkalmi ajánlataink – rendeld meg vagy foglald le pár koppintással.</p>
   </div>
+  <article class="pzoff" id="pizzaAkcio" hidden></article>
   <article class="preoff" id="offPre" hidden></article>
   <article class="gwoff" id="nyeremeny" hidden></article>
   <div class="off-grid">

@@ -48,7 +48,7 @@ function setLang(l, push) {
   if (push) { const path = lang === 'hu' ? '/' : '/' + lang; history.replaceState(null, '', path + location.hash); }
   renderStatus(); renderHours(); renderFacts(); setKind(kind);
   if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
-  renderDrinks(); renderAlg(); renderOffers(); renderPre(); renderGw(); renderSeason();
+  renderDrinks(); renderAlg(); renderOffers(); renderPz(); renderPre(); renderGw(); renderSeason();
 }
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); hideLangHint(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
 
@@ -194,6 +194,32 @@ function renderGw() {
   hc.hidden = !GW.running;
   hc.innerHTML = `<span class="gi"><img src="/img/pizzakoszoru-xs.webp" alt="" width="44" height="44"></span><span><b>${esc(T('gwTitle', p))}</b><small>${esc(T('gwHero', p))}</small></span><span class="go">›</span>`;
   syncOffers();
+}
+
+// ---- Heti akció (a rendeléskezelő akcio.json-ja alapján; most: családi pizza + ajándék üdítő).
+// A kosárban a rendeléskezelő adja hozzá az ajándékot; itt csak bemutatjuk.
+let PZ = null;
+async function loadPz() {
+  try { const r = await fetch('/api/public/promo', { cache: 'no-store' }); if (!r.ok) throw 0; const d = await r.json(); PZ = d.active ? d : null; } catch (e) { PZ = null; }
+  renderPz();
+}
+function pzRange(p) {
+  const a = isoDay(p.from), b = isoDay(p.to), mo = d => d.toLocaleDateString(LOC(), { month: 'long' });
+  if (lang === 'hu') return mo(a) + ' ' + a.getDate() + '\u2060–\u2060' + (mo(a) === mo(b) ? '' : mo(b) + ' ') + b.getDate() + '.';
+  if (lang === 'de') return a.getDate() + '.' + (mo(a) === mo(b) ? '' : ' ' + mo(a)) + '–' + b.getDate() + '. ' + mo(b);
+  return a.getDate() + (mo(a) === mo(b) ? '' : ' ' + mo(a)) + '–' + b.getDate() + ' ' + mo(b);
+}
+function renderPz() {
+  const el = $('pizzaAkcio'), hp = $('heroPz');
+  el.hidden = hp.hidden = !PZ; syncOffers();
+  if (!PZ) return;
+  const p = { days: L10(PZ.days), range: pzRange(PZ), v: PZ.variant, gift: PZ.gift, drinks: PZ.choices.join(T('pzOr')) };
+  hp.innerHTML = `<span class="gi"><img src="/img/akcio/pizza.svg" alt="" width="44" height="44"></span><span><b>${esc(L10(PZ.title))}</b><small>${esc(T('pzHero', p))}</small></span><span class="go">›</span>`;
+  el.innerHTML = `<div class="pz-art" aria-hidden="true"><img class="pz-pizza" src="/img/akcio/pizza.svg" alt="" width="440" height="440"><img class="pz-b pz-b1" src="/img/akcio/kola.svg" alt="" width="120" height="330"><img class="pz-b pz-b2" src="/img/akcio/narancs.svg" alt="" width="120" height="330"><span class="pz-cm">${esc(PZ.variant)}</span><span class="pz-burst"><b>+${esc(PZ.gift)}</b>${esc(T('pzBurst'))}</span></div>
+    <div class="pz-body"><span class="off-tag">${esc(T('pzTag', p))}</span><h3>${esc(L10(PZ.title))}</h3><p>${esc(L10(PZ.text))}</p>
+    <div class="pz-act"><a class="btn btn-lg pz-btn" href="/rendeles?sec=${encodeURIComponent(PZ.section)}">${esc(T('pzBtn'))}</a><a class="btn btn-lg pz-call" href="tel:+36203395099">06 20 339 5099</a></div>
+    <small class="pz-note">${esc(T('pzNote', p))}</small></div>`;
+  requestAnimationFrame(() => { if (!el.classList.contains('in')) seenIO ? seenIO.observe(el) : el.classList.add('in'); }); // a seenIO később jön létre
 }
 
 // ---- Előrendelhető alkalmi ajánlat (most: Márton-nap). Az ajánlat és az árak a rendeléskezelőből
@@ -979,10 +1005,10 @@ document.addEventListener('click', e => {
 }, true);
 // ha egy ajánlat sincs (se napi, se hétvégi, se alkalmi), az Ajánlataink rész és a menüpontja eltűnik
 function syncOffers() {
-  const any = ['offPre', 'nyeremeny', 'offWeekend', 'kocsonya', 'offWeekly'].some(id => !$(id).hidden);
+  const any = ['pizzaAkcio', 'offPre', 'nyeremeny', 'offWeekend', 'kocsonya', 'offWeekly'].some(id => !$(id).hidden);
   if (!any && !offersSettled) return;
   $('ajanlat').hidden = !any; $$('a[href="#ajanlat"]:not(.hero-pre)').forEach(a => { a.hidden = !any; });
 }
-Promise.allSettled([loadMenu(), loadOffers(), loadPre(), loadGw()]).then(() => { offersSettled = true; syncOffers(); });
+Promise.allSettled([loadMenu(), loadOffers(), loadPz(), loadPre(), loadGw()]).then(() => { offersSettled = true; syncOffers(); });
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
 })();

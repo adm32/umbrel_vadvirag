@@ -283,6 +283,12 @@ span.var{padding-right:12px}
 .foot a{color:#fff;text-decoration:none;font-weight:600}
 .foot a:hover{text-decoration:underline}
 .copy{color:#a8927c;font-size:13px}
+.made{display:flex;justify-content:flex-end;margin-top:28px;padding-top:16px;border-top:1px solid #ffffff14}
+.foot .made a{display:inline-flex;align-items:center;gap:8px;color:#a8927c;font-size:13px;font-weight:500;transition:color .2s}
+.foot .made a:hover{color:#fff;text-decoration:none}
+.made img{width:22px;height:22px;border-radius:7px;box-shadow:0 0 0 1px #ffffff38;transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+.made a:hover img{transform:rotate(-8deg) scale(1.1)}
+@media (max-width:760px){.made{justify-content:flex-start}}
 
 /* mobil dokk */
 .dock{display:none}

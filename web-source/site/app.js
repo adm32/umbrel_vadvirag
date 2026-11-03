@@ -623,23 +623,72 @@ function renderFees() {
 }
 const van = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>';
 let lastTown = '';
+// Irányítószámok (Magyar Posta / GeoNames): egy számhoz több település is tartozhat. Csak azok számítanak,
+// amelyek a kiszállítási listán is szerepelnek.
+const SZG = ['Zalaszentgrót', 'Kisszentgrót', 'Tüskeszentpéter', 'Csáford', 'Zalakoppány', 'Zalaudvarnok', 'Aranyod'];
+const POST = {
+  '8341': ['Szalapa', 'Kisvásárhely', 'Mihályfa'], '8342': ['Óhíd'], '8353': ['Vindornyalak'], '8354': ['Karmacs', 'Vindornyafok', 'Zalaköveskút'],
+  '8355': ['Vindornyaszőlős'], '8356': ['Kisgörbő', 'Nagygörbő'], '8357': ['Döbröce', 'Sümegcsehi'], '8371': ['Nemesbük'], '8393': ['Szentgyörgyvár'],
+  '8395': ['Felsőpáhok'], '8741': ['Bókaháza'], '8782': ['Zalacsány', 'Tilaj', 'Ligetfalva'], '8784': ['Kehidakustány'], '8785': ['Kallósd', ...SZG],
+  '8788': ['Zalaszentlászló', 'Sénye'], '8789': SZG, '8790': SZG, '8792': ['Zalavég'], '8793': ['Tekenye'], '8795': SZG, '8796': ['Türje'],
+  '8797': ['Batyk'], '8798': ['Zalabér'], '8799': ['Dötk', 'Pakod'], '8932': ['Pókaszepetk'], '9831': ['Bérbaltavár']
+};
+// elgépelés: Damerau–Levenshtein távolság
+function dist(a, b) {
+  const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+    const c = a[i - 1] === b[j - 1] ? 0 : 1;
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[m][n];
+}
+// a beírt szövegből a lehetséges települések (pontos → eleje → benne van → elgépelt)
+function townMatches(raw) {
+  const code = (raw.match(/\b(\d{4})\b/) || [])[1];
+  const q = norm(raw.replace(/\d+/g, ' ').replace(/[.,;:/()-]+/g, ' ')).replace(/\s+/g, ' ').trim();
+  const fees = M.fees, nm = f => norm(f.name);
+  const byCode = code ? (POST[code] || []).map(n => fees.find(f => f.name === n)).filter(Boolean) : [];
+  if (q.length >= 2) {
+    const exact = fees.filter(f => nm(f) === q); if (exact.length) return { list: exact, sure: true };
+    const starts = fees.filter(f => nm(f).startsWith(q));
+    if (starts.length) { const inCode = byCode.length ? starts.filter(f => byCode.includes(f)) : []; return { list: inCode.length ? inCode : starts, sure: starts.length === 1, partial: starts.length > 1 }; }
+    const inside = fees.filter(f => nm(f).length >= 4 && q.includes(nm(f))); if (inside.length) return { list: inside, sure: inside.length === 1 };
+    if (q.length >= 4) {
+      const tol = q.length >= 8 ? 2 : 1;
+      const sc = fees.map(f => { const n = nm(f); return { f, d: Math.min(dist(q, n), q.length < n.length ? dist(q, n.slice(0, q.length)) : 99) }; }).filter(x => x.d <= tol).sort((a, b) => a.d - b.d);
+      if (sc.length) { const best = sc.filter(x => x.d === sc[0].d).map(x => x.f); return { list: best, sure: best.length === 1, guess: true }; }
+    }
+  }
+  if (byCode.length) return { list: byCode, sure: byCode.length === 1 };
+  return { list: [], sure: false, known: !!code || q.length >= 3 };
+}
+function townYes(f) {
+  if (lastTown === f.name + lang) return; lastTown = f.name + lang;
+  track('ev', { n: 'town', v: f.name, ok: true });
+  $('delResult').innerHTML = `<div class="del-card yes"><span class="van">${van}</span><div class="tx"><b>${esc(T('delYes'))}</b><div class="fee">${esc(f.name)}: ${esc(T('delFee', { fee: huf(f.fee) }))}</div></div>${M.open === false ? '' : `<a class="btn btn-red" href="/rendeles?city=${encodeURIComponent(f.name)}">${esc(T('delOrder'))}</a>`}</div>`;
+}
 function checkTown() {
   if (!M) return;
-  const raw = $('town').value.trim(), q = norm(raw), out = $('delResult');
-  if (q.length < 2) { out.innerHTML = ''; lastTown = ''; return; }
-  const exact = M.fees.find(f => norm(f.name) === q);
-  const starts = M.fees.filter(f => norm(f.name).startsWith(q));
-  const f = exact || (starts.length === 1 ? starts[0] : null);
-  if (f) {
-    if (lastTown === f.name + lang) return; lastTown = f.name + lang;
-    track('ev', { n: 'town', v: f.name, ok: true });
-    out.innerHTML = `<div class="del-card yes"><span class="van">${van}</span><div class="tx"><b>${esc(T('delYes'))}</b><div class="fee">${esc(f.name)}: ${esc(T('delFee', { fee: huf(f.fee) }))}</div></div>${M.open === false ? '' : `<a class="btn btn-red" href="/rendeles?city=${encodeURIComponent(f.name)}">${esc(T('delOrder'))}</a>`}</div>`;
-  } else if (!starts.length && q.length >= 3) {
-    if (lastTown === '!' + q + lang) return; lastTown = '!' + q + lang;
+  const raw = $('town').value.trim(), out = $('delResult');
+  if (norm(raw).replace(/\s/g, '').length < 2) { out.innerHTML = ''; lastTown = ''; return; }
+  const r = townMatches(raw);
+  if (r.sure) return townYes(r.list[0]);
+  if (r.list.length > 1 && !r.partial) {
+    const k = '?' + r.list.map(f => f.name).join() + lang; if (lastTown === k) return; lastTown = k;
+    out.innerHTML = `<div class="del-card pick"><div class="tx"><b>${esc(T('delPick'))}</b><div class="town-pick">${r.list.map(f => `<button type="button" class="chip" data-town="${esc(f.name)}">${esc(f.name)}</button>`).join('')}</div></div></div>`;
+    return;
+  }
+  if (!r.list.length && r.known) {
+    const q = norm(raw); if (lastTown === '!' + q + lang) return; lastTown = '!' + q + lang;
     clearTimeout(checkTown.t); checkTown.t = setTimeout(() => { if ($('town').value.trim() === raw) track('ev', { n: 'town', v: raw, ok: false }); }, 1500);
     out.innerHTML = `<div class="del-card no"><div class="tx"><b>${esc(T('delNo'))}</b><div class="fee">${esc(T('delNoSub'))}</div></div><a class="btn btn-ghost" href="tel:+36203395099">${esc(T('call'))}</a></div>`;
-  } else { out.innerHTML = ''; lastTown = ''; }
+    return;
+  }
+  out.innerHTML = ''; lastTown = '';
 }
+$('delResult').addEventListener('click', e => { const b = e.target.closest('[data-town]'); if (!b) return; $('town').value = b.dataset.town; checkTown(); });
 $('town').addEventListener('input', checkTown);
 $('town').addEventListener('change', checkTown);
 

@@ -800,3 +800,6 @@ main h2::after{content:"";display:none;width:1.05em;height:.72em;margin-left:.3e
   .pz-act .btn{flex:1 1 auto;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){.pz-pizza,.pz-burst,.hero-pz .gi img{animation:none}.pzoff .pz-pizza,.pzoff .pz-b,.pzoff .pz-burst{transition:none;opacity:1;translate:none;rotate:none;scale:none}}
+.town-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.town-pick button{padding:9px 16px;border-radius:999px;border:1.5px solid var(--red);background:var(--card);color:var(--red);font:600 16px var(--sans);cursor:pointer;transition:background .15s,color .15s}
+.town-pick button:hover,.town-pick button:focus-visible{background:var(--red);color:#fff}

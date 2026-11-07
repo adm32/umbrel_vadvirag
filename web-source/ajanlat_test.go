@@ -16,9 +16,9 @@ func TestOffersVisibility(t *testing.T) {
 		upcoming        bool
 	}{
 		{"2026-10-22 12:00", false, false, false},
-		{"2026-10-23 08:00", true, true, true},
-		{"2026-10-24 18:00", true, true, true},
-		{"2026-10-25 23:59", true, true, true},
+		{"2026-10-23 08:00", false, true, true},
+		{"2026-10-24 18:00", false, true, true},
+		{"2026-10-25 23:59", false, true, true},
 		{"2026-10-26 00:01", false, true, false}, // hétfőtől nincs hétvégi ajánlat
 		{"2026-10-30 14:59", false, true, false},
 		{"2026-10-30 15:00", false, true, true}, // péntek 15:00-tól a jövő heti menü
@@ -26,7 +26,10 @@ func TestOffersVisibility(t *testing.T) {
 		{"2026-11-02 10:00", false, true, false},
 		{"2026-11-06 14:59", false, true, false},
 		{"2026-11-06 15:00", false, true, true}, // péntek 15:00-tól a nov. 9–13. heti menü
-		{"2026-11-07 09:00", false, true, true},
+		{"2026-11-06 23:59", false, true, true},
+		{"2026-11-07 09:00", true, true, true}, // hétvégi ajánlat nov. 7–8.
+		{"2026-11-08 20:00", true, true, true},
+		{"2026-11-09 00:01", false, true, false},
 		{"2026-11-10 10:00", false, true, false},
 		{"2026-11-14 09:00", false, false, false},
 	}
@@ -41,10 +44,10 @@ func TestOffersVisibility(t *testing.T) {
 			t.Errorf("%s: upcoming wrong", c.when)
 		}
 	}
-	if o := at("2026-10-24 18:00"); o["weekend"].(weekendOffer).DaysLeft != 1 {
+	if o := at("2026-11-07 18:00"); o["weekend"].(weekendOffer).DaysLeft != 1 {
 		t.Error("days left on Saturday should be 1")
 	}
-	if len(offers.Weeks) < 2 || len(offers.Weeks[1].Days) != 5 || offers.Weekend.Price != 3990 {
+	if len(offers.Weeks) < 2 || len(offers.Weeks[1].Days) != 5 || offers.Weekend.Price != 4500 {
 		t.Error("data not loaded")
 	}
 	if w := at("2026-10-30 15:00")["weekly"].(weeklyMenu); w.From != "2026-11-02" || w.Days[0].Dessert["hu"] == "" {

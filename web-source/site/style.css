@@ -372,6 +372,15 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 .course .k{color:var(--ink3);font-size:13px;font-weight:600;padding-top:3px}
 .course .n{font:600 19px/1.3 var(--serif)}
 .course .d{grid-column:2;color:var(--ink2);font-size:15px}
+.course.choose .k small{display:block;font-weight:500;margin-top:2px}
+@media (max-width:560px){.course.choose{grid-template-columns:1fr}.course.choose .k small{display:inline;margin-left:6px}}
+.picks{display:flex;flex-direction:column;gap:8px}
+.pick{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;text-align:left;padding:11px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;font:inherit;color:inherit}
+.pick i{font-style:normal;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--paper);color:var(--ink2);font:700 15px var(--sans);transition:background .15s,color .15s}
+.pick .n{display:block;font:600 18px/1.3 var(--serif)}.pick .d{display:block;color:var(--ink2);font-size:15px;margin-top:2px}
+.pick:hover{border-color:color-mix(in srgb,var(--red) 40%,var(--line))}
+.pick.on{border-color:var(--red);background:color-mix(in srgb,var(--red) 5%,var(--card));box-shadow:0 0 0 1px var(--red)}
+.pick.on i{background:var(--red);color:#fff}
 .off-price{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-top:1px solid var(--line);margin-top:6px;padding-top:16px}
 .off-price span{color:var(--ink2);font-weight:600}
 .off-price b{font:700 clamp(30px,3.6vw,38px)/1 var(--serif);color:var(--red)}

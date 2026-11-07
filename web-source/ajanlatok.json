@@ -1,54 +1,67 @@
 {
  "_info": "Az ajánlatok adatai, budapesti idő szerint. A hétvégi ajánlat a 'from'–'to' napokon látszik. A napi ajánlatok ('weeks'): mindig az látszik, amelyiknek a 'show_from' ideje (dátum vagy 'ÉÉÉÉ-HH-NN ÓÓ:PP') már elmúlt, és még nem járt le ('to'); alapból 3 nappal a hét előtt. Napi ajánlatnál: 'soups', 'mains' (A, B) és 'dessert' (a háromfogásos menühöz).",
  "weekend": {
-  "from": "2026-10-23",
-  "to": "2026-10-25",
+  "from": "2026-11-07",
+  "to": "2026-11-08",
   "title": {
-   "hu": "Ajánlatunk a hosszú hétvégére",
-   "en": "Our long-weekend special",
-   "de": "Unser Angebot zum langen Wochenende"
+   "hu": "Hétvégi kétfogásos ajánlatunk",
+   "en": "Our two-course weekend special",
+   "de": "Unser zweigängiges Wochenendangebot"
   },
   "courses": [
    {
     "kind": "soup",
     "name": {
-     "hu": "Sajtkrémleves",
-     "en": "Cream of cheese soup",
-     "de": "Käsecremesuppe"
+     "hu": "Nyírségi húsgombócleves",
+     "en": "Nyírség-style meatball soup",
+     "de": "Fleischklößchensuppe nach Nyírséger Art"
     },
     "desc": {
-     "hu": "pirított zsemlekocka",
-     "en": "toasted croutons",
-     "de": "geröstete Brotwürfel"
+     "hu": "",
+     "en": "",
+     "de": ""
     }
    },
    {
     "kind": "main",
     "name": {
-     "hu": "Dijoni töltött karaj bundában",
-     "en": "Dijon-stuffed pork loin in batter",
-     "de": "Mit Dijon gefülltes Schweinekotelett im Teigmantel"
+     "hu": "Cornflakes-es csirkemell ropogós bundában",
+     "en": "Cornflake-crusted chicken breast in crispy batter",
+     "de": "Hähnchenbrust in knuspriger Cornflakes-Panade"
     },
     "desc": {
-     "hu": "bacon, dijoni mustár, reszelt sajt, csemege uborka, petrezselymes párolt rizs",
-     "en": "bacon, Dijon mustard, grated cheese, gherkin, parsley rice",
-     "de": "Speck, Dijon-Senf, geriebener Käse, Gewürzgurke, Petersilienreis"
+     "hu": "franciasaláta, párolt rizs",
+     "en": "Olivier salad, steamed rice",
+     "de": "Französischer Salat, Reis"
+    }
+   },
+   {
+    "kind": "main",
+    "name": {
+     "hu": "Kapros juhtúróval töltött rántott karaj",
+     "en": "Breaded pork loin stuffed with dill ewe cheese",
+     "de": "Panierter Schweinerücken mit Dill-Schafskäse gefüllt"
+    },
+    "desc": {
+     "hu": "hasábburgonya",
+     "en": "French fries",
+     "de": "Pommes frites"
     }
    }
   ],
-  "price": 3990,
+  "price": 4500,
   "dessert": {
    "name": {
-    "hu": "Almás kelt palacsinta",
+    "hu": "Kelt almás palacsinta",
     "en": "Apple yeast pancake",
     "de": "Apfel-Hefepfannkuchen"
    },
    "desc": {
-    "hu": "fahéjas porcukor, házi karamell öntet",
-    "en": "cinnamon sugar, homemade caramel sauce",
-    "de": "Zimtzucker, hausgemachte Karamellsoße"
+    "hu": "házi karamellszósz",
+    "en": "homemade caramel sauce",
+    "de": "hausgemachte Karamellsoße"
    },
-   "price": 1290
+   "price": 1590
   }
  },
  "weeks": [

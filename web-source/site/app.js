@@ -154,24 +154,33 @@ async function loadOffers() {
   try { const r = await fetch('/api/ajanlat', { cache: 'no-store' }); if (!r.ok) throw 0; OFF = await r.json(); OFF._t = Date.now(); } catch (e) { OFF = {}; }
   renderOffers();
 }
+let wkeMain = 0; // hétvégi ajánlat: melyik főételt választotta (ha több van)
 function renderOffers() {
   if (!OFF) return;
   const w = OFF.weekend, el = $('offWeekend');
   if (w) {
     const tag = w.days_left <= 0 ? T('wkendToday') : w.days_left === 1 ? T('wkendTomorrow') : T('wkendSunday');
-    const dz = w.dessert;
-    const base = 'Hétvégi ajánlat: ' + w.courses.map(c => c.name.hu).join(' + ') + ' (' + huf(w.price) + ' Ft)';
+    const dz = w.dessert, mains = w.courses.filter(c => c.kind !== 'soup'), soups = w.courses.filter(c => c.kind === 'soup');
+    if (wkeMain >= mains.length) wkeMain = 0;
+    const pick = [...soups, mains[wkeMain]].filter(Boolean);
+    const letter = i => String.fromCharCode(65 + i);
+    const base = 'Hétvégi ajánlat: ' + pick.map(c => c.name.hu + (c.desc && c.desc.hu ? ', ' + c.desc.hu : '')).join(' + ') + ' (' + huf(w.price) + ' Ft)';
     const course = (k, c, extra) => `<div class="course${k === 'cDessert' ? ' dessert' : ''}"><span class="k">${esc(T(k))}</span><span class="n">${esc(L10(c.name))}</span>${L10(c.desc) ? `<span class="d">${esc(L10(c.desc))}</span>` : ''}${extra || ''}</div>`;
+    const mainsHTML = mains.length > 1
+      ? `<div class="course choose"><span class="k">${esc(T('cMain'))}<small>${esc(T('wkendPick'))}</small></span><div class="picks" role="radiogroup">${mains.map((c, i) => `<button type="button" role="radio" aria-checked="${i === wkeMain}" class="pick${i === wkeMain ? ' on' : ''}" data-wkemain="${i}"><i>${letter(i)}</i><span><span class="n">${esc(L10(c.name))}</span>${L10(c.desc) ? `<span class="d">${esc(L10(c.desc))}</span>` : ''}</span></button>`).join('')}</div></div>`
+      : mains.map(c => course('cMain', c)).join('');
+    const lbl = mains.length > 1 ? ' (' + letter(wkeMain) + ')' : '';
     el.innerHTML = `<span class="off-tag hot">${esc(tag)}</span><h3>${esc(L10(w.title))}</h3>` +
-      w.courses.map(c => course(c.kind === 'soup' ? 'cSoup' : 'cMain', c)).join('') +
+      soups.map(c => course('cSoup', c)).join('') + mainsHTML +
       `<div class="off-price"><span>${esc(T('wkendBoth'))}</span><b>${huf(w.price)} Ft</b></div>` +
       (dz ? course('cDessert', dz, `<span class="p">${huf(dz.price)} Ft</span>`) : '') +
-      `<div class="off-btns"><a class="btn btn-red btn-lg" href="${esc(quickHref(base))}">${esc(T('wkendOrder', { p: huf(w.price) }))}</a>` +
-      (dz ? `<a class="btn btn-ghost btn-lg" href="${esc(quickHref(base + '\n+ desszert: ' + dz.name.hu + ' (' + huf(dz.price) + ' Ft)'))}">${esc(T('wkendOrderDessert', { p: huf(w.price + dz.price) }))}</a>` : '') + '</div>';
+      `<div class="off-btns"><a class="btn btn-red btn-lg" href="${esc(quickHref(base))}">${esc(T('wkendOrder', { p: huf(w.price) }) + lbl)}</a>` +
+      (dz ? `<a class="btn btn-ghost btn-lg" href="${esc(quickHref(base + '\n+ desszert: ' + dz.name.hu + ' (' + huf(dz.price) + ' Ft)'))}">${esc(T('wkendOrderDessert', { p: huf(w.price + dz.price) }) + lbl)}</a>` : '') + '</div>';
   }
   el.hidden = !w;
   renderWeekly(); syncOffers();
 }
+$('offWeekend').addEventListener('click', e => { const b = e.target.closest('[data-wkemain]'); if (!b) return; wkeMain = +b.dataset.wkemain; renderOffers(); const n = $('offWeekend').querySelector(`[data-wkemain="${wkeMain}"]`); if (n) n.focus(); });
 
 // ---- Nyereményjáték a weboldalas rendelők között (a rendeléskezelő nyeremenyjatek.json-ja alapján).
 // A szabályt a rendeléskezelő ellenőrzi; itt csak bemutatjuk. A játék után a sorsolás napjáig a „lezárult” szöveg látszik.

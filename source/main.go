@@ -1362,6 +1362,20 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("POST /api/preorders/{id}/status", a.requireAuth(a.handlePreorderStatus))
 	mux.HandleFunc("GET /api/messages", a.requireAuth(a.handleMessages))
 	mux.HandleFunc("POST /api/messages/{id}/done", a.requireAuth(a.handleMessageDone))
+	// a vendégek telefonjára tehető rendelő alkalmazás (a weboldal ezeket is továbbítja)
+	for _, f := range []string{"rendeles-app.webmanifest", "rendeles-sw.js"} {
+		f := f
+		mux.HandleFunc("GET /"+f, func(w http.ResponseWriter, r *http.Request) {
+			data, _ := webFS.ReadFile("web/" + f)
+			if strings.HasSuffix(f, ".js") {
+				w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+			} else {
+				w.Header().Set("Content-Type", "application/manifest+json")
+			}
+			w.Header().Set("Cache-Control", "no-cache")
+			w.Write(data)
+		})
+	}
 	for _, f := range []string{"sw.js", "manifest.json", "icon-192.png", "icon-512.png", "apple-touch-icon.png", "logo.png"} {
 		f := f
 		mux.HandleFunc("GET /"+f, func(w http.ResponseWriter, r *http.Request) {

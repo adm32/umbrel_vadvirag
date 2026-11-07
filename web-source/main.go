@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.13.3"
+const version = "1.14.0"
 
 var (
 	site    fs.FS
@@ -148,7 +148,7 @@ func routes() http.Handler {
 
 	// A rendelési oldal és az API-ja a rendeléskezelőből jön, a vendég ebből semmit sem vesz észre.
 	px := orderProxy()
-	for _, p := range []string{"/rendeles", "/api/public/", "/logo.png", "/icon-192.png"} {
+	for _, p := range []string{"/rendeles", "/rendeles-app.webmanifest", "/rendeles-sw.js", "/api/public/", "/logo.png", "/icon-192.png"} {
 		mux.Handle(p, px)
 	}
 

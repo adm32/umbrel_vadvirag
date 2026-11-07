@@ -13,6 +13,12 @@
 <meta property="og:url" content="https://www.vadviragetterem.com/rendeles">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/icon-192.png">
+<link rel="manifest" href="/rendeles-app.webmanifest">
+<link rel="apple-touch-icon" href="/img/app-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vadvirág">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>/* a betűtípusok a weboldalról jönnek (ugyanazon a címen fut); ha nem érhetők el, a rendszer betűtípusa marad */
 @font-face{font-family:Inter;font-weight:400;font-display:swap;src:url(/fonts/inter-400.woff) format("woff")}@font-face{font-family:Inter;font-weight:500;font-display:swap;src:url(/fonts/inter-500.woff) format("woff")}
 @font-face{font-family:Inter;font-weight:600;font-display:swap;src:url(/fonts/inter-600.woff) format("woff")}@font-face{font-family:Inter;font-weight:700;font-display:swap;src:url(/fonts/inter-700.woff) format("woff")}
@@ -149,6 +155,29 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .toast{position:fixed;left:50%;top:14px;z-index:90;transform:translate(-50%,-150%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:15px;font-weight:600;transition:transform .35s cubic-bezier(.2,1.3,.3,1);white-space:nowrap}
 .toast.show{transform:translate(-50%,0)}
 .foot{text-align:center;color:var(--ink3);font-size:13px;margin:34px 0 10px;line-height:1.5}
+/* kezdőképernyőre tehető alkalmazás */
+.appc{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:14px auto 0;padding:12px 12px 12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-align:left}
+.appc img{flex:none;width:46px;height:46px;border-radius:12px;box-shadow:0 4px 10px #c4140a33}
+.appc .tx{flex:1;min-width:0}.appc b{display:block;font-size:15.5px}.appc small{display:block;color:var(--ink2);font-size:13.5px;line-height:1.35;margin-top:2px}
+.appc .go{flex:none;height:40px;padding:0 14px;border-radius:12px;background:var(--red);color:#fff;font-weight:700;font-size:14.5px}
+.appc .x{flex:none;width:32px;height:32px;border-radius:50%;color:var(--ink3);display:grid;place-items:center;margin-left:-4px}
+.appc .x svg{width:16px;height:16px}
+.st .appc{margin:18px auto 4px}
+dialog.appd{border:0;padding:0;margin:auto auto 0;width:100%;max-width:520px;border-radius:24px 24px 0 0;background:var(--card);color:var(--ink);box-shadow:0 -10px 40px #0003}
+@media (min-width:600px){dialog.appd{margin:auto;border-radius:24px}}
+dialog.appd::backdrop{background:#1a120c88}
+.appd .in{padding:22px 22px calc(22px + env(safe-area-inset-bottom))}
+.appd .hd{display:flex;align-items:center;gap:14px}
+.appd .hd img{width:58px;height:58px;border-radius:14px}
+.appd h3{font:italic 600 24px/1.15 Lora,serif}.appd .hd small{display:block;color:var(--ink2);font-size:14px;margin-top:3px}
+.appd ol{list-style:none;margin:18px 0 0;padding:0;counter-reset:s}
+.appd li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line);font-size:16px;line-height:1.4}
+.appd li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center}
+.appd .k{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:8px;background:#efe8da;font-weight:600;white-space:nowrap}
+.appd .k svg{width:17px;height:17px}
+.appd .tip{margin-top:12px;padding:10px 12px;border-radius:12px;background:#fff6e8;color:#6b4a12;font-size:14px;line-height:1.4}
+.appd .bt{display:block;width:100%;height:52px;margin-top:16px;border-radius:14px;background:var(--red);color:#fff;font-weight:700;font-size:17px}
+.appd .bt.gh{background:none;color:var(--ink2);height:44px;margin-top:6px;font-weight:600}
 .notice{margin:14px auto 0;max-width:560px;border-radius:16px;padding:12px 16px;font-size:15px;text-align:left;display:flex;gap:12px;align-items:center}
 .notice svg{width:22px;height:22px;flex:none}
 .notice.off{background:var(--redt);color:var(--red2);border:1.5px solid color-mix(in srgb,var(--red) 40%,transparent)}
@@ -202,6 +231,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
   <div id="notices"></div>
   <div id="offers"></div>
   <button class="quick" id="quickBtn" onclick="openQuick()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span><b>Egyszerűbb leírni?</b><small>Írd le a saját szavaiddal, mit kérsz – mi összerakjuk, és visszaigazoljuk.</small></span><span class="go">Írok ›</span></button>
+  <div id="appSlot"></div>
   <a class="call" id="callTop" href="tel:+36203395099"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3h3l1.5 4.5-2 1.4a12 12 0 0 0 6 6l1.4-2 4.5 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.6 5.2 2 2 0 0 1 6.6 3z"/></svg>Inkább telefonálnál? <span id="phoneTop">06 20 339 5099</span></a>
 </header>
 <div class="bar" id="bar"><div class="wrap">
@@ -266,6 +296,7 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
   </div>
 </div>
 
+<dialog class="appd" id="appDlg"><div class="in" id="appIn"></div></dialog>
 <div class="sheet" id="status"><div class="wrap"><div class="st" id="stBody"></div></div></div>
 <div class="toast" id="toast"></div>
 
@@ -325,6 +356,7 @@ async function load(){
   if(tok)showStatus(tok);else checkActive();
   {const lq=new URLSearchParams(location.search);if((location.hash==='#leiras'||lq.has('leiras'))&&isOpen)setTimeout(()=>{openQuick();const t=lq.get('leiras');if(t)$('qtext').value=t.slice(0,1500)},300)}
   fromSite();setTimeout(showConsent,1500);
+  renderAppSlot();if(APP.standalone)siteTrack('ev',{n:'app_open'});
   loadOffers();
 }
 // A weboldalról érkező linkek: ?add=<étel-azonosító>&v=<méret> kosárba teszi, ?city=<település> előre kiválasztja a kiszállítást
@@ -333,11 +365,39 @@ let viaSite=false;
 setInterval(()=>{if(!document.hidden)siteTrack('ping')},20000);addEventListener('pagehide',()=>siteTrack('ping'));
 function siteTrack(t,o){if(!viaSite)return;try{navigator.sendBeacon('/api/t',new Blob([JSON.stringify(Object.assign({t,p:'/rendeles'},o||{}))],{type:'application/json'}))}catch(e){}}
 function fromSite(){const qs=new URLSearchParams(location.search);if(!qs.toString())return;
+  if(qs.get('app')==='telepit'&&!APP.standalone)setTimeout(()=>appInstall(true),900);
   const ct=qs.get('city');if(ct&&M.fees.some(f=>f.name===ct)){const me=meGet();me.city=ct;me.mode='delivery';meSet(me)}
   const sc=qs.get('sec');if(sc&&document.getElementById('s_'+sc))setTimeout(()=>goSec(sc),150);
   const ad=qs.get('add');if(ad&&idx[ad]&&isOpen){const it=idx[ad];const vs=it.variants||[];let v=qs.get('v')||'';if(vs.length&&!vs.some(x=>x.label===v))v=vs[0].label;if(!vs.length)v='';
     if(!cart[key(ad,v)])add(ad,v||undefined);setTimeout(()=>{const e=document.getElementById('i_'+ad);if(e)e.scrollIntoView({block:'center',behavior:'smooth'})},120)}
   history.replaceState(null,'',location.pathname+location.hash)}
+// ---- Kezdőképernyőre tehető alkalmazás: Androidon egy gombnyomás (a böngésző saját ablaka), iPhone-on
+// rövid útmutató a Megosztás menühöz. Ha már a kezdőképernyőről nyitották meg, nem kínáljuk fel.
+const UA=navigator.userAgent, isIOS=/iPhone|iPad|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),
+  isAndroid=/Android/i.test(UA), inApp=/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|Line\//.test(UA);
+const APP={prompt:null,standalone:matchMedia('(display-mode: standalone)').matches||navigator.standalone===true};
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();APP.prompt=e;renderAppSlot()});
+addEventListener('appinstalled',()=>{APP.prompt=null;store.set('vv_app','installed');siteTrack('ev',{n:'app_installed'});renderAppSlot();try{$('appDlg').close()}catch(e){}toast('Kész! Megtalálod a kezdőképernyőn.')});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/rendeles-sw.js',{scope:'/rendeles'}).catch(()=>{});
+function appWanted(){return !APP.standalone&&store.get('vv_app',null)!=='installed'&&(isIOS||isAndroid||!!APP.prompt)}
+function appCard(where){if(!appWanted())return '';if(where==='top'&&Date.now()-(store.get('vv_app_hide',0)||0)<14*864e5)return '';
+  return `<div class="appc"><img src="/img/app-192.png" alt="" width="46" height="46"><span class="tx"><b>${where==='status'?'Legközelebb egy koppintás':'Rendelj egy koppintással'}</b><small>Tedd ki a telefonod kezdőképernyőjére, mint egy appot.</small></span><button class="go" onclick="appInstall()">Hozzáadás</button>${where==='top'?`<button class="x" onclick="appHide()" aria-label="Most nem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:''}</div>`}
+function renderAppSlot(){const el=$('appSlot');if(el)el.innerHTML=appCard('top')}
+function appHide(){store.set('vv_app_hide',Date.now());renderAppSlot();siteTrack('ev',{n:'app_hide'})}
+const I_SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="#0a7aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M6 10H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1"/></svg>';
+const I_ADD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+async function appInstall(auto){if(!auto)siteTrack('ev',{n:'app_click'});
+  if(APP.prompt&&auto===true){$('appIn').innerHTML=`<div class="hd"><img src="/img/app-192.png" alt=""><div><h3>Vadvirág a kezdőképernyőn</h3><small>Ikon a telefonodon – egy koppintás, és már rendelhetsz is.</small></div></div><button class="bt" onclick="$('appDlg').close();appInstall()">Hozzáadás a kezdőképernyőhöz</button><button class="bt gh" onclick="$('appDlg').close()">Most nem</button>`;try{$('appDlg').showModal()}catch(e){}return}
+  if(APP.prompt){const p=APP.prompt;APP.prompt=null;try{p.prompt();const c=await p.userChoice;siteTrack('ev',{n:'app_prompt',v:c&&c.outcome});if(c&&c.outcome==='accepted')store.set('vv_app','installed')}catch(e){}renderAppSlot();return}
+  let steps='',tip='';
+  if(inApp){steps=isIOS?`<li><span>Koppints a jobb felső vagy jobb alsó <span class="k">⋯</span> gombra, és válaszd: <span class="k">Megnyitás böngészőben</span></span></li><li><span>A Safariban koppints a <span class="k">${I_SHARE} Megosztás</span> gombra</span></li><li><span>Válaszd: <span class="k">${I_ADD} Főképernyőhöz adás</span>, majd <b>Hozzáadás</b></span></li>`
+      :`<li><span>Koppints a jobb felső <span class="k">⋮</span> gombra, és válaszd: <span class="k">Megnyitás böngészőben</span></span></li><li><span>A böngészőben koppints újra a <b>Hozzáadás</b> gombra ezen az oldalon</span></li>`;
+    tip='A Facebook és az Instagram saját böngészőjéből nem lehet a kezdőképernyőre tenni, ezért kell megnyitni a rendes böngészőben.'}
+  else if(isIOS){steps=`<li><span>Koppints a <span class="k">${I_SHARE} Megosztás</span> gombra (Safariban lent középen, vagy a címsor mellett)</span></li><li><span>Görgess lejjebb, és válaszd: <span class="k">${I_ADD} Főképernyőhöz adás</span></span></li><li><span>Koppints a jobb felső <b>Hozzáadás</b> gombra – kész!</span></li>`}
+  else{steps=`<li><span>Koppints a böngésző menüjére: <span class="k">⋮</span> (jobb felül) vagy <span class="k">☰</span> (lent)</span></li><li><span>Válaszd: <span class="k">Hozzáadás a kezdőképernyőhöz</span> vagy <span class="k">Alkalmazás telepítése</span></span></li><li><span>Erősítsd meg a <b>Hozzáadás</b> gombbal – kész!</span></li>`}
+  $('appIn').innerHTML=`<div class="hd"><img src="/img/app-192.png" alt=""><div><h3>Vadvirág a kezdőképernyőn</h3><small>Ikon a telefonodon – egy koppintás, és már rendelhetsz is.</small></div></div><ol>${steps}</ol>${tip?`<div class="tip">${tip}</div>`:''}<button class="bt gh" onclick="$('appDlg').close()">Rendben</button>`;
+  try{$('appDlg').showModal()}catch(e){$('appDlg').setAttribute('open','')}}
+$('appDlg').addEventListener('click',e=>{if(e.target===$('appDlg'))$('appDlg').close()});
 // Zárva / szünetel üzenet és a folyamatban lévő rendelés jelzése a lap tetején
 let active=null;
 function renderNotices(){let h='';
@@ -523,7 +583,7 @@ function renderStatus(o,stale){
   if(stale)h+=`<div class="nudge">Most nem érjük el a rendszert, az állapot pár perce frissült utoljára. Próbálkozunk tovább…</div>`;
   const fee=o.delivery_fee>0?`\nSzállítás – ${huf(o.delivery_fee)} Ft`:deliv&&o.delivery_fee<0?'\nSzállítás – telefonon egyeztetjük':'';
   const sum=o.quick?`${o.items.replace(/^Szabadon leírt rendelés:\n/,'')}${fee}\n\nA végösszeget visszaigazoláskor közöljük.`:`${o.items}${fee}\n\nVégösszeg: ${huf(o.total)} Ft${deliv&&o.delivery_fee<0?' + szállítás':''}`;
-  $('stBody').innerHTML=h+`<div class="box recap">${esc(sum)}</div>${call}<br><button class="btn2" style="color:var(--ink2)" onclick="backToMenu()">${o.status==='rejected'?'Új rendelés':'Vissza az étlapra'}</button>`;
+  $('stBody').innerHTML=h+`<div class="box recap">${esc(sum)}</div>${call}<br><button class="btn2" style="color:var(--ink2)" onclick="backToMenu()">${o.status==='rejected'?'Új rendelés':'Vissza az étlapra'}</button>${o.status!=='rejected'?appCard('status'):''}`;
 }
 function backToMenu(){clearInterval(poll);$('status').classList.remove('open');document.body.style.overflow='';history.replaceState(null,'',location.pathname);updateCart();active=null;renderNotices();checkActive()}
 load();

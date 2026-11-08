@@ -992,6 +992,14 @@ function renderSeason() {
    A címsorok évszakos dísze és a képek csak akkor „érkeznek meg”, amikor a képernyőre görgetsz. */
 const seenIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add(e.target.matches('h2') ? 'seen' : 'in'); seenIO.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' }) : null;
 $$('main h2, .unveil').forEach((el, i) => seenIO ? seenIO.observe(el) : el.classList.add('seen', 'in'));
+// Egységes megjelenés görgetéskor: a fő blokkok ugyanúgy úsznak be (egymás mellett kis késéssel).
+$$('main .sec-head, #offPre, #nyeremeny, .off-grid > article, #offWeekly, .about-text, .menu-tools, .events-text, .events-in > :not(.events-text), .del-box, .contact-info, .contact .form').forEach(el => {
+  if (el.closest('.hero')) return;
+  el.classList.add('rv');
+  const sib = [...el.parentElement.children].filter(x => x.classList.contains('rv'));
+  el.style.setProperty('--i', Math.max(0, sib.indexOf(el)));
+  seenIO ? seenIO.observe(el) : el.classList.add('in');
+});
 $$('.unveil').forEach((el, i) => el.style.setProperty('--i', i % 6));
 // kosárba: a gomb „átrepül” a rendelés gombhoz, aztán megyünk a rendelési oldalra
 function flyToCart(from) {

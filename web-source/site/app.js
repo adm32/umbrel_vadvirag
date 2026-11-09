@@ -1011,7 +1011,7 @@ function flyToCart(from) {
   const mx = sx + (ex - sx) * .45, my = Math.min(sy, ey) - 90;
   dot.animate([{ transform: `translate(${sx}px,${sy}px) scale(.6)` }, { transform: `translate(${sx}px,${sy}px) scale(1.15)`, offset: .12 },
     { transform: `translate(${mx}px,${my}px) scale(1)`, offset: .55 }, { transform: `translate(${ex}px,${ey}px) scale(.45)`, opacity: .7 }],
-    { duration: 640, easing: 'cubic-bezier(.4,0,.3,1)' }).onfinish = () => { dot.remove(); target?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 280 }); };
+    { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }).onfinish = () => { dot.remove(); target?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 280 }); };
   return 660;
 }
 

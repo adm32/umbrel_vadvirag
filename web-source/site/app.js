@@ -238,6 +238,7 @@ let PRE = null, preQty = {}, preMode = 'helyben', prePay = 'Készpénz', preBuil
 async function loadPre() {
   try { const r = await fetch('/api/public/preorder', { cache: 'no-store' }); if (!r.ok) throw 0; const d = await r.json(); PRE = d.open ? d : null; } catch (e) { PRE = null; }
   renderPre();
+  preFromHash();
 }
 // „november 10-től” / „10 November” / „10. November”
 function fromDate(iso) {
@@ -262,6 +263,19 @@ function renderPre() {
   if (!PRE) return;
   hp.innerHTML = `<span class="gi">${GOOSE}</span><span><b>${esc(L10(PRE.offer.title))}</b><small>${esc(T('preServed', { date: fromDate(PRE.offer.serve_from) }))} · ${esc(T('preHeroSub'))}</small></span><span class="go">›</span>`;
   const o = PRE.offer, t = preTotals();
+  // Összecsukva csak a lényeg látszik (cím, dátum, árak, egy gomb); kinyitva az ételválasztó.
+  // Ha már tett valamit a kosárba, nyitva marad.
+  const open = preOpen || t.n > 0;
+  el.classList.toggle('closed', !open);
+  if (!open) {
+    const names = [...new Set(preItems().map(i => L10(i.d.name)))];
+    const chips = [[T('preMains'), T('prePer', { p: huf(o.main_price) })], ...((o.platters || []).length ? [[T('prePlatters'), T('prePerPlatter', { p: huf(o.platter_price) })]] : []), [T('preDesserts'), T('prePer', { p: huf(o.dessert_price) })]];
+    el.innerHTML = GOOSE.replace('<svg ', '<svg class="mt-goose" ') + `<div class="mt-head"><div><span class="off-tag hot">${esc(T('preTag'))}</span><h3>${esc(L10(o.title))}</h3></div><div class="mt-dates">${esc(T('preServed', { date: fromDate(o.serve_from) }))}</div></div>
+      <p class="mt-names">${names.map(esc).join(' · ')}</p>
+      <div class="mt-chips">${chips.map(([a, b]) => `<span><small>${esc(a)}</small><b>${esc(b)}</b></span>`).join('')}</div>
+      <div class="mt-open"><button type="button" class="btn btn-light btn-lg" data-preopen aria-expanded="false" aria-controls="offPre">${esc(T('preMore'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><small>${esc(T('preModes'))}</small></div>`;
+    return;
+  }
   const dish = it => { const q = preQty[it.k] || 0; return `<div class="mt-dish${q ? ' on' : ''}"><div class="tx"><div class="n">${esc(L10(it.d.name))}</div>${L10(it.d.desc) ? `<div class="d">${esc(L10(it.d.desc))}</div>` : ''}</div>
     <div class="mt-step"><button type="button" data-pq="${it.k}" data-d="-1" aria-label="${esc(T('preMinus') + ': ' + L10(it.d.name))}"${q ? '' : ' disabled'}>−</button><b aria-live="polite">${q}</b><button type="button" class="plus" data-pq="${it.k}" data-d="1" aria-label="${esc(T('prePlus') + ': ' + L10(it.d.name))}">+</button></div></div>`; };
   const items = preItems();
@@ -274,8 +288,19 @@ function renderPre() {
         <div class="mt-sum"><div class="t"><span>${esc(T('preSum', { n: t.n }))}</span><b>${huf(t.food)} Ft</b></div>
           <button type="button" class="btn btn-red btn-lg" id="preNext"${t.n ? '' : ' disabled'}>${esc(T(t.n ? 'preNext' : 'prePick'))}</button>
           <small>${esc(T('preModes'))}</small></div></div>
-    </div>`;
+    </div>${t.n ? '' : `<button type="button" class="mt-less" data-preclose aria-expanded="true" aria-controls="offPre">${esc(T('preLess'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>`}`;
 }
+let preOpen = false;
+function openPreCard(scroll) {
+  preOpen = true; renderPre();
+  const el = $('offPre'); el.classList.add('opening'); setTimeout(() => el.classList.remove('opening'), 700);
+  if (scroll) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  track('ev', { n: 'pre_card_open' });
+}
+$('heroPre').addEventListener('click', e => { e.preventDefault(); openPreCard(true); });
+// közvetlen link a Facebookra: vadviragetterem.com/#elorendeles (vagy #marton)
+function preFromHash() { if (/^#(elorendeles|marton)$/.test(location.hash) && PRE) openPreCard(true); }
+addEventListener('hashchange', preFromHash);
 $('offPre').addEventListener('click', e => {
   const t = tgt(e); if (!t) return;
   const s = t.closest('[data-pq]');
@@ -285,6 +310,8 @@ $('offPre').addEventListener('click', e => {
     if (btn && !btn.disabled) btn.focus();
   }
   else if (t.closest('#preNext')) openPre();
+  else if (t.closest('[data-preopen]')) { openPreCard(false); $('offPre').querySelector('.plus')?.focus({ preventScroll: true }); }
+  else if (t.closest('[data-preclose]')) { preOpen = false; renderPre(); $('offPre').scrollIntoView({ block: 'nearest' }); $('offPre').querySelector('[data-preopen]')?.focus({ preventScroll: true }); }
 });
 
 // --- az előrendelés ablaka

@@ -404,6 +404,22 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 .preoff h3{font:italic 600 clamp(34px,4.6vw,52px)/1.05 var(--serif);margin-top:14px;color:#fff;text-wrap:balance}
 .mt-dates{color:var(--amber);font-weight:700;font-size:17px}
 .mt-lead{color:#ffe9d6;margin-top:10px;max-width:60ch;font-size:16.5px}
+/* összecsukott Márton-napi kártya */
+.preoff.closed{padding-bottom:26px}
+.mt-names{color:#ffe9d6;margin-top:10px;max-width:62ch;font:italic 500 17px/1.45 var(--serif)}
+.mt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.mt-chips span{display:flex;flex-direction:column;padding:9px 14px;border-radius:14px;background:#ffffff1c;border:1px solid #ffffff2e}
+.mt-chips small{font-size:13px;color:#ffd9bd}.mt-chips b{font-size:17px;color:#fff;margin-top:1px}
+.mt-open{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:20px}
+.mt-open .btn{gap:10px;background:#fff;color:var(--red2);border:0;box-shadow:0 12px 24px -12px #3a0603cc}
+.mt-open .btn:hover{background:#fff8ef}.mt-open .btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--t-move) var(--e-out)}
+.mt-open .btn:hover svg{transform:translateY(2px)}
+.mt-open small{color:#ffd9bd;font-size:14px}
+.mt-less{display:inline-flex;align-items:center;gap:6px;margin:14px auto 0;padding:8px 14px;border-radius:999px;color:#ffe2cf;font-weight:600;font-size:15px;background:none;transition:background var(--t-hover) var(--e-out)}
+.preoff .mt-less{display:flex}
+.mt-less:hover{background:#ffffff1a}.mt-less svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.preoff.opening .mt-cols,.preoff.opening .mt-lead{animation:in-up var(--t-in) var(--e-out) both}
+@media (prefers-reduced-motion:reduce){.preoff.opening .mt-cols,.preoff.opening .mt-lead{animation:none}}
 .mt-cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;margin-top:24px;align-items:start}
 .preoff .mt-col{background:var(--card);color:var(--ink);border-radius:20px;padding:16px 18px 6px;box-shadow:0 12px 30px -18px #3a0603aa}
 .mt-col h4{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--ink2);padding-bottom:8px;border-bottom:1px solid var(--line)}

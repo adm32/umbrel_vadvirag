@@ -1,5 +1,5 @@
 /* Vadvirág Étterem – weboldal */
-(() => {
+function vvBoot() {
 'use strict';
 document.documentElement.classList.add('js');
 const $ = id => document.getElementById(id);
@@ -1104,4 +1104,23 @@ function syncOffers() {
 }
 Promise.allSettled([loadMenu(), loadOffers(), loadPz(), loadPre(), loadGw()]).then(() => { offersSettled = true; syncOffers(); });
 requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
+}
+
+// Indulás: a feliratok (i18n.js) nélkül nem tudunk elindulni. Ha gyenge a térerő és az a fájl nem
+// érkezett meg, újra letöltjük (legfeljebb háromszor), és csak utána indul a weboldal. Ha végképp nem
+// sikerül, az oldal a beépített magyar szövegével, animációk nélkül marad használható.
+(() => {
+  let tries = 0;
+  const report = msg => { try { navigator.sendBeacon && navigator.sendBeacon('/api/t', new Blob([JSON.stringify({ t: 'err', p: location.pathname, msg, src: 'i18n.js:betöltés' })], { type: 'application/json' })); } catch (e) {} };
+  const go = () => {
+    if (window.I18N) { vvBoot(); return; }
+    if (tries >= 3) { report('A feliratfájl (i18n.js) háromszori próbálkozásra sem töltődött be – az oldal egyszerű módban maradt'); return; }
+    tries++;
+    const s = document.createElement('script');
+    s.src = '/i18n.js?ujra=' + Date.now();
+    s.onload = go;
+    s.onerror = () => setTimeout(go, 1200 * tries);
+    document.head.appendChild(s);
+  };
+  go();
 })();

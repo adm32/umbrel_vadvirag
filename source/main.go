@@ -1282,9 +1282,7 @@ func (a *App) serveIndex(w http.ResponseWriter, r *http.Request) {
 		name = "web/login.html"
 	}
 	data, _ := webFS.ReadFile(name)
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	w.Write(data)
+	sendStatic(w, r, name, data, "text/html; charset=utf-8", "no-store")
 }
 
 func (a *App) handleLogin(w http.ResponseWriter, r *http.Request) {

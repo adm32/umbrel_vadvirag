@@ -1,13 +1,13 @@
 /* Betűtípusok a saját szerverről (Inter, Lora – SIL Open Font License): nem kell a Google-höz fordulni,
    így gyorsabb az első megjelenés, és a látogatók adatai nem mennek harmadik félhez. Csak a magyar,
    német és angol szövegekhez kellő karakterek vannak benne. */
-@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/inter-400.woff) format("woff")}
-@font-face{font-family:Inter;font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/inter-500.woff) format("woff")}
-@font-face{font-family:Inter;font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/inter-600.woff) format("woff")}
-@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/inter-700.woff) format("woff")}
-@font-face{font-family:Inter;font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/inter-800.woff) format("woff")}
-@font-face{font-family:Lora;font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/lora.woff) format("woff")}
-@font-face{font-family:Lora;font-style:italic;font-weight:400 700;font-display:swap;src:url(/fonts/lora-italic.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/inter-400.woff2) format("woff2"),url(/fonts/inter-400.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/inter-500.woff2) format("woff2"),url(/fonts/inter-500.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/inter-600.woff2) format("woff2"),url(/fonts/inter-600.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/inter-700.woff2) format("woff2"),url(/fonts/inter-700.woff) format("woff")}
+@font-face{font-family:Inter;font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/inter-800.woff2) format("woff2"),url(/fonts/inter-800.woff) format("woff")}
+@font-face{font-family:Lora;font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/lora.woff2) format("woff2"),url(/fonts/lora.woff) format("woff")}
+@font-face{font-family:Lora;font-style:italic;font-weight:400 700;font-display:swap;src:url(/fonts/lora-italic.woff2) format("woff2"),url(/fonts/lora-italic.woff) format("woff")}
 /* Vadvirág Étterem – weboldal
    Ugyanaz a világ, mint az online rendelésnél: meleg papírszín, Lora + Inter, pipacspiros.
    A régi oldalból: sötét (itt: faszínű) sávok, a pipacsos festmény és a logó. */
@@ -173,7 +173,7 @@ h3{font:600 22px/1.25 var(--serif)}
 .mi .pr{font-weight:700;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:10px;justify-content:flex-end}
 .mi .pr small{display:block;font-weight:500;color:var(--ink2);font-size:13px}
 .mi .ds{grid-column:1;color:var(--ink2);font-size:14.5px;line-height:1.45}
-.mi .al{grid-column:1;color:var(--ink3);font-size:12.5px;margin-top:2px}
+.mi .al{grid-column:1;color:var(--ink2);font-size:12.5px;margin-top:2px}
 .mi .al button{color:inherit;text-decoration:underline dotted;text-underline-offset:2px}
 .mi.mv{grid-template-columns:1fr}
 .mi.mv .nm::after{display:none}
@@ -603,7 +603,7 @@ dialog::backdrop{background:#1a120d99;backdrop-filter:blur(4px);-webkit-backdrop
 .hero-call,.quick{display:none}
 .hours-sum{display:none}
 .als{display:inline-flex;margin-left:5px;vertical-align:super;line-height:1}
-.als button{font:600 12px/1 var(--sans);color:var(--ink3);padding:10px 4px;margin:-10px -1px}
+.als button{font:600 12px/1 var(--sans);color:var(--ink2);padding:10px 4px;margin:-10px -1px}
 .als button+button::before{content:"·";margin-right:2px;color:var(--line)}
 .als button:hover{color:var(--red)}
 .mi .al{display:none}

@@ -83,9 +83,7 @@ func init() {
 
 func (a *App) servePublicPage(w http.ResponseWriter, r *http.Request) {
 	data, _ := webFS.ReadFile("web/rendeles.html")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Write(data)
+	sendStatic(w, r, "web/rendeles.html", data, "text/html; charset=utf-8", "no-cache")
 }
 
 type feeView struct {

@@ -27,7 +27,7 @@ import (
 	_ "time/tzdata"
 )
 
-const version = "1.6.1"
+const version = "2.0.0"
 
 //go:embed web
 var webRoot embed.FS
@@ -999,8 +999,14 @@ func main() {
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	files := http.FileServer(http.FS(web))
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+			if b, err := fs.ReadFile(web, "index.html"); err == nil {
+				sendStatic(w, r, "index.html", b, "text/html; charset=utf-8", "no-cache")
+				return
+			}
+		}
+		w.Header().Set("Cache-Control", "no-cache")
 		files.ServeHTTP(w, r)
 	}))
 	addr := ":" + env("PORT", "8080")

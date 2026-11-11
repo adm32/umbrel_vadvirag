@@ -36,7 +36,7 @@ var siteRoot embed.FS
 //go:embed menu-fallback.json
 var fallbackMenu []byte
 
-const version = "1.14.7"
+const version = "2.0.0"
 
 var (
 	site    fs.FS

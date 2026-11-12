@@ -570,6 +570,175 @@
      }
     }
    ]
+  },
+  {
+   "show_from": "2026-11-13 15:00",
+   "from": "2026-11-16",
+   "to": "2026-11-20",
+   "two": 2400,
+   "three": 3100,
+   "days": [
+    {
+     "date": "2026-11-16",
+     "soups": [
+      {
+       "hu": "Cukorborsóleves csurgatott tésztával",
+       "en": "Sugar snap pea soup with egg drop noodles",
+       "de": "Zuckerschotensuppe mit Eierflocken"
+      },
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Rántott csirkemell fokhagymás tejföllel és reszelt sajttal, rizi-bizi",
+       "en": "Breaded chicken breast with garlic sour cream and grated cheese, rice with peas",
+       "de": "Panierte Hähnchenbrust mit Knoblauch-Sauerrahm und geriebenem Käse, Reis mit Erbsen"
+      },
+      {
+       "hu": "Burgonyafőzelék, sertéspörkölt",
+       "en": "Potato stew with pork stew",
+       "de": "Kartoffelgemüse mit Schweinegulasch"
+      }
+     ],
+     "dessert": {
+      "hu": "Császármorzsa, sárgabaracklekvár",
+      "en": "Kaiserschmarrn, apricot jam",
+      "de": "Kaiserschmarrn, Aprikosenmarmelade"
+     }
+    },
+    {
+     "date": "2026-11-17",
+     "soups": [
+      {
+       "hu": "Gyömbéres sütőtökkrémleves zsemlekockával",
+       "en": "Ginger pumpkin cream soup with croutons",
+       "de": "Kürbiscremesuppe mit Ingwer und Brotwürfeln"
+      },
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Rántott csirkemáj és gomba, majonézes kukorica, párolt rizs",
+       "en": "Breaded chicken liver and mushrooms, corn salad with mayonnaise, steamed rice",
+       "de": "Panierte Hühnerleber und Pilze, Maissalat mit Mayonnaise, Reis"
+      },
+      {
+       "hu": "Erdélyi rakott káposzta, tejföl",
+       "en": "Transylvanian layered cabbage, sour cream",
+       "de": "Siebenbürgisches Krautgericht, Sauerrahm"
+      }
+     ],
+     "dessert": {
+      "hu": "Máglyarakás",
+      "en": "Hungarian bread pudding with apple and meringue (máglyarakás)",
+      "de": "Ungarischer Brotauflauf mit Apfel und Baiser (Máglyarakás)"
+     }
+    },
+    {
+     "date": "2026-11-18",
+     "soups": [
+      {
+       "hu": "Kolbászos burgonyaleves házi krumpligombóccal",
+       "en": "Potato soup with sausage and homemade potato dumplings",
+       "de": "Kartoffelsuppe mit Wurst und hausgemachten Kartoffelknödeln"
+      },
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Milánói sertésborda, spagetti",
+       "en": "Milanese pork chop, spaghetti",
+       "de": "Schweinekotelett nach Mailänder Art, Spaghetti"
+      },
+      {
+       "hu": "Tejfölös csirkepaprikás, hagymás házi nudli",
+       "en": "Chicken paprikash with sour cream, homemade onion noodles",
+       "de": "Hähnchenpaprikasch mit Sauerrahm, hausgemachte Zwiebelnudeln"
+      }
+     ],
+     "dessert": {
+      "hu": "Rizsfelfújt, csokoládészósz",
+      "en": "Rice soufflé, chocolate sauce",
+      "de": "Reisauflauf, Schokoladensoße"
+     }
+    },
+    {
+     "date": "2026-11-19",
+     "soups": [
+      {
+       "hu": "Frankfurti leves",
+       "en": "Frankfurter sausage soup",
+       "de": "Frankfurter Suppe"
+      },
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Kemencében sült rozmaringos csirkecombfilé parasztos raguval (kolbász, bacon, hagyma), házi steakburgonya",
+       "en": "Oven-roasted rosemary chicken thigh with farmhouse ragout (sausage, bacon, onion), homemade potato wedges",
+       "de": "Im Ofen gebratene Rosmarin-Hähnchenkeule mit Bauernragout (Wurst, Speck, Zwiebel), hausgemachte Kartoffelspalten"
+      },
+      {
+       "hu": "Káposztás cvekedli",
+       "en": "Cabbage pasta (káposztás cvekedli)",
+       "de": "Krautfleckerl"
+      }
+     ],
+     "dessert": {
+      "hu": "Rizsfelfújt, vaníliasodó",
+      "en": "Rice soufflé, vanilla custard",
+      "de": "Reisauflauf, Vanillesoße"
+     }
+    },
+    {
+     "date": "2026-11-20",
+     "soups": [
+      {
+       "hu": "Zöldséges szárnyasaprólék-leves grízgaluskával",
+       "en": "Poultry giblet soup with vegetables and semolina dumplings",
+       "de": "Geflügelkleinsuppe mit Gemüse und Grießnockerln"
+      },
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Rántott sertéskaraj (kérhető rántott csirke is) és karfiol, hasábburgonya",
+       "en": "Breaded pork loin (or breaded chicken on request) and cauliflower, French fries",
+       "de": "Panierter Schweinerücken (auf Wunsch paniertes Hähnchen) und Blumenkohl, Pommes frites"
+      },
+      {
+       "hu": "Töltött káposzta, tejföl",
+       "en": "Stuffed cabbage, sour cream",
+       "de": "Gefülltes Kraut, Sauerrahm"
+      }
+     ],
+     "dessert": {
+      "hu": "Házi krumplis nudli édes morzsában, baracklekvárral",
+      "en": "Homemade potato noodles in sweet breadcrumbs, apricot jam",
+      "de": "Hausgemachte Kartoffelnudeln in süßen Bröseln, Aprikosenmarmelade"
+     }
+    }
+   ]
   }
  ]
 }

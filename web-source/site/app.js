@@ -157,6 +157,7 @@ async function loadOffers() {
 let wkeMain = 0; // hétvégi ajánlat: melyik főételt választotta (ha több van)
 function renderOffers() {
   if (!OFF) return;
+  renderEvents();
   const w = OFF.weekend, el = $('offWeekend');
   if (w) {
     const tag = w.days_left <= 0 ? T('wkendToday') : w.days_left === 1 ? T('wkendTomorrow') : T('wkendSunday');
@@ -204,6 +205,66 @@ function renderGw() {
   hc.innerHTML = `<span class="gi"><img src="/img/pizzakoszoru-xs.webp" alt="" width="44" height="44"></span><span><b>${esc(T('gwTitle', p))}</b><small>${esc(T('gwHero', p))}</small></span><span class="go">›</span>`;
   syncOffers();
 }
+
+// ---- Közelgő rendezvények (pl. Erzsébet–Katalin napi bál). A szerver a "show_from" naptól a rendezvény
+// napjáig küldi őket (/api/ajanlat → events), utána maguktól eltűnnek. A Rendezvények rész tetején
+// látszanak, és a nyitóképen is van rájuk egy link (#esemenyek, Facebookra: vadviragetterem.com/#bal).
+const EV_ICON = {
+  dinner: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.2"/><path d="M3 3v6a2 2 0 0 0 2 2v10M5 3v5M7 3v6a2 2 0 0 1-2 2M21 21V3c-1.6.9-2.5 3-2.5 6.5H21"/></svg>',
+  music: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>',
+  place: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'
+};
+const evDay = (iso, o) => isoDay(iso).toLocaleDateString(LOC(), o);
+const evWhen = e => evDay(e.date, { month: 'long', day: 'numeric', weekday: 'long' });
+// Katalin-kerék: népi rozetta a táncoló pár mögött (arany vonalrajz)
+const EV_WHEEL = (() => { let p = ''; for (let i = 0; i < 16; i++) p += `<path transform="rotate(${i * 22.5})" d="M0 -40 C14 -52 14 -78 0 -92 C-14 -78 -14 -52 0 -40Z"/>`;
+  for (let i = 0; i < 8; i++) p += `<path transform="rotate(${i * 45 + 11.25})" d="M0 -104 L0 -114"/>`;
+  return `<svg class="ev-wheel" viewBox="-130 -130 260 260" aria-hidden="true"><circle r="124"/><circle r="118" stroke-dasharray="2 7"/><circle r="98"/>${p}<circle r="34"/><circle r="14"/></svg>`; })();
+let evShown = false;
+function renderEvents() {
+  const evs = (OFF && OFF.events) || [], box = $('esemenyek'), hp = $('heroEv');
+  box.hidden = hp.hidden = !evs.length;
+  $$('a[href="#rendezvenyek"]').forEach(a => a.classList.toggle('has-ev', !!evs.length));
+  if (!evs.length) return;
+  const e0 = evs[0];
+  hp.innerHTML = `<span class="gi">${e0.icon ? `<img src="${esc(e0.icon)}" alt="" width="40" height="40">` : EV_ICON.music}</span><span><b>${esc(L10(e0.title))}</b><small>${esc(T('evHeroSub', { date: evWhen(e0) }))}</small></span><span class="go">›</span>`;
+  evShown = evShown || !!box.querySelector('.ev-card.in');
+  box.innerHTML = evs.map((e, i) => {
+    const left = e.days_left <= 0 ? T('evToday') : e.days_left === 1 ? T('evTomorrow') : T('evDays', { n: e.days_left });
+    return `<article class="ev-card${evShown ? ' in' : ''}">
+      <div class="ev-art" aria-hidden="true">${EV_WHEEL}${e.art ? `<img src="${esc(e.art)}" alt="" width="1000" height="620" loading="lazy" decoding="async">` : ''}
+        <div class="ev-date"><b>${isoDay(e.date).getDate()}</b><span>${esc(evDay(e.date, { month: 'short' }))}</span><small>${esc(evDay(e.date, { weekday: 'long' }))}</small></div></div>
+      <div class="ev-body">
+        <p class="ev-tags"><span class="off-tag">${esc(T('evTag'))}</span><span class="ev-left">${esc(left)}</span></p>
+        <h3>${esc(L10(e.title)).replace(/^(\S+) – (\S+)/, '<span class="nw">$1 – $2</span>')}</h3>
+        <p class="ev-when">${esc(cap(evWhen(e)))}</p>
+        ${L10(e.lead) ? `<p class="ev-lead">${esc(L10(e.lead))}</p>` : ''}
+        ${(e.facts || []).length ? `<ul class="ev-facts">${e.facts.map(f => `<li><i>${EV_ICON[f.icon] || EV_ICON.music}</i><span>${esc(L10(f.text))}</span></li>`).join('')}</ul>` : ''}
+        ${(e.entry || []).length ? `<div class="ev-entry"><h4>${esc(T('evEntry'))}</h4>${e.entry.map((x, k) => `<div class="ev-tix" style="--i:${k}"><b>${esc(L10(x.label))}</b><span>${esc(L10(x.desc))}</span><strong>${huf(x.price)} Ft</strong></div>`).join('')}</div>` : ''}
+        <div class="ev-cta"><a class="btn btn-gold btn-lg" href="#kapcsolat" data-evbook="${i}">${esc(T('evBook'))}</a><a class="btn btn-light btn-lg" href="tel:+36203395099"><span>${esc(T('call'))}: 06 20 339 5099</span></a></div>
+        ${e.poster ? `<a class="ev-poster" href="${esc(e.poster)}" target="_blank" rel="noopener">${esc(T('evPoster'))} ›</a>` : ''}
+      </div></article>`;
+  }).join('');
+  requestAnimationFrame(() => $$('.ev-card:not(.in)', box).forEach(c => seenIO ? seenIO.observe(c) : c.classList.add('in')));
+  evFromHash();
+}
+// „Asztalt foglalok”: az üzenet űrlapja asztalfoglalásra vált, a rendezvény napjával és idejével kitöltve
+$('esemenyek').addEventListener('click', ev => {
+  const b = tgt(ev)?.closest('[data-evbook]'); if (!b) return;
+  const e = OFF.events[+b.dataset.evbook]; if (!e) return;
+  setKind('asztal');
+  const f = form.elements; f.date.value = e.date; if (e.time) f.time.value = e.time;
+  if (!f.text.value.trim()) f.text.value = T('evMsg', { title: L10(e.title), date: evWhen(e) });
+  track('ev', { n: 'event_book', v: e.id });
+  setTimeout(() => f.namedItem('name').focus({ preventScroll: true }), 450);
+});
+$('heroEv').addEventListener('click', () => track('ev', { n: 'event_hero' }));
+function evFromHash() {
+  if (/^#(esemenyek|bal|rendezveny)$/.test(location.hash) && !$('esemenyek').hidden && !evFromHash.done) {
+    evFromHash.done = true; $('esemenyek').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  }
+}
+addEventListener('hashchange', () => { evFromHash.done = false; evFromHash(); });
 
 // ---- Heti akció (a rendeléskezelő akcio.json-ja alapján; most: családi pizza + ajándék üdítő).
 // A kosárban a rendeléskezelő adja hozzá az ajándékot; itt csak bemutatjuk.

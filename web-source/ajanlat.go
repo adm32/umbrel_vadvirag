@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 	_ "time/tzdata" // a FROM scratch konténerben nincs időzóna-adatbázis
 )
@@ -58,10 +59,34 @@ type weeklyMenu struct {
 	Upcoming bool        `json:"upcoming"` // még nem kezdődött el (jövő heti menü)
 }
 
+// Rendezvény (pl. bál): a "show_from" naptól a rendezvény napjáig ("date") látszik.
+type event struct {
+	ID       string `json:"id"`
+	Date     string `json:"date"`
+	ShowFrom string `json:"show_from,omitempty"`
+	Time     string `json:"time,omitempty"`
+	Title    L10n   `json:"title"`
+	Lead     L10n   `json:"lead,omitempty"`
+	Facts    []struct {
+		Icon string `json:"icon"`
+		Text L10n   `json:"text"`
+	} `json:"facts,omitempty"`
+	Entry []struct {
+		Label L10n `json:"label"`
+		Desc  L10n `json:"desc"`
+		Price int  `json:"price"`
+	} `json:"entry,omitempty"`
+	Art      string `json:"art,omitempty"`
+	Icon     string `json:"icon,omitempty"`
+	Poster   string `json:"poster,omitempty"`
+	DaysLeft int    `json:"days_left"` // 0 = ma van
+}
+
 type offersFile struct {
 	Weekend *weekendOffer `json:"weekend"`
 	Weeks   []weeklyMenu  `json:"weeks"`
 	Weekly  *weeklyMenu   `json:"weekly,omitempty"` // régi formátum (egy hét)
+	Events  []event       `json:"events,omitempty"`
 }
 
 var (
@@ -137,6 +162,22 @@ func activeOffers(now time.Time) map[string]any {
 		if !now.Before(show) && (best == nil || show.After(bestShow)) {
 			best, bestShow = m, show
 		}
+	}
+	var evs []event
+	for _, e := range offers.Events {
+		d, ok := day(e.Date)
+		if !ok || today.After(d) {
+			continue
+		}
+		if f, ok := day(e.ShowFrom); ok && today.Before(f) {
+			continue
+		}
+		e.DaysLeft = int(d.Sub(today).Hours()/24 + 0.5)
+		evs = append(evs, e)
+	}
+	sort.SliceStable(evs, func(i, j int) bool { return evs[i].Date < evs[j].Date })
+	if len(evs) > 0 {
+		out["events"] = evs
 	}
 	if best != nil && sw.WeeklyHidden != best.From {
 		from, _ := day(best.From)

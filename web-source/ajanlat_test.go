@@ -112,3 +112,31 @@ func TestSeasonsAndSwitches(t *testing.T) {
 	}
 	sw = Switches{}
 }
+
+func TestEvents(t *testing.T) {
+	at := func(s string) []event {
+		tm, _ := time.ParseInLocation("2006-01-02 15:04", s, budapestTZ)
+		e, _ := activeOffers(tm)["events"].([]event)
+		return e
+	}
+	for s, want := range map[string]int{"2026-11-12 23:59": 0, "2026-11-13 00:00": 1, "2026-11-21 23:00": 1, "2026-11-22 00:00": 0} {
+		if got := len(at(s)); got != want {
+			t.Errorf("%s: %d events", s, got)
+		}
+	}
+	e := at("2026-11-15 12:00")[0]
+	if e.DaysLeft != 6 || e.Title["hu"] != "Erzsébet – Katalin napi Bál" || len(e.Entry) != 2 || e.Entry[0].Price != 29500 {
+		t.Errorf("wrong event: %+v", e)
+	}
+	if at("2026-11-21 10:00")[0].DaysLeft != 0 {
+		t.Error("days left on the day should be 0")
+	}
+}
+
+func TestWeekFixes(t *testing.T) {
+	tm, _ := time.ParseInLocation("2006-01-02 15:04", "2026-11-17 10:00", budapestTZ)
+	w := activeOffers(tm)["weekly"].(weeklyMenu)
+	if w.Days[1].Mains[0]["hu"] != "Rántott csirkemáj és gomba, kukoricás rizs" || w.Days[4].Dessert["hu"] != "Krumplis nudli édes morzsával, sárgabaracklekvár" {
+		t.Errorf("menu fix missing: %q / %q", w.Days[1].Mains[0]["hu"], w.Days[4].Dessert["hu"])
+	}
+}

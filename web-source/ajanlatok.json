@@ -1,5 +1,5 @@
 {
- "_info": "Az ajánlatok adatai, budapesti idő szerint. A hétvégi ajánlat a 'from'–'to' napokon látszik. A napi ajánlatok ('weeks'): mindig az látszik, amelyiknek a 'show_from' ideje (dátum vagy 'ÉÉÉÉ-HH-NN ÓÓ:PP') már elmúlt, és még nem járt le ('to'); alapból 3 nappal a hét előtt. Napi ajánlatnál: 'soups', 'mains' (A, B) és 'dessert' (a háromfogásos menühöz).",
+ "_info": "Az ajánlatok adatai, budapesti idő szerint. A hétvégi ajánlat a 'from'–'to' napokon látszik. A napi ajánlatok ('weeks'): mindig az látszik, amelyiknek a 'show_from' ideje (dátum vagy 'ÉÉÉÉ-HH-NN ÓÓ:PP') már elmúlt, és még nem járt le ('to'); alapból 3 nappal a hét előtt. Napi ajánlatnál: 'soups', 'mains' (A, B) és 'dessert' (a háromfogásos menühöz). Rendezvények ('events'): a 'show_from' naptól a rendezvény napjáig ('date') látszanak a Rendezvények részben és a nyitóképen.",
  "weekend": {
   "from": "2026-11-07",
   "to": "2026-11-08",
@@ -626,9 +626,9 @@
      ],
      "mains": [
       {
-       "hu": "Rántott csirkemáj és gomba, majonézes kukorica, párolt rizs",
-       "en": "Breaded chicken liver and mushrooms, corn salad with mayonnaise, steamed rice",
-       "de": "Panierte Hühnerleber und Pilze, Maissalat mit Mayonnaise, Reis"
+       "hu": "Rántott csirkemáj és gomba, kukoricás rizs",
+       "en": "Breaded chicken liver and mushrooms, rice with sweetcorn",
+       "de": "Panierte Hühnerleber und Pilze, Maisreis"
       },
       {
        "hu": "Erdélyi rakott káposzta, tejföl",
@@ -733,12 +733,87 @@
       }
      ],
      "dessert": {
-      "hu": "Házi krumplis nudli édes morzsában, baracklekvárral",
-      "en": "Homemade potato noodles in sweet breadcrumbs, apricot jam",
-      "de": "Hausgemachte Kartoffelnudeln in süßen Bröseln, Aprikosenmarmelade"
+      "hu": "Krumplis nudli édes morzsával, sárgabaracklekvár",
+      "en": "Potato noodles with sweet breadcrumbs, apricot jam",
+      "de": "Kartoffelnudeln mit süßen Bröseln, Aprikosenmarmelade"
      }
     }
    ]
+  }
+ ],
+ "events": [
+  {
+   "id": "erzsebet-katalin-bal-2026",
+   "date": "2026-11-21",
+   "show_from": "2026-11-13",
+   "time": "18:00",
+   "title": {
+    "hu": "Erzsébet – Katalin napi Bál",
+    "en": "St Elizabeth & St Catherine’s Day Ball",
+    "de": "Elisabeth- und Katharinenball"
+   },
+   "lead": {
+    "hu": "Az utolsó nagy mulatság advent előtt: bőséges vacsora, tánc és élő zene hajnalig.",
+    "en": "The last big party before Advent: a hearty dinner, dancing and live music until dawn.",
+    "de": "Das letzte große Fest vor dem Advent: reichhaltiges Abendessen, Tanz und Livemusik bis zum Morgengrauen."
+   },
+   "facts": [
+    {
+     "icon": "dinner",
+     "text": {
+      "hu": "Vacsora 18 órától",
+      "en": "Dinner from 6 pm",
+      "de": "Abendessen ab 18 Uhr"
+     }
+    },
+    {
+     "icon": "music",
+     "text": {
+      "hu": "Élő zene hajnalig!",
+      "en": "Live music until dawn!",
+      "de": "Livemusik bis zum Morgengrauen!"
+     }
+    },
+    {
+     "icon": "place",
+     "text": {
+      "hu": "Vadvirág Étterem és Rendezvényhelyszín, Zalaudvarnok",
+      "en": "Vadvirág Restaurant & Event Venue, Zalaudvarnok",
+      "de": "Restaurant & Eventlocation Vadvirág, Zalaudvarnok"
+     }
+    }
+   ],
+   "entry": [
+    {
+     "label": {
+      "hu": "4 főre",
+      "en": "For 4",
+      "de": "Für 4 Personen"
+     },
+     "desc": {
+      "hu": "egy 4 személyes Bőségtál vásárlása",
+      "en": "with a sharing platter for 4",
+      "de": "mit einer Schlemmerplatte für 4"
+     },
+     "price": 29500
+    },
+    {
+     "label": {
+      "hu": "2 főre",
+      "en": "For 2",
+      "de": "Für 2 Personen"
+     },
+     "desc": {
+      "hu": "egy 2 személyes Bőségtál vásárlása",
+      "en": "with a sharing platter for 2",
+      "de": "mit einer Schlemmerplatte für 2"
+     },
+     "price": 13500
+    }
+   ],
+   "art": "/img/bal/tancolok.webp",
+   "icon": "/img/bal/poharak-xs.webp",
+   "poster": "/img/bal/plakat.webp"
   }
  ]
 }

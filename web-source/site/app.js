@@ -82,7 +82,7 @@ const onScroll = () => {
   top.classList.toggle('scrolled', y > 40);
   const dock = $('dock');
   if (y < innerHeight * 0.7 || typing) dock.classList.remove('show');
-  else if (up) dock.classList.add('show');
+  else if (up) { dock.classList.add('show'); if (!dock._seen) { dock._seen = 1; setTimeout(() => dock.classList.add('seen'), 600); } }
   else if (down) dock.classList.remove('show');
   if (down || up) lastY = y;
 };
@@ -606,7 +606,7 @@ const openModal = d => { d.showModal(); document.body.style.overflow = 'hidden';
 
 /* ---------------------------------------------------------------- Mit egyek ma? */
 const WHEEL_SKIP = ['koretek', 'savanyusagok', 'szoszok-es-martogatosok', 'burger-extrak-es-udito'];
-let wheelSec = 'all', spinning = false;
+let wheelSec = 'all', spinning = false, spins = 0;
 function wheelPool() {
   if (!M) return [];
   return M.sections.filter(s => !WHEEL_SKIP.includes(s.id) && (wheelSec === 'all' || s.id === wheelSec)).flatMap(s => s.items);
@@ -626,13 +626,14 @@ $('spin').addEventListener('click', () => {
   spinning = true; $('wheelOrder').hidden = true; $('reelMeta').textContent = '';
   const pick = pool[Math.floor(Math.random() * pool.length)];
   const name = $('reelName');
-  let i = 0; const steps = reduced ? 1 : 26;
+  // frequency decay: az első pörgetés a teljes műsor, a következők egyre rövidebbek
+  let i = 0; const steps = reduced ? 1 : [26, 18, 12][Math.min(spins, 2)], slow = [320, 220, 150][Math.min(spins, 2)]; spins++;
   const step = () => {
     i++;
     const it = i >= steps ? pick : pool[Math.floor(Math.random() * pool.length)];
     name.textContent = trItem(it).name;
     name.className = 'reel-name'; void name.offsetWidth;
-    if (i < steps) { name.classList.add('tick'); setTimeout(step, 45 + Math.pow(i / steps, 3) * 320); }
+    if (i < steps) { name.classList.add('tick'); setTimeout(step, 45 + Math.pow(i / steps, 3) * slow); }
     else {
       name.classList.add('landed'); spinning = false;
       const vs = variants(pick), t = trItem(pick);
@@ -762,8 +763,24 @@ $$('a[data-kind]').forEach(a => a.addEventListener('click', () => setKind(a.data
 // ma előtti napot ne lehessen választani
 (() => { const d = new Date(); const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); form.elements.date.min = iso; })();
 form.addEventListener('input', e => tgt(e)?.closest('.f')?.classList.remove('bad'));
+// Postel: bármilyen megszokott alakban beírt magyar számból „06 30 123 4567” lesz (Miller: tagolva);
+// a külföldi szám úgy marad, ahogy beírták. Az e-mail kisbetűs, a név felesleges szóközök nélkül.
+function tidyPhone(v) {
+  const t = v.trim(); let d = t.replace(/\D/g, ''), n = null;
+  if (!t) return t;
+  if (/^00/.test(d)) d = d.slice(2);
+  if (/^(36|06)/.test(d) && (d.length === 10 || d.length === 11)) n = d.slice(2);
+  else if ((d.length === 8 || d.length === 9) && t[0] !== '+') n = d;
+  if (!n) return t.replace(/\s+/g, ' ');
+  if (n[0] === '1' && n.length === 8) return '06 1 ' + n.slice(1, 4) + ' ' + n.slice(4);
+  return '06 ' + n.slice(0, 2) + ' ' + n.slice(2, 5) + ' ' + n.slice(5);
+}
+const TIDY = { phone: tidyPhone, email: v => v.replace(/\s+/g, '').toLowerCase(), name: v => v.replace(/\s+/g, ' ').trim() };
+const tidyField = n => { const el = form.elements[n]; if (!el) return; const t = TIDY[n](el.value); if (t !== el.value) el.value = t; };
+Object.keys(TIDY).forEach(n => form.elements[n]?.addEventListener('blur', () => tidyField(n)));
 form.addEventListener('submit', async e => {
   e.preventDefault();
+  Object.keys(TIDY).forEach(tidyField);
   const v = Object.fromEntries(new FormData(form));
   const bad = (name, msg) => { const el = form.elements[name]; el.closest('.f').classList.add('bad'); el.focus(); $('formErr').textContent = T(msg); };
   $('formErr').textContent = '';
@@ -1033,13 +1050,19 @@ function flyToCart(from) {
   if (reduced || !from.animate) return 0;
   const target = [document.querySelector('.dock.show .btn-red'), document.querySelector('.btn-order')].find(e => e && e.getBoundingClientRect().width);
   const a = from.getBoundingClientRect(), b = target ? target.getBoundingClientRect() : { left: innerWidth / 2 - 15, top: innerHeight - 46, width: 30, height: 30 };
-  const dot = document.createElement('div'); dot.className = 'fly'; dot.innerHTML = plus; document.body.appendChild(dot);
-  const sx = a.left + a.width / 2 - 15, sy = a.top + a.height / 2 - 15, ex = b.left + b.width / 2 - 15, ey = b.top + b.height / 2 - 15;
-  const mx = sx + (ex - sx) * .45, my = Math.min(sy, ey) - 90;
-  dot.animate([{ transform: `translate(${sx}px,${sy}px) scale(.6)` }, { transform: `translate(${sx}px,${sy}px) scale(1.15)`, offset: .12 },
-    { transform: `translate(${mx}px,${my}px) scale(1)`, offset: .55 }, { transform: `translate(${ex}px,${ey}px) scale(.45)`, opacity: .7 }],
-    { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }).onfinish = () => { dot.remove(); target?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 280 }); };
-  return 660;
+  const sx = a.left + a.width / 2 - 15, sy = a.top + a.height / 2 - 15, ex = b.left + b.width / 2 - 15, ey = b.top + b.height / 2 - 15, peak = Math.min(sy, ey) - 90, D = 420;
+  // ív: az x egyenletesen halad, az y előbb emelkedik, aztán esik – így valódi görbe, nem két egyenes.
+  // Az elején egy kis lendületvétel (lefelé moccan), a végén kicsire húzódik, ahogy a kosárba ér.
+  const wrap = document.createElement('div'); wrap.className = 'fly-x';
+  wrap.innerHTML = `<div class="fly">${plus}</div>`; document.body.appendChild(wrap);
+  wrap.animate([{ transform: `translateX(${sx}px)` }, { transform: `translateX(${sx}px)`, offset: .12 }, { transform: `translateX(${ex}px)` }], { duration: D, easing: 'linear', fill: 'forwards' });
+  wrap.firstChild.animate([
+    { transform: `translateY(${sy}px) scale(.8)` },
+    { transform: `translateY(${sy + 6}px) scale(.95)`, offset: .12, easing: 'cubic-bezier(.2,.7,.4,1)' },
+    { transform: `translateY(${peak}px) scale(1.05)`, offset: .5, easing: 'cubic-bezier(.6,0,.9,.5)' },
+    { transform: `translateY(${ey}px) scale(.5)`, opacity: .8 }
+  ], { duration: D, fill: 'forwards' }).onfinish = () => { wrap.remove(); target?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 220 }); };
+  return D - 20;
 }
 
 /* ---------------------------------------------------------------- süti hozzájárulás */

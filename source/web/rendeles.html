@@ -29,7 +29,7 @@
 @font-face{font-family:Lora;font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/lora.woff2) format("woff2"),url(/fonts/lora.woff) format("woff")}@font-face{font-family:Lora;font-style:italic;font-weight:400 700;font-display:swap;src:url(/fonts/lora-italic.woff2) format("woff2"),url(/fonts/lora-italic.woff) format("woff")}@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <style>
-:root{--e-out:cubic-bezier(.2,.8,.2,1);--e-pop:cubic-bezier(.3,1.5,.5,1);--t-hover:.18s;--t-move:.3s;--t-pop:.45s;--t-in:.7s;--bg:#f4efe4;--card:#fffdf8;--ink:#2a2823;--ink2:#6c675b;--ink3:#a39c8d;--line:#e6dfcf;--red:#c4140a;--red2:#a5100a;--redt:#f7e3df;--green:#2f9e58;--orange:#d97706}
+:root{--e-out:cubic-bezier(.2,.8,.2,1);--e-pop:cubic-bezier(.3,1.5,.5,1);--t-hover:.18s;--t-move:.3s;--t-pop:.3s;--t-in:.4s;--bg:#f4efe4;--card:#fffdf8;--ink:#2a2823;--ink2:#6c675b;--ink3:#a39c8d;--line:#e6dfcf;--red:#c4140a;--red2:#a5100a;--redt:#f7e3df;--green:#2f9e58;--orange:#d97706}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;scroll-padding-top:120px}
 body{background:var(--bg);color:var(--ink);font:16px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:110px}
@@ -68,6 +68,9 @@ header h1{font:italic 600 26px Lora,serif;margin-top:6px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;padding:8px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:14px;font-weight:600;color:var(--ink2);white-space:nowrap;transition:background var(--t-hover) var(--e-out),color var(--t-hover) var(--e-out),border-color var(--t-hover) var(--e-out)}
 .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip{position:relative}.chip::after{content:"";position:absolute;inset:-4px -2px}
+.chip:active{transform:scale(.95)}
+.foot a[href^="tel:"]{padding-block:12px}
 
 /* étlap */
 section{padding-top:22px}
@@ -100,6 +103,18 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .cartbar button{pointer-events:auto;max-width:728px;margin:0 auto;width:100%;height:60px;border-radius:18px;background:linear-gradient(180deg,#d4190d,#b5120a);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;box-shadow:0 12px 30px #c4140a55;font-weight:700;font-size:17px}
 .cartbar .n{background:#fff;color:var(--red);min-width:30px;height:30px;border-radius:15px;display:grid;place-items:center;font-size:15px;padding:0 8px}
 .cartbar .sp{flex:1;text-align:left}
+/* follow-through: the bar arrives, its contents settle a beat later (only the first time) */
+.cartbar.show:not(.seen) button>*{animation:settle .3s var(--e-out) .06s both}
+@keyframes settle{from{transform:translateY(6px);opacity:.3}}
+/* secondary action: the number in the bar pops when something lands in it */
+.cartbar .n.pop{animation:nPop .3s var(--e-pop)}
+@keyframes nPop{40%{transform:scale(1.35)}}
+/* arcs: the item flies to the cart along a curve (x and y move separately) */
+.fly-x{position:fixed;left:0;top:0;z-index:80;pointer-events:none}
+.fly{width:28px;height:28px;border-radius:50%;background:linear-gradient(180deg,#d4190d,#b5120a);color:#fff;display:grid;place-items:center;box-shadow:0 6px 14px -4px #c4140a88}
+.fly svg{width:15px;height:15px}
+/* squash: the − / + buttons give under your finger */
+.step button{transition:transform .2s var(--e-pop)}.step button:active{transform:scale(.82)}
 .bump{animation:bump var(--t-move) var(--e-pop)}
 @keyframes bump{40%{transform:scale(1.04)}}
 
@@ -128,7 +143,8 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .fld input,.fld select,.fld textarea{flex:1;border:0;outline:0;background:transparent;min-width:0;height:52px;-webkit-appearance:none;appearance:none}
 .fld select{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c675b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right center/18px no-repeat;padding-right:24px}
 .fld textarea{height:auto;min-height:76px;padding:14px 0;resize:none}
-.fld.err{background:#fff2f0}
+.fld.err{background:#fff2f0;animation:shake .36s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .hint{color:var(--ink2);font-size:13px;margin:8px 6px 0;line-height:1.45}
 .sum{padding:6px 16px}
 .sum div{display:flex;justify-content:space-between;padding:6px 0;color:var(--ink2)}
@@ -452,7 +468,25 @@ function renderMenu(){
   spy();
 }
 function rerenderItem(id){const el=$('i_'+id);if(el){const t=document.createElement('div');t.innerHTML=itemHTML(idx[id]);el.replaceWith(t.firstElementChild)}}
-function add(id,v){const k=key(id,v);cart[k]=(cart[k]||0)+1;afterChange(id);toast(`${label(id,v)} a kosárban${pzOk(id,v)?' · 🎁 + ajándék üdítő':''}`);const b=document.querySelector('.cartbar button');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}
+let adds=0;
+function add(id,v){
+  // where the tap was, before the item is drawn again
+  const ev=window.event,src=ev&&ev.target&&ev.target.closest?ev.target.closest('button'):null,from=src&&src.getBoundingClientRect();
+  const k=key(id,v);cart[k]=(cart[k]||0)+1;afterChange(id);adds++;
+  // frequency decay: the first few adds get the full show, after that the bar just answers
+  const gift=pzOk(id,v);if(adds<=3||gift)toast(`${label(id,v)} a kosárban${gift?' · 🎁 + ajándék üdítő':''}`);
+  const land=()=>{const b=document.querySelector('.cartbar button'),n=$('cbN');b.classList.remove('bump');n.classList.remove('pop');void b.offsetWidth;b.classList.add('bump');n.classList.add('pop')};
+  if(from&&adds<=3&&!matchMedia('(prefers-reduced-motion: reduce)').matches&&document.body.animate){arcFly(from,land)}else land();
+  setTimeout(()=>$('cartbar').classList.add('seen'),700);
+}
+// a real curve: x moves evenly, y rises then falls; a small dip first (anticipation)
+function arcFly(r,done){
+  const bar=$('cartbar'),n=$('cbN'),nr=n.getBoundingClientRect(),dy=new DOMMatrix(getComputedStyle(bar).transform).m42;
+  const sx=r.left+r.width/2-14,sy=r.top+r.height/2-14,ex=nr.left+nr.width/2-14,ey=nr.top-dy+nr.height/2-14,peak=Math.min(sy,ey)-90,D=440;
+  const o=document.createElement('div');o.className='fly-x';o.innerHTML='<div class="fly">'+SVG.plus+'</div>';document.body.appendChild(o);const f=o.firstChild;
+  o.animate([{transform:`translateX(${sx}px)`},{transform:`translateX(${sx}px)`,offset:.12},{transform:`translateX(${ex}px)`}],{duration:D,easing:'linear',fill:'forwards'});
+  f.animate([{transform:`translateY(${sy}px) scale(.8)`},{transform:`translateY(${sy+6}px) scale(.9)`,offset:.12,easing:'cubic-bezier(.2,.7,.4,1)'},{transform:`translateY(${peak}px) scale(1.05)`,offset:.5,easing:'cubic-bezier(.6,0,.9,.5)'},{transform:`translateY(${ey}px) scale(.55)`}],{duration:D,fill:'forwards'}).onfinish=()=>{o.remove();done()};
+}
 function chg(k,d){cart[k]=(cart[k]||0)+d;if(cart[k]<=0)delete cart[k];afterChange(k.split('|')[0])}
 function afterChange(id){store.set('vv_cart',cart);rerenderItem(id);updateCart();if($('checkout').classList.contains('open'))renderCheckout()}
 // Dobozdíj: a köretre szoruló főételek dobozába főételenként egy köret belefér (nincs külön doboz).
@@ -538,7 +572,17 @@ $('city').addEventListener('change',renderSum);
 ['fName','fPhone','fEmail','fCity','fStreet'].forEach(f=>$(f).addEventListener('input',()=>$(f).classList.remove('err')));
 $('city').addEventListener('change',()=>$('fCity').classList.remove('err'));
 
+// Postel: take what people type, give back a tidy version when they leave the field.
+// Hungarian numbers in any common form (+36 30…, 0630…, 30/123-4567) become "06 30 123 4567" (Miller: in chunks);
+// a foreign number stays as it was typed.
+function tidyPhone(v){let t=v.trim(),d=t.replace(/\D/g,''),n=null;if(!t)return t;if(/^00/.test(d))d=d.slice(2);
+  if(/^(36|06)/.test(d)&&(d.length===10||d.length===11))n=d.slice(2);else if((d.length===8||d.length===9)&&t[0]!=='+')n=d;
+  if(!n)return t.replace(/\s+/g,' ');if(n[0]==='1'&&n.length===8)return '06 1 '+n.slice(1,4)+' '+n.slice(4);return '06 '+n.slice(0,2)+' '+n.slice(2,5)+' '+n.slice(5)}
+const TIDY={phone:tidyPhone,email:v=>v.replace(/\s+/g,'').toLowerCase(),name:v=>v.replace(/\s+/g,' ').trim(),street:v=>{v=v.replace(/\s+/g,' ').trim();return v.charAt(0).toLocaleUpperCase('hu')+v.slice(1)}};
+function tidy(id){const i=$(id),t=TIDY[id](i.value);if(t!==i.value)i.value=t}
+Object.keys(TIDY).forEach(id=>$(id).addEventListener('blur',()=>tidy(id)));
 async function submitOrder(){
+  Object.keys(TIDY).forEach(tidy);
   const bad=[];const v=id=>$(id).value.trim();
   if(quick&&v('qtext').length<3){$('msg').textContent='Írd le, mit szeretnél rendelni.';$('qtext').focus();return}
   if(!v('name'))bad.push('fName');

@@ -22,7 +22,7 @@
   /* mozgás: mindenhol ugyanazok az idők és görbék */
   --e-out:cubic-bezier(.2,.8,.2,1);   /* lassuló, sima */
   --e-pop:cubic-bezier(.3,1.5,.5,1);  /* enyhén túllendülő (felpattanás) */
-  --t-hover:.18s; --t-move:.3s; --t-pop:.45s; --t-in:.7s; --t-reveal:1.2s; --t-hl:1.4s; --stagger:70ms; --stagger-fast:22ms;
+  --t-hover:.18s; --t-move:.3s; --t-pop:.3s; --t-in:.4s; --t-reveal:.8s; --t-hl:1.4s; --stagger:70ms; --stagger-fast:22ms;
 }
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;scroll-padding-top:calc(var(--hh) + 12px)}
@@ -851,3 +851,37 @@ main h2::after{content:"";display:none;width:1.05em;height:.72em;margin-left:.3e
 :is(.x,.lh-x,.burger,.mt-step button,.add):active{transform:scale(.9);transition-duration:.08s}
 .lb-nav:active{transform:translateY(-50%) scale(.9);transition-duration:.08s}
 @media (prefers-reduced-motion:reduce){.js .rv{opacity:1;transform:none}}
+
+/* ---------------------------------------------------------------- UX & mozgás: 20 elv
+   (érintési felület, összenyomódás, hibajelzés, utómozgás, mélység, ív) */
+/* nagyobb érintési felület (Fitts, min. 44 px): láthatatlan kiterjesztés, a kinézet nem változik */
+.langs button,.add,.var,.chip,.seg button,.brand,.linkish,.foot .made a{position:relative}
+.langs button::after{content:"";position:absolute;inset:-5px -3px}
+.add::after{content:"";position:absolute;inset:-7px}
+.var::after{content:"";position:absolute;inset:-3px -1px}
+.chip::after{content:"";position:absolute;inset:-3px -2px}
+.seg button::after{content:"";position:absolute;inset:-2px 0}
+.brand{min-height:44px;display:inline-flex;align-items:center}
+.wk-day{padding-top:10px;padding-bottom:10px}
+.linkish::after{content:"";position:absolute;inset:-11px -4px}
+.foot .made a::after{content:"";position:absolute;inset:-11px -4px}
+p a[href^="tel:"]{padding-block:11px}
+.big-phone{padding-block:6px}
+.del-all summary{padding:12px 0}
+.als button{padding:12px 5px;margin:-12px -2px}
+/* összenyomódás: ami gomb, az enged az ujjad alatt */
+.add,.var,.chip,.seg button,.langs button,.wk-day{transition:transform .2s var(--e-pop),background var(--t-hover) var(--e-out),color var(--t-hover) var(--e-out),border-color var(--t-hover) var(--e-out)}
+.add:active,.var:active{transform:scale(.9)}
+.chip:active,.seg button:active,.langs button:active,.wk-day:active{transform:scale(.94)}
+/* túlzó visszajelzés: a hibás mező megrázza magát */
+.f.bad input,.f.bad textarea,.f.bad select{animation:shake .36s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+/* utómozgás: az alsó sáv megérkezik, a gombjai egy pillanattal később állnak be (csak először) */
+.dock.show:not(.seen) .btn>*{animation:settle .3s var(--e-out) .06s both}
+@keyframes settle{from{transform:translateY(6px);opacity:.3}}
+/* mélység: a galéria képei kiemelkednek, ha föléjük viszed az egeret */
+@media (hover:hover){.g{transition:transform .25s var(--e-out),box-shadow .25s var(--e-out)}.g:hover{transform:translateY(-3px);box-shadow:var(--sh-2)}}
+/* ív: a kosárba tett étel íven repül (x és y külön mozog) */
+.fly-x{position:fixed;left:0;top:0;z-index:80;pointer-events:none}
+.fly-x .fly{position:static;transform:none}
+@media (prefers-reduced-motion:reduce){.add:active,.var:active,.chip:active,.seg button:active,.langs button:active,.wk-day:active{transform:none}}

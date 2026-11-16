@@ -39,6 +39,7 @@ type preOffer struct {
 	ID           string            `json:"id"`
 	Title        map[string]string `json:"title"`
 	ServeFrom    string            `json:"serve_from"`
+	ServeUntil   string            `json:"serve_until,omitempty"` // eddig a napig (benne van) látszik; utána magától lezárul
 	MainPrice    int               `json:"main_price"`
 	DessertPrice int               `json:"dessert_price"`
 	Mains        []preDish         `json:"mains"`
@@ -158,7 +159,12 @@ func (a *App) savePreorders(ps []Preorder) error {
 }
 
 func (a *App) preSoldOut() bool {
-	return preOff == nil || a.conf().Elfogyott[preOff.ID]
+	return preOff == nil || a.conf().Elfogyott[preOff.ID] || preEnded(time.Now())
+}
+
+// preEnded: lejárt-e az ajánlat (serve_until után, budapesti idő szerint).
+func preEnded(now time.Time) bool {
+	return preOff != nil && preOff.ServeUntil != "" && todayBudapest(now) > preOff.ServeUntil
 }
 
 // preInfo: az ajánlat állapota az irányítópultnak (nil, ha nincs előrendelhető ajánlat).

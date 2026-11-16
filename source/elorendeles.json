@@ -1,5 +1,5 @@
 {
- "_info": "Előrendelhető alkalmi ajánlat (most: Márton-nap). A weboldal Ajánlataink részén látszik, amíg a Rendelések appban nincs „Elfogyott”-ra kapcsolva. serve_from: ettől a naptól lehet kérni (helyben, elvitelre vagy kiszállítással). Új ajánlatnál új id kell.",
+ "_info": "Előrendelhető alkalmi ajánlat (most: Márton-nap). A weboldal Ajánlataink részén látszik, amíg a Rendelések appban nincs „Elfogyott”-ra kapcsolva. serve_from: ettől a naptól lehet kérni (helyben, elvitelre vagy kiszállítással); serve_until: eddig a napig látszik, utána magától eltűnik. Új ajánlatnál új id kell.",
  "id": "marton",
  "title": {
   "hu": "Márton-napi ajánlatunk",
@@ -7,6 +7,7 @@
   "de": "Unser Angebot zum Martinstag"
  },
  "serve_from": "2026-11-10",
+ "serve_until": "2026-11-15",
  "main_price": 6500,
  "dessert_price": 1590,
  "mains": [

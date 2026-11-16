@@ -26,6 +26,11 @@ func TestDashScheduleAndActions(t *testing.T) {
 	if do("close_today") != 200 || !a.closedToday() || do("open_today") != 200 || a.closedToday() {
 		t.Fatal("closed today")
 	}
+	if preOff != nil {
+		until := preOff.ServeUntil
+		preOff.ServeUntil = "" // a kapcsolót nézzük, nem a lejáratot
+		t.Cleanup(func() { preOff.ServeUntil = until })
+	}
 	if preOff != nil && (do("preorder_soldout") != 200 || !a.preSoldOut() || do("preorder_available") != 200 || a.preSoldOut()) {
 		t.Fatal("preorder sold out")
 	}

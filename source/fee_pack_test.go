@@ -175,6 +175,15 @@ func TestPreorder(t *testing.T) {
 	if preOff == nil || len(preOff.Mains) != 4 || len(preOff.Desserts) != 2 || len(preOff.Platters) != 1 || preOff.MainPrice != 6500 || preOff.DessertPrice != 1590 || preOff.PlatterPrice != 12990 {
 		t.Fatal("az elorendeles.json adatai hibásak")
 	}
+	loc0, _ := time.LoadLocation("Europe/Budapest")
+	if preOff.ServeUntil != "" {
+		if preEnded(time.Date(2026, 11, 15, 23, 59, 0, 0, loc0)) || !preEnded(time.Date(2026, 11, 16, 0, 1, 0, 0, loc0)) {
+			t.Error("serve_until: az utolsó napon még látszik, utána már nem")
+		}
+		until := preOff.ServeUntil
+		preOff.ServeUntil = "" // az árazást és a szabályokat a lejárattól függetlenül nézzük
+		t.Cleanup(func() { preOff.ServeUntil = until })
+	}
 	a := newApp(Config{Dijak: defaultFees(), Menetidok: defaultDriveTimes()}, &Store{})
 	loc, _ := time.LoadLocation("Europe/Budapest")
 	now := time.Date(2026, 10, 28, 13, 0, 0, 0, loc)

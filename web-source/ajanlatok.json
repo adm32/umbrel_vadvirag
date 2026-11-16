@@ -783,17 +783,32 @@
      }
     }
    ],
+   "entry_title": {
+    "hu": "Hogyan vehettek részt?",
+    "en": "How to join us",
+    "de": "So seid ihr dabei"
+   },
    "entry": [
     {
+     "head": {
+      "hu": "Vacsorával egybekötött belépő",
+      "en": "Entry with dinner",
+      "de": "Eintritt mit Abendessen"
+     },
+     "note": {
+      "hu": "A bőséges vacsora egyben a belépőtök is az estére, külön jegyet nem kell váltanotok.",
+      "en": "The hearty dinner is your ticket for the night – no separate ticket needed.",
+      "de": "Das reichhaltige Abendessen ist zugleich eure Eintrittskarte – ein extra Ticket braucht ihr nicht."
+     },
      "label": {
       "hu": "4 főre",
       "en": "For 4",
-      "de": "Für 4 Personen"
+      "de": "Für 4"
      },
      "desc": {
-      "hu": "egy 4 személyes Bőségtál vásárlása",
-      "en": "with a sharing platter for 4",
-      "de": "mit einer Schlemmerplatte für 4"
+      "hu": "4 fős társaságoknak, egy 4 személyes Bőségtállal",
+      "en": "for groups of 4, with a sharing platter for 4",
+      "de": "für Gruppen zu viert, mit einer Schlemmerplatte für 4"
      },
      "price": 29500
     },
@@ -801,16 +816,88 @@
      "label": {
       "hu": "2 főre",
       "en": "For 2",
-      "de": "Für 2 Personen"
+      "de": "Für 2"
      },
      "desc": {
-      "hu": "egy 2 személyes Bőségtál vásárlása",
-      "en": "with a sharing platter for 2",
-      "de": "mit einer Schlemmerplatte für 2"
+      "hu": "pároknak, egy 2 személyes Bőségtállal",
+      "en": "for couples, with a sharing platter for 2",
+      "de": "für Paare, mit einer Schlemmerplatte für 2"
      },
      "price": 13500
+    },
+    {
+     "head": {
+      "hu": "Belépő vacsora nélkül",
+      "en": "Entry without dinner",
+      "de": "Eintritt ohne Abendessen"
+     },
+     "label": {
+      "hu": "1 főre",
+      "en": "Per person",
+      "de": "Pro Person"
+     },
+     "desc": {
+      "hu": "ha csak egy jó hangulatú koccintásra, beszélgetésre és táncra ugranátok be",
+      "en": "if you'd just like to drop in for a toast, a chat and a dance",
+      "de": "wenn ihr nur auf ein Glas, ein Gespräch und einen Tanz vorbeikommt"
+     },
+     "price": 3000,
+     "unit": {
+      "hu": "/ fő",
+      "en": "/ person",
+      "de": "/ Person"
+     }
     }
    ],
+   "platter": {
+    "title": {
+     "hu": "Mit tartalmaz a Bőségtál?",
+     "en": "What's on the sharing platter?",
+     "de": "Was ist auf der Schlemmerplatte?"
+    },
+    "items": [
+     {
+      "hu": "Lassan sült, omlós tarjasteak barnamártással, lyoni hagymával",
+      "en": "Slow-roasted tender pork neck steak with brown sauce and Lyonnaise onions",
+      "de": "Langsam gegartes, zartes Nackensteak mit brauner Soße und Lyoner Zwiebeln"
+     },
+     {
+      "hu": "Szezámmagos csirkemellszalagok ropogós bundában, mézes-chilis mártogatós",
+      "en": "Crispy sesame chicken strips with honey-chilli dip",
+      "de": "Knusprige Sesam-Hähnchenstreifen mit Honig-Chili-Dip"
+     },
+     {
+      "hu": "Fokhagymás sült oldalas, párolt vörösboros lilakáposztával",
+      "en": "Garlic roast spare ribs with red cabbage braised in red wine",
+      "de": "Knoblauch-Spareribs mit in Rotwein geschmortem Rotkraut"
+     },
+     {
+      "hu": "Aszalt szilvával és füstölt sajttal töltött rántott csirke",
+      "en": "Breaded chicken stuffed with prunes and smoked cheese",
+      "de": "Panierte Hähnchenbrust gefüllt mit Dörrpflaumen und Räucherkäse"
+     },
+     {
+      "hu": "Rántott Camembert diós bundában, áfonyalekvár",
+      "en": "Camembert in a walnut crust with cranberry jam",
+      "de": "Camembert in Walnusspanade mit Preiselbeermarmelade"
+     },
+     {
+      "hu": "Rántott gomba",
+      "en": "Breaded mushrooms",
+      "de": "Panierte Champignons"
+     },
+     {
+      "hu": "Köret: petrezselymes burgonya és rizi-bizi",
+      "en": "Sides: parsley potatoes and rice with peas",
+      "de": "Beilagen: Petersilienkartoffeln und Reis mit Erbsen"
+     },
+     {
+      "hu": "Savanyúságtál: házi káposztasaláta, uborkasaláta és csemegeuborka",
+      "en": "Pickle plate: homemade cabbage salad, cucumber salad and gherkins",
+      "de": "Sauergemüse: hausgemachter Krautsalat, Gurkensalat und Essiggurken"
+     }
+    ]
+   },
    "art": "/img/bal/tancolok.webp",
    "icon": "/img/bal/poharak-xs.webp",
    "poster": "/img/bal/plakat.webp"

@@ -125,7 +125,7 @@ func TestEvents(t *testing.T) {
 		}
 	}
 	e := at("2026-11-15 12:00")[0]
-	if e.DaysLeft != 6 || e.Title["hu"] != "Erzsébet – Katalin napi Bál" || len(e.Entry) != 2 || e.Entry[0].Price != 29500 {
+	if e.DaysLeft != 6 || e.Title["hu"] != "Erzsébet – Katalin napi Bál" || len(e.Entry) != 3 || e.Entry[0].Price != 29500 || e.Entry[2].Price != 3000 || e.Platter == nil || len(e.Platter.Items) != 8 {
 		t.Errorf("wrong event: %+v", e)
 	}
 	if at("2026-11-21 10:00")[0].DaysLeft != 0 {

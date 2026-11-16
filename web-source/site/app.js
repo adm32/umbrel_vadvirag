@@ -240,7 +240,8 @@ function renderEvents() {
         <p class="ev-when">${esc(cap(evWhen(e)))}</p>
         ${L10(e.lead) ? `<p class="ev-lead">${esc(L10(e.lead))}</p>` : ''}
         ${(e.facts || []).length ? `<ul class="ev-facts">${e.facts.map(f => `<li><i>${EV_ICON[f.icon] || EV_ICON.music}</i><span>${esc(L10(f.text))}</span></li>`).join('')}</ul>` : ''}
-        ${(e.entry || []).length ? `<div class="ev-entry"><h4>${esc(T('evEntry'))}</h4>${e.entry.map((x, k) => `<div class="ev-tix" style="--i:${k}"><b>${esc(L10(x.label))}</b><span>${esc(L10(x.desc))}</span><strong>${huf(x.price)} Ft</strong></div>`).join('')}</div>` : ''}
+        ${(e.entry || []).length ? `<div class="ev-entry"><h4>${esc(L10(e.entry_title) || T('evEntry'))}</h4>${e.entry.map((x, k) => `${L10(x.head) ? `<p class="ev-grp">${esc(L10(x.head))}</p>${L10(x.note) ? `<p class="ev-gnote">${esc(L10(x.note))}</p>` : ''}` : ''}<div class="ev-tix" style="--i:${k}"><b>${esc(L10(x.label))}</b><span>${esc(L10(x.desc))}</span><strong>${huf(x.price)} Ft${L10(x.unit) ? ` <small>${esc(L10(x.unit))}</small>` : ''}</strong></div>`).join('')}</div>` : ''}
+        ${e.platter && e.platter.items.length ? `<details class="ev-platter"><summary>${esc(L10(e.platter.title))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><ul>${e.platter.items.map(i => `<li>${esc(L10(i))}</li>`).join('')}</ul></details>` : ''}
         <div class="ev-cta"><a class="btn btn-gold btn-lg" href="#kapcsolat" data-evbook="${i}">${esc(T('evBook'))}</a><a class="btn btn-light btn-lg" href="tel:+36203395099"><span>${esc(T('call'))}: 06 20 339 5099</span></a></div>
         ${e.poster ? `<a class="ev-poster" href="${esc(e.poster)}" target="_blank" rel="noopener">${esc(T('evPoster'))} ›</a>` : ''}
       </div></article>`;

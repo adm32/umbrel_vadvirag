@@ -71,11 +71,19 @@ type event struct {
 		Icon string `json:"icon"`
 		Text L10n   `json:"text"`
 	} `json:"facts,omitempty"`
-	Entry []struct {
+	EntryTitle L10n `json:"entry_title,omitempty"`
+	Entry      []struct {
+		Head  L10n `json:"head,omitempty"` // csoport címe (pl. „Belépő vacsora nélkül”)
+		Note  L10n `json:"note,omitempty"`
 		Label L10n `json:"label"`
 		Desc  L10n `json:"desc"`
 		Price int  `json:"price"`
+		Unit  L10n `json:"unit,omitempty"` // pl. „/ fő”
 	} `json:"entry,omitempty"`
+	Platter *struct {
+		Title L10n   `json:"title"`
+		Items []L10n `json:"items"`
+	} `json:"platter,omitempty"`
 	Art      string `json:"art,omitempty"`
 	Icon     string `json:"icon,omitempty"`
 	Poster   string `json:"poster,omitempty"`

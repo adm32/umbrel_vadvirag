@@ -81,8 +81,12 @@ type event struct {
 		Unit  L10n `json:"unit,omitempty"` // pl. „/ fő”
 	} `json:"entry,omitempty"`
 	Platter *struct {
-		Title L10n   `json:"title"`
-		Items []L10n `json:"items"`
+		Title  L10n `json:"title"`
+		Sub    L10n `json:"sub,omitempty"`
+		Groups []struct {
+			Name  L10n   `json:"name"`
+			Items []L10n `json:"items"`
+		} `json:"groups"`
 	} `json:"platter,omitempty"`
 	Art      string `json:"art,omitempty"`
 	Icon     string `json:"icon,omitempty"`

@@ -125,7 +125,7 @@ func TestEvents(t *testing.T) {
 		}
 	}
 	e := at("2026-11-15 12:00")[0]
-	if e.DaysLeft != 6 || e.Title["hu"] != "Erzsébet – Katalin napi Bál" || len(e.Entry) != 3 || e.Entry[0].Price != 29500 || e.Entry[2].Price != 3000 || e.Platter == nil || len(e.Platter.Items) != 8 {
+	if e.DaysLeft != 6 || e.Title["hu"] != "Erzsébet – Katalin napi Bál" || len(e.Entry) != 3 || e.Entry[0].Price != 29500 || e.Entry[2].Price != 3000 || e.Platter == nil || len(e.Platter.Groups) != 5 || e.Platter.Groups[1].Items[2]["hu"] != "Tanyasi töltött csirkecomb" {
 		t.Errorf("wrong event: %+v", e)
 	}
 	if at("2026-11-21 10:00")[0].DaysLeft != 0 {

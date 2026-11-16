@@ -855,46 +855,116 @@
      "en": "What's on the sharing platter?",
      "de": "Was ist auf der Schlemmerplatte?"
     },
-    "items": [
+    "sub": {
+     "hu": "7-féle finomság egy tálon, körettel és savanyúsággal",
+     "en": "7 kinds of dishes on one platter, with sides and pickles",
+     "de": "7 Köstlichkeiten auf einer Platte, mit Beilagen und Sauergemüse"
+    },
+    "groups": [
      {
-      "hu": "Lassan sült, omlós tarjasteak barnamártással, lyoni hagymával",
-      "en": "Slow-roasted tender pork neck steak with brown sauce and Lyonnaise onions",
-      "de": "Langsam gegartes, zartes Nackensteak mit brauner Soße und Lyoner Zwiebeln"
+      "name": {
+       "hu": "Sertés",
+       "en": "Pork",
+       "de": "Schwein"
+      },
+      "items": [
+       {
+        "hu": "Lassan sült, omlós tarjasteak barnamártással, lyoni hagymával",
+        "en": "Slow-roasted tender pork neck steak with brown sauce and Lyonnaise onions",
+        "de": "Langsam gegartes, zartes Nackensteak mit brauner Soße und Lyoner Zwiebeln"
+       },
+       {
+        "hu": "Fokhagymás sült oldalas vörösboros párolt lilakáposztával",
+        "en": "Garlic roast spare ribs with red cabbage braised in red wine",
+        "de": "Knoblauch-Spareribs mit in Rotwein geschmortem Rotkraut"
+       }
+      ]
      },
      {
-      "hu": "Szezámmagos csirkemellszalagok ropogós bundában, mézes-chilis mártogatós",
-      "en": "Crispy sesame chicken strips with honey-chilli dip",
-      "de": "Knusprige Sesam-Hähnchenstreifen mit Honig-Chili-Dip"
+      "name": {
+       "hu": "Csirke",
+       "en": "Chicken",
+       "de": "Hähnchen"
+      },
+      "items": [
+       {
+        "hu": "Szezámmagos csirkemellszalagok ropogós bundában, mézes-chilis mártogatóssal",
+        "en": "Crispy sesame chicken strips with honey-chilli dip",
+        "de": "Knusprige Sesam-Hähnchenstreifen mit Honig-Chili-Dip"
+       },
+       {
+        "hu": "Aszalt szilvával és füstölt sajttal töltött rántott csirke",
+        "en": "Breaded chicken stuffed with prunes and smoked cheese",
+        "de": "Panierte Hähnchenbrust gefüllt mit Dörrpflaumen und Räucherkäse"
+       },
+       {
+        "hu": "Tanyasi töltött csirkecomb",
+        "en": "Farmhouse stuffed chicken leg",
+        "de": "Gefüllte Hähnchenkeule nach Bauernart"
+       }
+      ]
      },
      {
-      "hu": "Fokhagymás sült oldalas, párolt vörösboros lilakáposztával",
-      "en": "Garlic roast spare ribs with red cabbage braised in red wine",
-      "de": "Knoblauch-Spareribs mit in Rotwein geschmortem Rotkraut"
+      "name": {
+       "hu": "Rántott",
+       "en": "Breaded",
+       "de": "Paniert"
+      },
+      "items": [
+       {
+        "hu": "Camembert diós bundában, áfonyalekvárral",
+        "en": "Camembert in a walnut crust with cranberry jam",
+        "de": "Camembert in Walnusspanade mit Preiselbeermarmelade"
+       },
+       {
+        "hu": "Gomba",
+        "en": "Mushrooms",
+        "de": "Champignons"
+       }
+      ]
      },
      {
-      "hu": "Aszalt szilvával és füstölt sajttal töltött rántott csirke",
-      "en": "Breaded chicken stuffed with prunes and smoked cheese",
-      "de": "Panierte Hähnchenbrust gefüllt mit Dörrpflaumen und Räucherkäse"
+      "name": {
+       "hu": "Köret",
+       "en": "Sides",
+       "de": "Beilagen"
+      },
+      "items": [
+       {
+        "hu": "Petrezselymes burgonya",
+        "en": "Parsley potatoes",
+        "de": "Petersilienkartoffeln"
+       },
+       {
+        "hu": "Rizi-bizi",
+        "en": "Rice with peas",
+        "de": "Reis mit Erbsen"
+       }
+      ]
      },
      {
-      "hu": "Rántott Camembert diós bundában, áfonyalekvár",
-      "en": "Camembert in a walnut crust with cranberry jam",
-      "de": "Camembert in Walnusspanade mit Preiselbeermarmelade"
-     },
-     {
-      "hu": "Rántott gomba",
-      "en": "Breaded mushrooms",
-      "de": "Panierte Champignons"
-     },
-     {
-      "hu": "Köret: petrezselymes burgonya és rizi-bizi",
-      "en": "Sides: parsley potatoes and rice with peas",
-      "de": "Beilagen: Petersilienkartoffeln und Reis mit Erbsen"
-     },
-     {
-      "hu": "Savanyúságtál: házi káposztasaláta, uborkasaláta és csemegeuborka",
-      "en": "Pickle plate: homemade cabbage salad, cucumber salad and gherkins",
-      "de": "Sauergemüse: hausgemachter Krautsalat, Gurkensalat und Essiggurken"
+      "name": {
+       "hu": "Savanyúság",
+       "en": "Pickles",
+       "de": "Sauergemüse"
+      },
+      "items": [
+       {
+        "hu": "Házi káposztasaláta",
+        "en": "Homemade cabbage salad",
+        "de": "Hausgemachter Krautsalat"
+       },
+       {
+        "hu": "Uborkasaláta",
+        "en": "Cucumber salad",
+        "de": "Gurkensalat"
+       },
+       {
+        "hu": "Csemegeuborka",
+        "en": "Gherkins",
+        "de": "Essiggurken"
+       }
+      ]
      }
     ]
    },

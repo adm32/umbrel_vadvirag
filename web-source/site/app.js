@@ -727,8 +727,8 @@ const SZG = ['Zalaszentgrót', 'Kisszentgrót', 'Tüskeszentpéter', 'Csáford',
 const POST = {
   '8341': ['Szalapa', 'Kisvásárhely', 'Mihályfa'], '8342': ['Óhíd'], '8353': ['Vindornyalak'], '8354': ['Karmacs', 'Vindornyafok', 'Zalaköveskút'],
   '8355': ['Vindornyaszőlős'], '8356': ['Kisgörbő', 'Nagygörbő'], '8357': ['Döbröce', 'Sümegcsehi'], '8371': ['Nemesbük'], '8393': ['Szentgyörgyvár'],
-  '8395': ['Felsőpáhok'], '8741': ['Bókaháza'], '8782': ['Zalacsány', 'Tilaj', 'Ligetfalva'], '8784': ['Kehidakustány'], '8785': ['Kallósd', ...SZG],
-  '8788': ['Zalaszentlászló', 'Sénye'], '8789': SZG, '8790': SZG, '8792': ['Zalavég'], '8793': ['Tekenye'], '8795': SZG, '8796': ['Türje'],
+  '8395': ['Felsőpáhok'], '8741': ['Bókaháza'], '8782': ['Zalacsány', 'Tilaj', 'Ligetfalva'], '8784': ['Kehidakustány'], '8785': ['Zalakoppány', 'Kallósd'],
+  '8788': ['Zalaszentlászló', 'Sénye'], '8789': ['Zalaudvarnok'], '8790': SZG, '8792': ['Zalavég'], '8793': ['Tekenye'], '8795': SZG, '8796': ['Türje'],
   '8797': ['Batyk'], '8798': ['Zalabér'], '8799': ['Dötk', 'Pakod'], '8932': ['Pókaszepetk'], '9831': ['Bérbaltavár']
 };
 // elgépelés: Damerau–Levenshtein távolság
@@ -746,16 +746,17 @@ function dist(a, b) {
 function townMatches(raw) {
   const code = (raw.match(/\b(\d{4})\b/) || [])[1];
   const q = norm(raw.replace(/\d+/g, ' ').replace(/[.,;:/()-]+/g, ' ')).replace(/\s+/g, ' ').trim();
-  const fees = M.fees, nm = f => norm(f.name);
+  // „szentgrót”, „udvarnok”, „koppány”: a „Zala-” előtag nélkül is megtaláljuk
+  const fees = M.fees, nm = f => norm(f.name), sh = f => { const n = nm(f); return n.startsWith('zala') && n.length >= 8 ? n.slice(4) : n; };
   const byCode = code ? (POST[code] || []).map(n => fees.find(f => f.name === n)).filter(Boolean) : [];
   if (q.length >= 2) {
-    const exact = fees.filter(f => nm(f) === q); if (exact.length) return { list: exact, sure: true };
-    const starts = fees.filter(f => nm(f).startsWith(q));
+    const exact = fees.filter(f => nm(f) === q || sh(f) === q); if (exact.length) return { list: exact, sure: exact.length === 1 };
+    const starts = fees.filter(f => nm(f).startsWith(q) || (q.length >= 3 && sh(f).startsWith(q)));
     if (starts.length) { const inCode = byCode.length ? starts.filter(f => byCode.includes(f)) : []; return { list: inCode.length ? inCode : starts, sure: starts.length === 1, partial: starts.length > 1 }; }
-    const inside = fees.filter(f => nm(f).length >= 4 && q.includes(nm(f))); if (inside.length) return { list: inside, sure: inside.length === 1 };
+    const inside = fees.filter(f => (nm(f).length >= 4 && q.includes(nm(f))) || (sh(f) !== nm(f) && sh(f).length >= 5 && (' ' + q + ' ').includes(' ' + sh(f) + ' '))); if (inside.length) return { list: inside, sure: inside.length === 1 };
     if (q.length >= 4) {
       const tol = q.length >= 8 ? 2 : 1;
-      const sc = fees.map(f => { const n = nm(f); return { f, d: Math.min(dist(q, n), q.length < n.length ? dist(q, n.slice(0, q.length)) : 99) }; }).filter(x => x.d <= tol).sort((a, b) => a.d - b.d);
+      const sc = fees.map(f => { let d = 99; for (const n of new Set([nm(f), sh(f)])) d = Math.min(d, dist(q, n), q.length < n.length ? dist(q, n.slice(0, q.length)) : 99); return { f, d }; }).filter(x => x.d <= tol).sort((a, b) => a.d - b.d);
       if (sc.length) { const best = sc.filter(x => x.d === sc[0].d).map(x => x.f); return { list: best, sure: best.length === 1, guess: true }; }
     }
   }

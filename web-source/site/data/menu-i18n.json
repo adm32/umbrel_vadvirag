@@ -5,8 +5,8 @@
 "de": "Pizzen"
 },
 "burger-boxok": {
-"en": "Burger boxes",
-"de": "Burger-Boxen"
+"en": "Burgers",
+"de": "Burger"
 },
 "levesek": {
 "en": "Soups",
@@ -269,61 +269,51 @@
 "burger-smash-burger": {
 "en": [
 "Smash Burger",
-"100% homemade beef patty, house burger sauce, dill pickles, cheddar, fried onions, mixed lettuce, tomato, bun"
+"onion pork patty or 100% homemade beef patty, house burger sauce, cheddar, fried onions, dill pickles, mixed lettuce, tomato, bun"
 ],
 "de": [
 "Smash Burger",
-"100 % hausgemachtes Rindfleischpatty, hausgemachte Burgersoße, Dillgurken, Cheddar, Röstzwiebeln, Salatmix, Tomate, Brötchen"
+"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, hausgemachte Burgersoße, Cheddar, Röstzwiebeln, Dillgurken, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-konyhafonok-kedvence-burger": {
 "en": [
-"Head chef's favourite burger",
-"2 homemade 100% beef patties (~250 g), cheddar, barbecue sauce, crispy bacon, fried onions, mixed lettuce, bun"
+"Chef's Double Burger",
+"2 onion pork patties or 2 × 100% homemade beef patties, cheddar, crispy bacon, sautéed onions, dill pickles, BBQ and house burger sauce, mixed lettuce, tomato, bun"
 ],
 "de": [
-"Lieblingsburger des Küchenchefs",
-"2 hausgemachte 100 % Rindfleischpattys (~250 g), Cheddar, Barbecuesoße, knuspriger Speck, Röstzwiebeln, Salatmix, Brötchen"
+"Doppelburger des Küchenchefs",
+"2 Zwiebel-Schweinefleisch-Pattys oder 2 × 100 % hausgemachtes Rindfleisch-Patty, Cheddar, gebratener Bacon, geschmorte Zwiebeln, Dillgurken, BBQ- und hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-camemburger": {
 "en": [
 "CamemBurger",
-"100% homemade beef patty, grilled camembert, house burger sauce, jalapeños, mixed lettuce, tomato, bun"
+"onion pork patty or 100% homemade beef patty, breaded Camembert, crispy bacon, cranberry & red onion jam, house burger sauce, mixed lettuce, bun. Veggie: no meat or bacon, a whole Camembert"
 ],
 "de": [
 "CamemBurger",
-"100 % hausgemachtes Rindfleischpatty, gegrillter Camembert, hausgemachte Burgersoße, Jalapeños, Salatmix, Tomate, Brötchen"
+"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, panierter Camembert, gebratener Bacon, Preiselbeer-Rotzwiebelmarmelade, hausgemachte Burgersoße, Salatmix, Brötchen. Vegetarisch: ohne Fleisch und Bacon, mit einem ganzen Camembert"
 ]
 },
 "burger-inyenc-marhaburger": {
 "en": [
-"“Gourmet” beef burger",
-"100% homemade beef patty, house burger sauce, cheddar, red onion jam, mixed lettuce, tomato, bun"
+"Gourmet Burger",
+"onion pork patty or 100% homemade beef patty, red onion jam, cheddar, jalapeños, house burger sauce, mixed lettuce, tomato, bun"
 ],
 "de": [
-"„Gourmet“-Rindfleischburger",
-"100 % hausgemachtes Rindfleischpatty, hausgemachte Burgersoße, Cheddar, Zwiebelmarmelade, Salatmix, Tomate, Brötchen"
+"Gourmet-Burger",
+"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, Rotzwiebelmarmelade, Cheddar, Jalapeños, hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-vadvirag-burger": {
 "en": [
-"Vadvirág Burger",
-"crispy breaded sesame chicken breast, house burger sauce, crispy bacon, coleslaw, mixed lettuce, bun"
+"Vadvirág Crispy Chicken Burger",
+"spicy crispy-coated chicken breast, crispy bacon, cheddar, coleslaw, BBQ sauce, mixed lettuce, bun"
 ],
 "de": [
-"Vadvirág Burger",
-"knusprig panierte Sesam-Hähnchenbrust, hausgemachte Burgersoße, knuspriger Speck, Krautsalat, Salatmix, Brötchen"
-]
-},
-"burger-vega-burger": {
-"en": [
-"Veggie Burger",
-"breaded camembert, cranberry & red onion jam, mixed lettuce, tomato, bun"
-],
-"de": [
-"Veggie-Burger",
-"panierter Camembert, Preiselbeer-Zwiebel-Marmelade, Salatmix, Tomate, Brötchen"
+"Vadvirág Crispy Chicken Burger",
+"würzige, knusprig panierte Hähnchenbrust, gebratener Bacon, Cheddar, Coleslaw, BBQ-Soße, Salatmix, Brötchen"
 ]
 },
 "levese-csontleves-zoldseggel-finommetelttel": {
@@ -1175,6 +1165,36 @@
 "Hausgemachte Sülze (Kocsonya)",
 "Saisonangebot, zum Mitnehmen verpackt."
 ]
+},
+"burger-farmer-burger": {
+"en": [
+"Farmer Burger",
+"onion pork patty or 100% homemade beef patty, crispy onion rings, gouda, house farmer sauce, mixed lettuce, tomato, bun"
+],
+"de": [
+"Farmer Burger",
+"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, knusprige Zwiebelringe, Gouda, hausgemachte Farmer-Soße, Salatmix, Tomate, Brötchen"
+]
+},
+"burger-fustos-sajtburger": {
+"en": [
+"Smoked Cheese Burger",
+"onion pork patty or 100% homemade beef patty, breaded smoked cheese, tartar sauce, house burger sauce, mixed lettuce, tomato, bun. Veggie: no meat, double smoked cheese"
+],
+"de": [
+"Räucherkäse-Burger",
+"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, panierter Räucherkäse, Sauce Tartare, hausgemachte Burgersoße, Salatmix, Tomate, Brötchen. Vegetarisch: ohne Fleisch, mit doppeltem Räucherkäse"
+]
+},
+"burger-extra-sertespogacsa": {
+"en": [
+"Extra pork patty",
+""
+],
+"de": [
+"Extra Schweinefleisch-Patty",
+""
+]
 }
 },
 "variants": {
@@ -1185,6 +1205,38 @@
 "nagy doboz (0,75 l)": {
 "en": "large box (0.75 l)",
 "de": "große Box (0,75 l)"
+},
+"Sertés · Box": {
+"en": "Pork · Box",
+"de": "Schwein · Box"
+},
+"Marha · Box": {
+"en": "Beef · Box",
+"de": "Rind · Box"
+},
+"Sertés · Csak burger": {
+"en": "Pork · Burger only",
+"de": "Schwein · Nur Burger"
+},
+"Marha · Csak burger": {
+"en": "Beef · Burger only",
+"de": "Rind · Nur Burger"
+},
+"Vega · Box": {
+"en": "Veggie · Box",
+"de": "Vegetarisch · Box"
+},
+"Vega · Csak burger": {
+"en": "Veggie · Burger only",
+"de": "Vegetarisch · Nur Burger"
+},
+"Csirke · Box": {
+"en": "Chicken · Box",
+"de": "Hähnchen · Box"
+},
+"Csirke · Csak burger": {
+"en": "Chicken · Burger only",
+"de": "Hähnchen · Nur Burger"
 }
 }
 }

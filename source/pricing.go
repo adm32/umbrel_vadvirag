@@ -150,6 +150,9 @@ func pickVariant(it *MenuItem, segText string) (string, int) {
 		return "", it.Price
 	}
 	n := norm(segText)
+	if strings.Contains(it.Variants[0].Label, " · ") {
+		return pickBurgerVariant(it, n)
+	}
 	big := strings.Contains(n, "50") || strings.Contains(n, "nagy") || strings.Contains(n, "csaladi") || strings.Contains(n, "0,75") || strings.Contains(n, "0.75")
 	for _, v := range it.Variants {
 		vl := norm(v.Label)
@@ -158,6 +161,48 @@ func pickVariant(it *MenuItem, segText string) (string, int) {
 		}
 	}
 	return it.Variants[0].Label, it.Variants[0].Price
+}
+
+// Burgereknél a változat két részből áll: hús („Sertés”, „Marha”, „Csirke”, „Vega”) · kiszerelés
+// („Box” = hasábbal és szósszal, vagy „Csak burger”). A leírt rendelésből kiolvassuk mindkettőt;
+// ha nincs megadva, a régi alapeset (marhás box) számít.
+var (
+	burgerMeatWords = map[string]string{"sertes": "sertes", "sertessel": "sertes", "sertes-": "sertes", "diszno": "sertes", "disznohus": "sertes",
+		"marha": "marha", "marhas": "marha", "marhaval": "marha", "marhahus": "marha", "csirke": "csirke", "csirkes": "csirke", "vega": "vega", "vegetarianus": "vega"}
+	burgerOnlyRe = regexp.MustCompile(`\bcsak\b|magaban|hasab nelkul|krumpli nelkul|hasabburgonya nelkul|kulon|box nelkul`)
+)
+
+func pickBurgerVariant(it *MenuItem, n string) (string, int) {
+	meat := ""
+	for _, t := range strings.FieldsFunc(n, func(r rune) bool { return !unicode.IsLetter(r) }) {
+		if m, ok := burgerMeatWords[t]; ok {
+			meat = m
+		}
+	}
+	only := burgerOnlyRe.MatchString(n)
+	best, bestScore := 0, -1
+	for i, v := range it.Variants {
+		vl := norm(v.Label)
+		s := 0
+		if meat != "" && strings.HasPrefix(vl, meat) {
+			s += 2
+		} else if meat == "" && strings.HasPrefix(vl, "marha") {
+			s++
+		}
+		if only == strings.Contains(vl, "csak") {
+			s += 2
+		}
+		if s > bestScore {
+			best, bestScore = i, s
+		}
+	}
+	return it.Variants[best].Label, it.Variants[best].Price
+}
+
+// burgerWord: a burger változatát leíró szó – ne keressünk hozzá külön ételt (pl. „sertés” → sertéspörkölt).
+func burgerWord(t string) bool {
+	_, ok := burgerMeatWords[t]
+	return ok || t == "box" || t == "burger" || t == "csak" || t == "magaban" || t == "nelkul" || t == "hasabburgonya" || t == "hasab"
 }
 
 func parseQty(seg string) (int, string) {
@@ -187,8 +232,12 @@ func parseQty(seg string) (int, string) {
 
 // splitSegments: egy sor több ételre bontása. Vesszőnél / „és”-nél / „+”-nál csak akkor
 // vágunk, ha utána mennyiség jön – így a „Rántott csirkemáj, tartármártással” egyben marad.
+// az „és” csak önálló szóként választ el (a Go \b-je nem ismeri az ékezetes betűket, így a
+// „sertés” vagy a „sertésszelet” belsejében is elválasztott volna)
+var splitRe = regexp.MustCompile(`\s*(?:,|;|\+|\s(?:és|es)\s)\s*`)
+
 func splitSegments(line string) []string {
-	parts := regexp.MustCompile(`\s*(?:,|;|\+|\bés\b|\bes\b)\s*`).Split(line, -1)
+	parts := splitRe.Split(line, -1)
 	var out []string
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
@@ -289,9 +338,10 @@ func priceText(items string) (food, pack int, exact, found bool) {
 				pk := packFor(ref.sec, ref.it, label)
 				packs = append(packs, packLine{roleFor(ref.sec, ref.it), pk, qty})
 				found = true
+				burger := len(ref.it.Variants) > 0 && strings.Contains(ref.it.Variants[0].Label, " · ")
 				var left []string
 				for j, t := range toks {
-					if !used[j] {
+					if !used[j] && !(burger && burgerWord(t)) {
 						left = append(left, t)
 					}
 				}

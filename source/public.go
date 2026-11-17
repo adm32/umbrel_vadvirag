@@ -35,8 +35,9 @@ type MenuItem struct {
 	Alg      string        `json:"alg,omitempty"`
 	Price    int           `json:"price,omitempty"`
 	Variants []MenuVariant `json:"variants,omitempty"`
-	Pack     int           `json:"pack"`           // csomagolás díja darabonként (a szerver tölti ki)
-	Role     string        `json:"role,omitempty"` // "main": köretre szoruló főétel, "side": köret (közös doboz)
+	Pack     int           `json:"pack"`            // csomagolás díja darabonként (a szerver tölti ki)
+	Role     string        `json:"role,omitempty"`  // "main": köretre szoruló főétel, "side": köret (közös doboz)
+	Badge    string        `json:"badge,omitempty"` // "new" = új étel, "recipe" = új recept (a weboldal címkét tesz mellé)
 }
 
 type MenuSection struct {

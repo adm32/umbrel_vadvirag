@@ -578,6 +578,21 @@ function itemHTML(it, i = 0) {
   const al = it.alg ? `<div class="al">${esc(T('allergens'))}: ${it.alg.split(/\s*,\s*/).map(n => `<button data-alg="${esc(n)}">${esc(n)}</button>`).join(', ')}</div>` : '';
   const ds = desc ? `<div class="ds">${esc(desc)}</div>` : '';
   const sup = it.alg ? `<span class="als">${it.alg.split(/\s*,\s*/).map(n => `<button data-alg="${esc(n)}" aria-label="${esc(T('allergens'))} ${esc(n)}">${esc(n)}</button>`).join('')}</span>` : '';
+  const bdg = it.badge ? `<span class="new-b">${esc(T(it.badge === 'recipe' ? 'bRecipe' : 'bNew'))}</span>` : '';
+  if (vs.length > 1 && vs.every(v => v.label.includes(' · '))) {
+    // burgerek: sorban a hús (sertés / marha / csirke / vega), oszlopban a box (hasábbal + szósszal) vagy csak a burger
+    const part = { 'Sertés': 'mPork', 'Marha': 'mBeef', 'Csirke': 'mChicken', 'Vega': 'mVeg', 'Box': 'gBox', 'Csak burger': 'gOnly' };
+    const tp = x => part[x] ? T(part[x]) : x;
+    const rows = [...new Set(vs.map(v => v.label.split(' · ')[0]))], cols = [...new Set(vs.map(v => v.label.split(' · ')[1]))];
+    const cell = (r, c) => {
+      const v = vs.find(x => x.label === r + ' · ' + c); if (!v) return '<span></span>';
+      return paused ? `<span class="var gp"><b>${huf(v.price)} Ft</b></span>`
+        : `<a class="var gp add-v" href="${orderHref(it.id, v.label)}" aria-label="${esc(T('addToCart', { n: `${name} (${tp(r)}, ${tp(c)})` }))}"><b>${huf(v.price)} Ft</b>${plus}</a>`;
+    };
+    const head = c => c === 'Box' ? `${esc(T('gBox'))}<small>${esc(T('gBoxSub'))}</small>` : esc(tp(c));
+    const grid = `<div class="pgrid" style="--c:${cols.length}"><span></span>${cols.map(c => `<span class="gh">${head(c)}</span>`).join('')}${rows.map(r => `<span class="gr">${esc(tp(r))}</span>${cols.map(c => cell(r, c)).join('')}`).join('')}</div>`;
+    return `<div class="mi mv${it.badge ? ' is-new' : ''}" id="i-${esc(it.id)}"${st}><div class="nm"><span>${esc(name)}${bdg}${sup}</span></div>${ds}${grid}${al}</div>`;
+  }
   if (vs.length > 1) {
     const pills = vs.map(v => paused
       ? `<span class="var">${esc(trVar(v.label))} <b>${huf(v.price)} Ft</b></span>`

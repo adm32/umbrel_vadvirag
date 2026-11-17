@@ -269,41 +269,41 @@
 "burger-smash-burger": {
 "en": [
 "Smash Burger",
-"onion pork patty or 100% homemade beef patty, house burger sauce, cheddar, fried onions, dill pickles, mixed lettuce, tomato, bun"
+"100% homemade beef patty or pork patty mixed with fried onions, house burger sauce, cheddar, fried onions, dill pickles, mixed lettuce, tomato, bun"
 ],
 "de": [
 "Smash Burger",
-"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, hausgemachte Burgersoße, Cheddar, Röstzwiebeln, Dillgurken, Salatmix, Tomate, Brötchen"
+"100 % hausgemachtes Rindfleisch-Patty oder Schweinefleisch-Patty mit Röstzwiebeln, hausgemachte Burgersoße, Cheddar, Röstzwiebeln, Dillgurken, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-konyhafonok-kedvence-burger": {
 "en": [
 "Chef's Double Burger",
-"2 onion pork patties or 2 × 100% homemade beef patties, cheddar, crispy bacon, sautéed onions, dill pickles, BBQ and house burger sauce, mixed lettuce, tomato, bun"
+"2 × 100% homemade beef patties or 2 pork patties mixed with fried onions, cheddar, crispy bacon, sautéed onions, dill pickles, BBQ and house burger sauce, mixed lettuce, tomato, bun"
 ],
 "de": [
 "Doppelburger des Küchenchefs",
-"2 Zwiebel-Schweinefleisch-Pattys oder 2 × 100 % hausgemachtes Rindfleisch-Patty, Cheddar, gebratener Bacon, geschmorte Zwiebeln, Dillgurken, BBQ- und hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
+"2 × 100 % hausgemachtes Rindfleisch-Patty oder 2 Schweinefleisch-Pattys mit Röstzwiebeln, Cheddar, gebratener Bacon, geschmorte Zwiebeln, Dillgurken, BBQ- und hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-camemburger": {
 "en": [
 "CamemBurger",
-"onion pork patty or 100% homemade beef patty, breaded Camembert, crispy bacon, cranberry & red onion jam, house burger sauce, mixed lettuce, bun. Veggie: no meat or bacon, a whole Camembert"
+"100% homemade beef patty or pork patty mixed with fried onions, breaded Camembert, crispy bacon, cranberry & red onion jam, house burger sauce, mixed lettuce, bun. Veggie: no meat or bacon, a whole Camembert"
 ],
 "de": [
 "CamemBurger",
-"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, panierter Camembert, gebratener Bacon, Preiselbeer-Rotzwiebelmarmelade, hausgemachte Burgersoße, Salatmix, Brötchen. Vegetarisch: ohne Fleisch und Bacon, mit einem ganzen Camembert"
+"100 % hausgemachtes Rindfleisch-Patty oder Schweinefleisch-Patty mit Röstzwiebeln, panierter Camembert, gebratener Bacon, Preiselbeer-Rotzwiebelmarmelade, hausgemachte Burgersoße, Salatmix, Brötchen. Vegetarisch: ohne Fleisch und Bacon, mit einem ganzen Camembert"
 ]
 },
 "burger-inyenc-marhaburger": {
 "en": [
 "Gourmet Burger",
-"onion pork patty or 100% homemade beef patty, red onion jam, cheddar, jalapeños, house burger sauce, mixed lettuce, tomato, bun"
+"100% homemade beef patty or pork patty mixed with fried onions, red onion jam, cheddar, jalapeños, house burger sauce, mixed lettuce, tomato, bun"
 ],
 "de": [
 "Gourmet-Burger",
-"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, Rotzwiebelmarmelade, Cheddar, Jalapeños, hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
+"100 % hausgemachtes Rindfleisch-Patty oder Schweinefleisch-Patty mit Röstzwiebeln, Rotzwiebelmarmelade, Cheddar, Jalapeños, hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-vadvirag-burger": {
@@ -1108,11 +1108,11 @@
 },
 "burger-extra-marhahuspogacsa": {
 "en": [
-"Extra beef patty",
+"Extra 100% beef patty",
 ""
 ],
 "de": [
-"Extra Rindfleischpatty",
+"Extra 100 % Rindfleisch-Patty",
 ""
 ]
 },
@@ -1169,30 +1169,30 @@
 "burger-farmer-burger": {
 "en": [
 "Farmer Burger",
-"onion pork patty or 100% homemade beef patty, crispy onion rings, gouda, house farmer sauce, mixed lettuce, tomato, bun"
+"100% homemade beef patty or pork patty mixed with fried onions, crispy onion rings, gouda, house farmer sauce, mixed lettuce, tomato, bun"
 ],
 "de": [
 "Farmer Burger",
-"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, knusprige Zwiebelringe, Gouda, hausgemachte Farmer-Soße, Salatmix, Tomate, Brötchen"
+"100 % hausgemachtes Rindfleisch-Patty oder Schweinefleisch-Patty mit Röstzwiebeln, knusprige Zwiebelringe, Gouda, hausgemachte Farmer-Soße, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-fustos-sajtburger": {
 "en": [
 "Smoked Cheese Burger",
-"onion pork patty or 100% homemade beef patty, breaded smoked cheese, tartar sauce, house burger sauce, mixed lettuce, tomato, bun. Veggie: no meat, double smoked cheese"
+"100% homemade beef patty or pork patty mixed with fried onions, breaded smoked cheese, tartar sauce, house burger sauce, mixed lettuce, tomato, bun"
 ],
 "de": [
 "Räucherkäse-Burger",
-"Zwiebel-Schweinefleisch-Patty oder 100 % hausgemachtes Rindfleisch-Patty, panierter Räucherkäse, Sauce Tartare, hausgemachte Burgersoße, Salatmix, Tomate, Brötchen. Vegetarisch: ohne Fleisch, mit doppeltem Räucherkäse"
+"100 % hausgemachtes Rindfleisch-Patty oder Schweinefleisch-Patty mit Röstzwiebeln, panierter Räucherkäse, Sauce Tartare, hausgemachte Burgersoße, Salatmix, Tomate, Brötchen"
 ]
 },
 "burger-extra-sertespogacsa": {
 "en": [
-"Extra pork patty",
+"Extra pork patty (with fried onions)",
 ""
 ],
 "de": [
-"Extra Schweinefleisch-Patty",
+"Extra Schweinefleisch-Patty (mit Röstzwiebeln)",
 ""
 ]
 }

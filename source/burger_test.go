@@ -20,6 +20,9 @@ func TestBurgerMenu(t *testing.T) {
 	if v := menuIdx["burger-camemburger"]; v == nil || len(v.Variants) != 6 || v.Badge != "recipe" {
 		t.Errorf("camemburger: %+v", v)
 	}
+	if f := menuIdx["burger-fustos-sajtburger"]; f == nil || len(f.Variants) != 4 {
+		t.Errorf("füstös: csak sertés/marha, vega nélkül: %+v", f)
+	}
 	if menuIdx["burger-vega-burger"] != nil {
 		t.Error("a Vega Burger már nincs az étlapon")
 	}

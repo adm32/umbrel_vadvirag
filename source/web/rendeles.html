@@ -95,9 +95,9 @@ section h2{font:italic 600 26px Lora,serif;margin:0 2px 10px}
 .var small{font-weight:500;color:var(--ink2)}
 .var .q{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;font-size:12px;line-height:22px;text-align:center;box-shadow:0 0 0 2px var(--card)}
 .var:active{background:var(--red);color:#fff}
-.pg{display:grid;grid-template-columns:4.6em repeat(var(--c),minmax(0,1fr));gap:6px 8px;align-items:center;margin-top:10px;max-width:420px}
+.pg{display:grid;grid-template-columns:6.6em repeat(var(--c),minmax(0,1fr));gap:6px 8px;align-items:center;margin-top:10px;max-width:420px}
 .pg .gh{align-self:end;font-size:12px;font-weight:700;color:var(--ink2);text-align:center;line-height:1.2}.pg .gh small{display:block;font-weight:500;font-size:11px}
-.pg .gr{font-size:14px;font-weight:700;padding-right:4px}
+.pg .gr{font-size:14px;font-weight:700;padding-right:4px;line-height:1.15}.pg .gr small{display:block;font-size:11px;font-weight:500;color:var(--ink2)}
 .pg .var{justify-content:center;padding:8px 6px;font-weight:700}
 .nb{display:inline-block;vertical-align:2px;margin-left:6px;background:var(--red);color:#fff;font-size:11px;font-weight:800;line-height:1;padding:4px 8px;border-radius:99px;letter-spacing:.02em}
 .empty{color:var(--ink2);text-align:center;padding:40px 0}
@@ -457,9 +457,10 @@ function itemHTML(it){
     const rows=[...new Set(it.variants.map(v=>v.label.split(' · ')[0]))],cols=[...new Set(it.variants.map(v=>v.label.split(' · ')[1]))];
     const cell=(r,c)=>{const v=it.variants.find(x=>x.label===r+' · '+c);if(!v)return '<span></span>';const q=cart[key(it.id,v.label)]||0;
       return `<button class="var" onclick="add('${it.id}','${v.label}')" aria-label="${esc(it.name+', '+r+', '+c)} kosárba">${huf(v.price)} Ft${q?`<span class="q">${q}</span>`:''}</button>`};
+    const gr=r=>esc(r)+(r==='Marha'?'<small>100% marhahús</small>':r==='Sertés'?'<small>sült hagymával</small>':'');
     const gh=c=>c==='Box'?'Box<small>hasábbal + szósszal</small>':esc(c);
     return `<div class="it${it.variants.some(v=>cart[key(it.id,v.label)])?' in':''}" id="i_${it.id}"><div class="tx"><div class="nm">${esc(it.name)}${nb}</div>${it.desc?`<div class="ds">${esc(it.desc)}</div>`:''}${al}
-      <div class="pg" style="--c:${cols.length}"><span></span>${cols.map(c=>`<span class="gh">${gh(c)}</span>`).join('')}${rows.map(r=>`<span class="gr">${esc(r)}</span>${cols.map(c=>cell(r,c)).join('')}`).join('')}</div></div></div>`;
+      <div class="pg" style="--c:${cols.length}"><span></span>${cols.map(c=>`<span class="gh">${gh(c)}</span>`).join('')}${rows.map(r=>`<span class="gr">${gr(r)}</span>${cols.map(c=>cell(r,c)).join('')}`).join('')}</div></div></div>`;
   }
   if(it.variants){
     return `<div class="it${it.variants.some(v=>cart[key(it.id,v.label)])?' in':''}" id="i_${it.id}"><div class="tx"><div class="nm">${esc(it.name)}</div>${it.desc?`<div class="ds">${esc(it.desc)}</div>`:''}${al}

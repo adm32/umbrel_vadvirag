@@ -589,8 +589,10 @@ function itemHTML(it, i = 0) {
       return paused ? `<span class="var gp"><b>${huf(v.price)} Ft</b></span>`
         : `<a class="var gp add-v" href="${orderHref(it.id, v.label)}" aria-label="${esc(T('addToCart', { n: `${name} (${tp(r)}, ${tp(c)})` }))}"><b>${huf(v.price)} Ft</b>${plus}</a>`;
     };
+    const sub = { 'Marha': 'mBeefSub', 'Sertés': 'mPorkSub' };
+    const rowL = r => `${esc(tp(r))}${sub[r] ? `<small>${esc(T(sub[r]))}</small>` : ''}`;
     const head = c => c === 'Box' ? `${esc(T('gBox'))}<small>${esc(T('gBoxSub'))}</small>` : esc(tp(c));
-    const grid = `<div class="pgrid" style="--c:${cols.length}"><span></span>${cols.map(c => `<span class="gh">${head(c)}</span>`).join('')}${rows.map(r => `<span class="gr">${esc(tp(r))}</span>${cols.map(c => cell(r, c)).join('')}`).join('')}</div>`;
+    const grid = `<div class="pgrid" style="--c:${cols.length}"><span></span>${cols.map(c => `<span class="gh">${head(c)}</span>`).join('')}${rows.map(r => `<span class="gr">${rowL(r)}</span>${cols.map(c => cell(r, c)).join('')}`).join('')}</div>`;
     return `<div class="mi mv${it.badge ? ' is-new' : ''}" id="i-${esc(it.id)}"${st}><div class="nm"><span>${esc(name)}${bdg}${sup}</span></div>${ds}${grid}${al}</div>`;
   }
   if (vs.length > 1) {

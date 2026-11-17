@@ -187,10 +187,11 @@ span.var{padding-right:12px}
 .var:hover{border-color:var(--red);background:#fdf3f1}
 .var:hover svg{background:var(--red);color:#fff}
 /* burgerek: hús × kiszerelés ártábla */
-.pgrid{display:grid;grid-template-columns:6.4em repeat(var(--c),minmax(0,1fr));gap:6px 8px;align-items:center;margin-top:10px;max-width:440px}
+.pgrid{display:grid;grid-template-columns:7.6em repeat(var(--c),minmax(0,1fr));gap:6px 8px;align-items:center;margin-top:10px;max-width:440px}
 .pgrid .gh{align-self:end;font-size:13px;font-weight:600;color:var(--ink2);text-align:center;line-height:1.2}
 .pgrid .gh small{display:block;font-weight:500;font-size:12px;color:var(--ink3)}
-.pgrid .gr{font-weight:600;font-size:14.5px;padding-right:4px}
+.pgrid .gr{font-weight:600;font-size:14.5px;padding-right:4px;line-height:1.15}
+.pgrid .gr small{display:block;font-weight:500;font-size:11.5px;color:var(--ink2)}
 .pgrid .var{height:44px;justify-content:center;padding:0 6px 0 10px}
 .pgrid span.var{padding:0 10px}
 .pgrid a.var:active{transform:scale(.96)}

@@ -306,48 +306,48 @@
    "items": [
     {
      "name": "Smash Burger",
-     "desc": "hagymás sertés- vagy 100% házi marhahúspogácsa, házi burgerszósz, cheddar sajt, pirított hagyma, kapros csemegeuborka, saláta mix, paradicsom, buci",
+     "desc": "100% házi marhahúspogácsa vagy sült hagymával kevert sertéspogácsa, házi burgerszósz, cheddar sajt, pirított hagyma, kapros csemegeuborka, saláta mix, paradicsom, buci",
      "alg": "1, 3, 7, 10, 11",
      "variants": [
-      {
-       "label": "Sertés · Box",
-       "price": 3190
-      },
       {
        "label": "Marha · Box",
        "price": 3590
       },
       {
-       "label": "Sertés · Csak burger",
-       "price": 2490
+       "label": "Sertés · Box",
+       "price": 3190
       },
       {
        "label": "Marha · Csak burger",
        "price": 2890
+      },
+      {
+       "label": "Sertés · Csak burger",
+       "price": 2490
       }
      ],
      "id": "burger-smash-burger"
     },
     {
      "name": "Farmer Burger",
-     "desc": "hagymás sertés- vagy 100% házi marhahúspogácsa, ropogós hagymakarika, gouda sajt, házi farmer szósz, saláta mix, paradicsom, buci",
+     "desc": "100% házi marhahúspogácsa vagy sült hagymával kevert sertéspogácsa, ropogós hagymakarika, gouda sajt, házi farmer szósz, saláta mix, paradicsom, buci",
      "alg": "1, 3, 7, 10, 11",
      "variants": [
-      {
-       "label": "Sertés · Box",
-       "price": 3390
-      },
       {
        "label": "Marha · Box",
        "price": 3790
       },
       {
-       "label": "Sertés · Csak burger",
-       "price": 2690
+       "label": "Sertés · Box",
+       "price": 3390
       },
       {
        "label": "Marha · Csak burger",
        "price": 3090
+      },
+      {
+       "label": "Sertés · Csak burger",
+       "price": 2690
       }
      ],
      "badge": "new",
@@ -355,56 +355,48 @@
     },
     {
      "name": "Ínyenc Burger",
-     "desc": "hagymás sertés- vagy 100% házi marhahúspogácsa, lilahagymalekvár, cheddar sajt, jalapeño, házi burgerszósz, saláta mix, paradicsom, buci",
+     "desc": "100% házi marhahúspogácsa vagy sült hagymával kevert sertéspogácsa, lilahagymalekvár, cheddar sajt, jalapeño, házi burgerszósz, saláta mix, paradicsom, buci",
      "alg": "1, 3, 7, 10, 11",
      "variants": [
-      {
-       "label": "Sertés · Box",
-       "price": 3490
-      },
       {
        "label": "Marha · Box",
        "price": 3890
       },
       {
-       "label": "Sertés · Csak burger",
-       "price": 2790
+       "label": "Sertés · Box",
+       "price": 3490
       },
       {
        "label": "Marha · Csak burger",
        "price": 3190
+      },
+      {
+       "label": "Sertés · Csak burger",
+       "price": 2790
       }
      ],
      "id": "burger-inyenc-marhaburger"
     },
     {
      "name": "Füstös Sajtburger",
-     "desc": "hagymás sertés- vagy 100% házi marhahúspogácsa, rántott füstölt sajt, tartármártás, házi burgerszósz, saláta mix, paradicsom, buci. Vegaként hús nélkül, dupla füstölt sajttal",
+     "desc": "100% házi marhahúspogácsa vagy sült hagymával kevert sertéspogácsa, rántott füstölt sajt, tartármártás, házi burgerszósz, saláta mix, paradicsom, buci",
      "alg": "1, 3, 7, 10, 11",
      "variants": [
-      {
-       "label": "Sertés · Box",
-       "price": 3490
-      },
       {
        "label": "Marha · Box",
        "price": 3890
       },
       {
-       "label": "Sertés · Csak burger",
-       "price": 2790
+       "label": "Sertés · Box",
+       "price": 3490
       },
       {
        "label": "Marha · Csak burger",
        "price": 3190
       },
       {
-       "label": "Vega · Box",
-       "price": 3590
-      },
-      {
-       "label": "Vega · Csak burger",
-       "price": 2890
+       "label": "Sertés · Csak burger",
+       "price": 2790
       }
      ],
      "badge": "new",
@@ -412,24 +404,24 @@
     },
     {
      "name": "CamemBurger",
-     "desc": "hagymás sertés- vagy 100% házi marhahúspogácsa, rántott Camembert, sült bacon, áfonyás-lilahagymalekvár, házi burgerszósz, saláta mix, buci. Vegaként hús és bacon nélkül, egy egész Camemberttel",
+     "desc": "100% házi marhahúspogácsa vagy sült hagymával kevert sertéspogácsa, rántott Camembert, sült bacon, áfonyás-lilahagymalekvár, házi burgerszósz, saláta mix, buci. Vegaként hús és bacon nélkül, egy egész Camemberttel",
      "alg": "1, 3, 7, 10, 11",
      "variants": [
-      {
-       "label": "Sertés · Box",
-       "price": 3590
-      },
       {
        "label": "Marha · Box",
        "price": 3990
       },
       {
-       "label": "Sertés · Csak burger",
-       "price": 2890
+       "label": "Sertés · Box",
+       "price": 3590
       },
       {
        "label": "Marha · Csak burger",
        "price": 3290
+      },
+      {
+       "label": "Sertés · Csak burger",
+       "price": 2890
       },
       {
        "label": "Vega · Box",
@@ -462,24 +454,24 @@
     },
     {
      "name": "Konyhafőnök Dupla",
-     "desc": "2 db hagymás sertés- vagy 100% házi marhahúspogácsa, cheddar sajt, sült bacon, lyoni hagyma, kapros csemegeuborka, BBQ és házi burgerszósz, saláta mix, paradicsom, buci",
+     "desc": "2 db 100% házi marhahúspogácsa vagy 2 db sült hagymával kevert sertéspogácsa, cheddar sajt, sült bacon, lyoni hagyma, kapros csemegeuborka, BBQ és házi burgerszósz, saláta mix, paradicsom, buci",
      "alg": "1, 3, 7, 10, 11",
      "variants": [
-      {
-       "label": "Sertés · Box",
-       "price": 3890
-      },
       {
        "label": "Marha · Box",
        "price": 4590
       },
       {
-       "label": "Sertés · Csak burger",
-       "price": 3190
+       "label": "Sertés · Box",
+       "price": 3890
       },
       {
        "label": "Marha · Csak burger",
        "price": 3890
+      },
+      {
+       "label": "Sertés · Csak burger",
+       "price": 3190
       }
      ],
      "id": "burger-konyhafonok-kedvence-burger"
@@ -1152,14 +1144,14 @@
      "id": "burger-extra-szosz-ketchup-majonez-bbq-mezes-chi"
     },
     {
-     "name": "Extra sertéspogácsa",
+     "name": "Extra sertéspogácsa (sült hagymás)",
      "desc": "",
      "alg": "",
      "price": 600,
      "id": "burger-extra-sertespogacsa"
     },
     {
-     "name": "Extra marhahúspogácsa",
+     "name": "Extra 100% marhahúspogácsa",
      "desc": "",
      "alg": "",
      "price": 900,

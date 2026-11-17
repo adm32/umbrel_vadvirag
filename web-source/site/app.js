@@ -47,7 +47,7 @@ function setLang(l, push) {
   $$('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
   if (push) { const path = lang === 'hu' ? '/' : '/' + lang; history.replaceState(null, '', path + location.hash); }
   renderStatus(); renderHours(); renderFacts(); setKind(kind);
-  if (M) { renderChips(); renderFood(); renderFees(); checkTown(); }
+  if (M) { renderChips(); renderFood(); renderFees(); checkTown(); renderHeroBurger(); }
   renderDrinks(); renderAlg(); renderOffers(); renderPz(); renderPre(); renderGw(); renderSeason();
 }
 $$('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.dataset.lang, true); closeDrawer(); hideLangHint(); track('ev', { n: 'lang', v: b.dataset.lang }); }));
@@ -552,14 +552,15 @@ async function loadMenu() {
     M = m; TR = tr; DR = dr;
     $('kocsonya').hidden = !M.sections.some(s => s.id === 'kocsonya'); // csak ha a rendeléskezelőben be van kapcsolva (nem fogyott el)
   } catch (e) { $('food').innerHTML = `<p class="empty">${esc(T('menuError'))}</p>`; return; }
-  renderChips(); renderFood(); renderDrinks(); renderFees(); renderFacts(); renderStatus(); buildWheelFilters();
+  renderChips(); renderFood(); renderDrinks(); renderFees(); renderFacts(); renderStatus(); buildWheelFilters(); renderHeroBurger();
+  if (location.hash === '#burgerek') setTimeout(openBurgers, 300);
   const opts = [...M.fees].sort((a, b) => a.name.localeCompare(b.name, 'hu')).map(f => `<option value="${esc(f.name)}">`).join(''); $('towns').innerHTML = opts;
 }
 
 function renderChips() {
   const chips = $('chips');
   if (tab === 'drinks') { chips.innerHTML = DR.map(s => `<button class="chip" data-go="d-${s.id}">${esc(s[lang] || s.hu)}</button>`).join(''); }
-  else if (M) chips.innerHTML = M.sections.map(s => `<button class="chip" data-go="s-${s.id}">${esc(trSecShort(s))}</button>`).join('');
+  else if (M) chips.innerHTML = M.sections.map(s => `<button class="chip${hasNew(s) ? ' chip-new' : ''}" data-go="s-${s.id}">${esc(trSecShort(s))}${hasNew(s) ? `<span class="cn">${esc(T('bNew'))}</span>` : ''}</button>`).join('');
 }
 function goSection(go) {
   if (go.startsWith('s-')) secFood = go.slice(2); else secDrink = go.slice(2);
@@ -609,6 +610,28 @@ function pager(list, cur, nameOf, prefix) {
   const i = list.findIndex(x => x.id === cur), nx = list[i + 1], pv = list[i - 1];
   return `<div class="pager">${pv ? `<button class="btn btn-ghost" data-go="${prefix}${pv.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>${esc(nameOf(pv))}</button>` : '<span></span>'}${nx ? `<button class="btn btn-ghost" data-go="${prefix}${nx.id}">${esc(nameOf(nx))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>` : ''}</div>`;
 }
+// Új burgerek kiemelése: amíg a burgerek között van „új” címkés étel, a főoldalon kiemelés,
+// az étlapon a Burgerek fül „Új” jelet és egy fotós szalagot kap. A címkék levételével magától eltűnik.
+const hasNew = s => s.items.some(it => it.badge);
+const minPrice = s => Math.min(...s.items.flatMap(it => variants(it).map(v => v.price)));
+function newBanner(s) {
+  return `<div class="nb-ban"><img src="/img/burger-uj.webp" alt="" width="320" height="239" loading="lazy" decoding="async"><div class="tx"><span class="k">${esc(T('nbKick'))}</span><b>${esc(T('nbTitle'))}</b><ul><li>${esc(T('nbBeef'))}</li><li>${esc(T('nbPork'))}</li><li>${esc(T('nbOnly'))}</li></ul><span class="fr">${esc(T('nbFrom', { p: huf(minPrice(s)) }))}</span></div></div>`;
+}
+function renderHeroBurger() {
+  const el = $('heroBg'), s = M && M.sections.find(x => x.id === 'burger-boxok');
+  if (!s || !hasNew(s)) { el.hidden = true; return; }
+  el.innerHTML = `<span class="gi gi-img"><img src="/img/burger-uj-xs.webp" alt="" width="64" height="48"></span><span><b>${esc(T('nbHero'))}</b><small>${esc(T('nbHeroSub', { p: huf(minPrice(s)) }))}</small></span><span class="go">${esc(T('nbGo'))} ›</span>`;
+  el.hidden = false;
+}
+function openBurgers() {
+  if (!M || !M.sections.some(x => x.id === 'burger-boxok')) return;
+  if (tab !== 'food') { const b = document.querySelector('[data-tab="food"]'); if (b) b.click(); }
+  secFood = 'burger-boxok'; $('q').value = ''; renderFood();
+  const t = $('etlap').querySelector('.chips-bar') || $('etlap'), y = t.getBoundingClientRect().top + scrollY - top.offsetHeight;
+  scrollTo({ top: y, behavior: reduced ? 'auto' : 'smooth' });
+}
+$('heroBg').addEventListener('click', e => { e.preventDefault(); track('ev', { n: 'burger_hero' }); openBurgers(); });
+addEventListener('hashchange', () => { if (location.hash === '#burgerek') openBurgers(); });
 function renderFood() {
   if (!M) return;
   const q = norm($('q').value.trim());
@@ -618,7 +641,8 @@ function renderFood() {
     if (!q && s.id !== secFood) continue;
     const items = s.items.filter(it => { if (!q) return true; const t = trItem(it); return norm(t.name + ' ' + t.desc + ' ' + it.name + ' ' + (it.desc || '')).includes(q); });
     if (!items.length) continue; n += items.length;
-    html += `<div class="msec${q ? '' : ' one'}" id="s-${esc(s.id)}"><h3>${esc(trSec(s))}</h3><div class="items">${items.map((it, i) => itemHTML(it, i)).join('')}</div></div>`;
+    const ban = !q && hasNew(s) ? newBanner(s) : '';
+    html += `<div class="msec${q ? '' : ' one'}" id="s-${esc(s.id)}"><h3>${esc(trSec(s))}</h3>${ban}<div class="items">${items.map((it, i) => itemHTML(it, i)).join('')}</div></div>`;
   }
   if (!q) html += pager(M.sections, secFood, trSecShort, 's-');
   $('food').innerHTML = n ? html : `<p class="empty">${esc(T('noResults', { q: $('q').value.trim() }))}</p>`;

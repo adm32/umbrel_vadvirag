@@ -34,7 +34,11 @@ func TestOffersVisibility(t *testing.T) {
 		{"2026-11-13 14:59", false, true, false},
 		{"2026-11-13 15:00", false, true, true}, // péntek 15:00-tól a nov. 16–20. heti menü
 		{"2026-11-17 10:00", false, true, false},
-		{"2026-11-21 09:00", false, false, false},
+		{"2026-11-20 14:59", false, true, false},
+		{"2026-11-20 15:00", false, true, true}, // péntek 15:00-tól a nov. 23–27. heti menü
+		{"2026-11-21 09:00", false, true, true},
+		{"2026-11-25 12:00", false, true, false},
+		{"2026-11-28 09:00", false, false, false},
 	}
 	for _, c := range cases {
 		o := at(c.when)

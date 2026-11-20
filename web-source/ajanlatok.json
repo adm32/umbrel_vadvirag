@@ -739,6 +739,175 @@
      }
     }
    ]
+  },
+  {
+   "show_from": "2026-11-20 15:00",
+   "from": "2026-11-23",
+   "to": "2026-11-27",
+   "two": 2400,
+   "three": 3100,
+   "days": [
+    {
+     "date": "2026-11-23",
+     "soups": [
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      },
+      {
+       "hu": "Kertészleves grízgombóccal",
+       "en": "Gardener's vegetable soup with semolina dumplings",
+       "de": "Gärtnersuppe mit Grießnockerln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Rántott csirkeszárny és rántott csirkemell burgonyapürével",
+       "en": "Breaded chicken wings and breaded chicken breast with mashed potatoes",
+       "de": "Panierte Hähnchenflügel und panierte Hähnchenbrust mit Kartoffelpüree"
+      },
+      {
+       "hu": "Babfőzelék fasírttal",
+       "en": "Hungarian bean stew with meatballs",
+       "de": "Ungarisches Bohnengemüse mit Fleischlaibchen"
+      }
+     ],
+     "dessert": {
+      "hu": "Vargabéles sárgabaracklekvárral",
+      "en": "Vargabéles (sweet curd and noodle pie) with apricot jam",
+      "de": "Vargabéles (Topfen-Nudel-Strudel) mit Aprikosenmarmelade"
+     }
+    },
+    {
+     "date": "2026-11-24",
+     "soups": [
+      {
+       "hu": "Magyaros zöldbableves csurgatott tésztával",
+       "en": "Hungarian green bean soup with egg drop noodles",
+       "de": "Ungarische grüne Bohnensuppe mit Eierflocken"
+      },
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Ananásszal, sajttal sült csirkemell kemencében sütve, kukoricás rizzsel",
+       "en": "Wood-oven baked chicken breast with pineapple and cheese, rice with sweetcorn",
+       "de": "Im Holzofen gebackene Hähnchenbrust mit Ananas und Käse, Maisreis"
+      },
+      {
+       "hu": "Brassói aprópecsenye pirított burgonyával, savanyúsággal",
+       "en": "Brassói-style pork with fried potatoes and pickles",
+       "de": "Brassóier Schweinefleisch mit Röstkartoffeln und Essiggemüse"
+      }
+     ],
+     "dessert": {
+      "hu": "Vaníliás tejberizs, házi fahéjas szilvaraguval",
+      "en": "Vanilla rice pudding with homemade cinnamon plum compote",
+      "de": "Vanille-Milchreis mit hausgemachtem Zimt-Pflaumenragout"
+     }
+    },
+    {
+     "date": "2026-11-25",
+     "soups": [
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      },
+      {
+       "hu": "Paradicsomleves betűtésztával",
+       "en": "Tomato soup with alphabet pasta",
+       "de": "Tomatensuppe mit Buchstabennudeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Mustáros sült tarja barnamártással, vegyes körettel",
+       "en": "Roast pork neck with mustard and brown gravy, mixed sides",
+       "de": "Schweinenacken mit Senf und brauner Soße, gemischte Beilagen"
+      },
+      {
+       "hu": "Rakott burgonya tejföllel",
+       "en": "Layered potato bake with sour cream",
+       "de": "Kartoffelauflauf mit Sauerrahm"
+      }
+     ],
+     "dessert": {
+      "hu": "Somlói galuska",
+      "en": "Somlói galuska (sponge trifle with chocolate sauce)",
+      "de": "Somlói Nockerl (Biskuit-Dessert mit Schokoladensoße)"
+     }
+    },
+    {
+     "date": "2026-11-26",
+     "soups": [
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      },
+      {
+       "hu": "Baconös sütőtökkrémleves pirított zsemlekockával",
+       "en": "Pumpkin cream soup with bacon and croutons",
+       "de": "Kürbiscremesuppe mit Speck und gerösteten Brotwürfeln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Majoránnás csirkemájjal töltött csirkemell rántva, rizi-bizivel",
+       "en": "Breaded chicken breast stuffed with marjoram chicken liver, rice with peas",
+       "de": "Panierte Hähnchenbrust mit Majoran-Hühnerleber-Füllung, Reis mit Erbsen"
+      },
+      {
+       "hu": "Pincepörkölt burgonyával, savanyúsággal",
+       "en": "Cellar-style pork stew with potatoes and pickles",
+       "de": "Kellergulasch mit Kartoffeln und Essiggemüse"
+      }
+     ],
+     "dessert": {
+      "hu": "Gundel palacsinta csokoládéöntettel",
+      "en": "Gundel pancake with chocolate sauce",
+      "de": "Gundel-Palatschinken mit Schokoladensoße"
+     }
+    },
+    {
+     "date": "2026-11-27",
+     "soups": [
+      {
+       "hu": "Húsleves finommetélttel",
+       "en": "Meat broth with fine noodles",
+       "de": "Fleischbrühe mit Fadennudeln"
+      },
+      {
+       "hu": "Alföldi gulyásleves csipetkével",
+       "en": "Great Plain goulash soup with pinched noodles",
+       "de": "Gulaschsuppe nach Tiefland-Art mit Zupfnockerln"
+      }
+     ],
+     "mains": [
+      {
+       "hu": "Gyrostál hasábburgonyával és joghurtos öntettel",
+       "en": "Gyros plate with fries and yoghurt dressing",
+       "de": "Gyrosteller mit Pommes frites und Joghurtsoße"
+      },
+      {
+       "hu": "Burgonyás tészta csemegeuborkával",
+       "en": "Potato pasta with gherkins",
+       "de": "Kartoffelnudeln mit Gewürzgurken"
+      }
+     ],
+     "dessert": {
+      "hu": "Somlói galuska",
+      "en": "Somlói galuska (sponge trifle with chocolate sauce)",
+      "de": "Somlói Nockerl (Biskuit-Dessert mit Schokoladensoße)"
+     }
+    }
+   ]
   }
  ],
  "events": [
@@ -801,29 +970,29 @@
       "de": "Das reichhaltige Abendessen ist zugleich eure Eintrittskarte – ein extra Ticket braucht ihr nicht."
      },
      "label": {
-      "hu": "4 főre",
-      "en": "For 4",
-      "de": "Für 4"
+      "hu": "4 személyes Bőségtál",
+      "en": "Sharing platter for 4",
+      "de": "Schlemmerplatte für 4"
      },
      "desc": {
-      "hu": "4 fős társaságoknak, egy 4 személyes Bőségtállal",
-      "en": "for groups of 4, with a sharing platter for 4",
-      "de": "für Gruppen zu viert, mit einer Schlemmerplatte für 4"
+      "hu": "4 fős társaságoknak",
+      "en": "for groups of 4",
+      "de": "für Gruppen zu viert"
      },
      "price": 29500
     },
     {
      "label": {
-      "hu": "2 főre",
-      "en": "For 2",
-      "de": "Für 2"
+      "hu": "2 személyes Bőségtál",
+      "en": "Sharing platter for 2",
+      "de": "Schlemmerplatte für 2"
      },
      "desc": {
-      "hu": "pároknak, egy 2 személyes Bőségtállal",
-      "en": "for couples, with a sharing platter for 2",
-      "de": "für Paare, mit einer Schlemmerplatte für 2"
+      "hu": "pároknak",
+      "en": "for couples",
+      "de": "für Paare"
      },
-     "price": 13500
+     "price": 14750
     },
     {
      "head": {

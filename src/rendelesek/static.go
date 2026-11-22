@@ -1,3 +1,4 @@
+// Vadvirág Rendelések – a beépített web/ fájlok kiszolgálása (egyszer gzipelve, ETag-gel).
 package main
 
 import (

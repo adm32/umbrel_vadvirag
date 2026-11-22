@@ -1,108 +1,103 @@
-# Vadvirág – Umbrel app store
+# Vadvirág Étterem – Umbrel apps
 
-This repository is an Umbrel community app store with one app, **Vadvirág Rendelések**. It is the restaurant's order program, the same one that used to run on the main PC.
+An Umbrel community app store (store id `vadvirag`) with three apps for Vadvirág Étterem
+(Zalaudvarnok, vadviragetterem.com). All three are small Go programs. Umbrel installs the
+`vadvirag-*` folders, and the source code is in `src/`.
 
 ```
-umbrel-app-store.yml          store id "vadvirag"
-vadvirag-rendelesek/          the app (Umbrel copies this folder onto the mini PC)
-  umbrel-app.yml              name, icon, port 4747
-  docker-compose.yml          how Umbrel runs it
-  Dockerfile                  minimal image, built on the Umbrel itself and needs no internet to start
-  bin/                        the compiled program (x86-64 and ARM)
-  docker-compose.manual.yml   only for the manual install (B)
-source/                       Go source + build.sh for future versions
+vadvirag-weboldal/        the website, vadviragetterem.com (port 4748)       ← built from src/weboldal
+vadvirag-rendelesek/      Rendelések: online orders + the kitchen's app (4747) ← built from src/rendelesek
+vadvirag-iranyitopult/    Irányítópult: monitoring, statistics, ntfy (4749)  ← built from src/iranyitopult
+src/                      Go source, one folder per program
+tools/szallitasi_dij.py   delivery-fee calculator (OpenStreetMap distances → fee table), runs on a Mac
+check.sh                  builds and tests everything without touching bin/
 ```
 
-## A) Install from the Umbrel App Store (recommended)
+How the three fit together:
 
-1. **Put this folder on GitHub.** The repository must be **public**, because Umbrel can only download public stores. Create a new repository called `umbrel-vadvirag`, open it, choose *uploading an existing file*, and drag in **everything from this folder** (the files and the `vadvirag-rendelesek` and `source` folders). Then click *Commit changes*.
-   *The repository contains no passwords or keys. All of those stay on the mini PC.*
-2. **Add the store in Umbrel:** go to App Store, then the **⋯** menu (top right), then **Community App Stores**. Paste `https://github.com/<your-user>/umbrel-vadvirag`, click **Add**, then **Open**.
-3. **Install** "Vadvirág Rendelések". The first install takes about a minute.
-4. **First setup.** Do this from a computer in the restaurant, on the same network as the mini PC.
-   - Open the app from the Umbrel home screen (or go to `http://umbrel.local:4747`).
-   - Set a **new password**.
-   - Under *Költözés a régi gépről*, select the old `beallitasok.json` and `rendelesek.json` from the folder of the old program. This brings over the Gmail settings, the webhook key and all previous orders.
-5. **Make it reachable from the internet (Tailscale Funnel)**, so Wix can deliver orders and phones get notifications.
-   - Go to Umbrel **Settings → Advanced settings → Terminal**, choose the **Tailscale** app, and run:
-     ```
-     tailscale funnel --bg 4747
-     ```
-   - The command prints the public address, e.g. `https://umbrel.taileff9a4.ts.net/`.
-   - If it prints a link instead, open it, allow Funnel for this device, and run the command again.
-6. **Point Wix at the new address.**
-   - Open the app at that `https://…ts.net` address and click **⚙ Beállítások**, then **Másolás**. This copies the webhook address.
-   - In Wix, go to Automations → "Rendeles a programba" → *Send HTTP request*, replace the URL with the copied one, and save the automation.
-   - Send a test order from the website.
-7. **Phones and the till PC:**
-   - Open the `https://…ts.net` address and log in.
-   - Tap the bell to turn notifications on again. They are tied to the address, so this has to be redone on every device.
-   - On iPhone: Share → Add to Home Screen.
-8. **Old PC:** close the old program. Optionally run `tailscale funnel reset` in a command prompt there.
+- The **website** serves `src/weboldal/site/`. It asks Rendelések for the live menu. If Rendelések
+  can't be reached, it shows `menu-fallback.json`, which is built into the program. It also proxies
+  `/rendeles` (the order page) to Rendelések, so guests stay on vadviragetterem.com.
+- **Rendelések** prices every order from its own `menu.json`, shows orders in the kitchen's app,
+  and sends web push and ntfy notifications and e-mails.
+- The **Irányítópult** reads both over internal ports (website :9090, Rendelések :9091). These
+  ports are never published.
 
-Leave the app's "Umbrel login" setting **off**. The app has its own password, and Wix must be able to reach it without logging in.
+## Common jobs
 
-## B) Manual install (without GitHub)
+| Job | Edit | Then |
+|---|---|---|
+| Weekly menu, weekend offer, events (bál) | `src/weboldal/ajanlatok.json` (tests: `ajanlat_test.go`) | website release |
+| Menu items, prices, sizes | `src/rendelesek/menu.json` (translations: `src/weboldal/site/data/menu-i18n.json`) | Rendelések **and** website release (the website's fallback menu is built from it) |
+| Drinks list | `src/weboldal/site/data/drinks.json` | website release |
+| Delivery fees per village | `defaultFees()` in `src/rendelesek/fees.go` (calculator: `tools/szallitasi_dij.py`) | Rendelések + website release |
+| Weekly promotion (gift drink) | `src/rendelesek/akcio.json` | Rendelések release |
+| Pre-order offer (e.g. Márton-nap) | `src/rendelesek/elorendeles.json` | Rendelések release |
+| Giveaway | `src/rendelesek/nyeremenyjatek.json` | Rendelések release |
+| Website texts (HU/DE/EN) | `src/weboldal/site/i18n.js` and `index.html` (`data-t="key"`) | website release |
 
-1. Upload the `vadvirag-rendelesek` folder to the mini PC using Umbrel's **Files** app.
-2. Open **Settings → Advanced settings → Terminal → umbrelOS** and run:
-   ```
-   cd ~/umbrel/home/<folder you uploaded to>/vadvirag-rendelesek
-   sudo docker compose -f docker-compose.manual.yml up -d --build
-   ```
-   The app then runs on `http://umbrel.local:4747`, but it won't appear on the Umbrel home screen.
-3. Continue from step 4 above.
+**Release** = run `sh src/<app>/build.sh`, raise the version in **two** places, add a Hungarian
+release note, run `./check.sh`, commit and push. Then press Update on both Umbrels.
 
-## Backups and updates
+| App | Version lives in |
+|---|---|
+| website | `vadvirag-weboldal/umbrel-app.yml` + `const version` in `src/weboldal/main.go` |
+| Rendelések | `vadvirag-rendelesek/umbrel-app.yml` + `const appVersion` in `src/rendelesek/settings.go` |
+| Irányítópult | `vadvirag-iranyitopult/umbrel-app.yml` + `const version` in `src/iranyitopult/main.go` |
 
-- **⚙ Beállítások → Biztonsági mentés letöltése** saves the settings and all orders in one file. **Visszaállítás fájlból** restores them.
-- To release a new version:
-  1. Run `source/build.sh`.
-  2. Raise `version:` in `vadvirag-rendelesek/umbrel-app.yml`.
-  3. Upload the changed files to GitHub.
+## Where to look
 
-  Umbrel will then offer the update.
+### Website – `src/weboldal`
 
-## Online rendelőoldal (v2.1)
+| File | What it does |
+|---|---|
+| `main.go` | Server, live menu from Rendelések, the `/rendeles` proxy, caching, security headers |
+| `ajanlat.go` + `ajanlatok.json` | Weekly menu, weekend offer, events. What shows is decided by the Budapest date. |
+| `schedule.go` | Automatic changes (seasonal theme, offers) and their manual overrides |
+| `stats.go` | Visitor statistics without cookies, and the internal :9090 port for the Irányítópult |
+| `cleanup.go` | Cleaning the statistics (bots, own devices) |
+| `menu-fallback.json` | **Generated** by `build.sh` from `../rendelesek/menu.json`. Don't edit it. |
+| `site/index.html` | The page: hero, offers, menu, events, gallery, delivery, contact |
+| `site/app.js` | Everything interactive. Sections are marked `/* ---- name */`: nyelv, fejléc, nyitvatartás, étlap, ajánlatok (giveaway, events, weekly promotion, pre-order, daily offer, new burgers), allergének, „Mit egyek ma?”, kiszállítás, galéria, üzenet/foglalás, évszakok (falling decorations, fireworks, Christmas lights). |
+| `site/i18n.js` | All UI texts in three languages |
+| `site/style.css` | All styles (fonts first, then the page in order) |
+| `site/data/` | Menu translations and the drinks list |
 
-A program nyilvános rendelőoldala: `https://<a-funnel-címed>/rendeles`
-(pl. `https://umbrel.taileff9a4.ts.net/rendeles`). A vendég kattintással rakja össze a
-rendelést, a szerver a saját étlapjából számolja az árat, a rendelés bekerül a programba,
-és a vendég élőben látja az állapotát. A weboldalon egy gombbal vagy beágyazott kerettel
-(Wix: „Beágyazás → Weboldal beágyazása") lehet rá mutatni.
-Az étlap a `source/menu.json` fájlban van; módosítás után `source/build.sh`, verzió növelése.
+### Rendelések – `src/rendelesek`
 
-## Frissítés (v2.2-től)
+| File | What it does |
+|---|---|
+| `main.go` | `main()`: loads settings and orders, starts the servers and background jobs |
+| `config.go` | `config.json`: the settings structure and defaults |
+| `store.go` | `orders.json`: the Order type and storage |
+| `app.go` | The running app and taking in a new order |
+| `public.go` + `web/rendeles.html` | The guest's order page `/rendeles` and its API (menu, cart, live status) |
+| `pricing.go`, `packaging.go`, `fees.go` | Order price, take-away boxes, delivery fees and travel times |
+| `akcio.go`, `preorder.go`, `giveaway.go`, `raffle.go` | Weekly promotion, pre-orders, giveaway, raffle |
+| `messages.go` | Table booking, event inquiries and questions from the website |
+| `http.go` + `web/index.html` | The kitchen's app: login, order list, accept/reject, API routes |
+| `settings.go` + `web/setup.html` | First setup, settings menu, backup and migration |
+| `push.go`, `ntfy.go`, `mail.go` | Web push, ntfy and e-mail notifications |
+| `dash.go` | Internal :9091 data for the Irányítópult |
+| `cleanup.go`, `total.go` | Test-order filtering, setting an order's exact total |
+| `fields.go`, `wix.go` | Old Wix-form orders (field recognition, polling and webhook) |
+| `platform.go`, `restart_*.go`, `console_windows.go` | Runs both on Umbrel and as the old Windows program |
 
-Az Umbrel frissítéskor csak a `docker-compose.yml`, `umbrel-app.yml` és `hooks/` fájlokat
-másolja át. A `hooks/pre-start` szkript ezért minden indítás előtt átmásolja a friss
-programfájlokat (`bin/`, `Dockerfile`) az áruház példányából, így elég a Frissítés gomb.
+### Irányítópult – `src/iranyitopult`
 
-## Vadvirág Weboldal (`vadvirag-weboldal`, 4748-as port)
+| File | What it does |
+|---|---|
+| `main.go` | Version, `main()` |
+| `config.go` | `settings.json` (ntfy topic, thresholds) |
+| `fetch.go` | Reading data from the website and Rendelések |
+| `monitor.go`, `checks.go` | Status, alerts and the checks that run every minute |
+| `automation.go` | The "Automatikus" view and analysis export |
+| `cleanup.go` | Marking test orders and own devices |
+| `auth.go` + `authweb/` | Password lock |
+| `http.go` + `web/index.html` | The dashboard (UI and its JavaScript are in `index.html`) |
 
-Az étterem új, háromnyelvű (HU / DE / EN) weboldala. Forrás: `web-source/`
-(a `site/` mappa a weboldal, a `main.go` a kis kiszolgáló), fordítás: `web-source/build.sh`.
+## Rules
 
-- Az étlapot élőben a Rendelések appból kéri le (`/api/public/menu`); ha az épp
-  nem fut, a beépített másolatot mutatja (`menu-fallback.json`, a build készíti).
-- A `/rendeles` oldalt és az `/api/public/*` hívásokat továbbítja a Rendelések
-  apphoz, így saját domainen is működik az online rendelés.
-- A „Kapcsolat” és „Rendezvények” részen küldött üzenetek a Rendelések app
-  boríték ikonja alatt jelennek meg (2.4-es verziótól).
-- Az étlap fordításai: `web-source/site/data/menu-i18n.json` (étel azonosító szerint),
-  az itallap: `web-source/site/data/drinks.json`, a feliratok: `web-source/site/i18n.js`.
-- Saját domain: Cloudflare Tunnel `www.vadviragetterem.com` → `http://<umbrel>:4748`.
-
-## Vadvirág Irányítópult (`vadvirag-iranyitopult`, 4749-es port)
-
-Csak Umbrel-bejelentkezéssel nyitható meg. Rendelések és bevétel, a weboldal
-látogatottsága (sütik nélkül), állapotfigyelés és ntfy értesítések a telefonra.
-
-- Forrás: `dashboard-source/` (Go, a felület a `web/` mappából bele van fordítva), fordítás: `sh dashboard-source/build.sh`
-- Adatok: a Weboldal belső `:9090` portja (`/stats`, `/health`) és a Rendelések belső `:9091` portja
-  (`/dash/info`, `/dash/orders`, `/dash/messages`). Ezek nincsenek kivezetve, csak az Umbrel
-  belső Docker-hálózatán érhetők el.
-- Figyelés percenként: weboldal, rendeléskezelő, a weboldal → rendeléskezelő kapcsolat,
-  a domain kívülről (5 percenként), tárhely, régóta váró rendelés, el nem ment e-mail,
-  hibák a weboldalon. Hiba két egymás utáni mérés után, javuláskor is szól.
-- Beállítások és napló: `${APP_DATA_DIR}/data/beallitasok.json`, `allapot.json`
+- Never commit anything from `data/` (orders, passwords, keys).
+- No external scripts, fonts or trackers. Fonts and images are served by the website itself.
+- UI work follows the 20 UX & animation principles (snappy, eased, big tap targets, few choices).

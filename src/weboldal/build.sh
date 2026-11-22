@@ -1,12 +1,13 @@
 #!/bin/sh
-# A weboldal fordítása az Umbrel apphoz (Go 1.22+ és python3 kell hozzá).
-# A tartalék étlap (ha a rendeléskezelő épp nem elérhető) a ../source/menu.json-ból készül.
+# Vadvirág weboldal (vadviragetterem.com) fordítása (Go 1.22+ és python3 kell hozzá).
+# Kimenet: ../../vadvirag-weboldal/bin/weboldal-linux-amd64 és -arm64. A site/ mappa bele van fordítva.
+# A tartalék étlap (ha a rendeléskezelő épp nem elérhető) a ../rendelesek/menu.json-ból készül.
 set -e
 cd "$(dirname "$0")"
 python3 - <<'PY'
 import json, re
-menu = json.load(open('../source/menu.json'))
-src = open('../source/fees.go', encoding='utf-8').read()
+menu = json.load(open('../rendelesek/menu.json'))
+src = open('../rendelesek/fees.go', encoding='utf-8').read()
 block = src[src.index('func defaultFees() map[string]int {'):]
 block = block[:block.index('\n}\n')]
 fees = sorted(({"name": n, "fee": int(f)} for n, f in re.findall(r'"([^"]+)":\s*(\d+)', block)), key=lambda x: x["name"])
@@ -14,7 +15,9 @@ json.dump({"live": False, "restaurant": "Vadvirág Étterem", "phone": "06 20 33
            "sections": [s for s in menu["sections"] if not s.get("off")], "fees": fees}, open('menu-fallback.json', 'w'), ensure_ascii=False)
 print("tartalék étlap:", sum(len(s["items"]) for s in menu["sections"]), "étel,", len(fees), "település")
 PY
+go vet ./...
+go test ./... >/dev/null
 for a in amd64 arm64; do
-  CGO_ENABLED=0 GOOS=linux GOARCH=$a go build -trimpath -ldflags "-s -w" -o ../vadvirag-weboldal/bin/weboldal-linux-$a .
+  CGO_ENABLED=0 GOOS=linux GOARCH=$a go build -trimpath -ldflags "-s -w" -o ../../vadvirag-weboldal/bin/weboldal-linux-$a .
 done
 echo "Kész. Ne felejtsd el növelni a verziót a vadvirag-weboldal/umbrel-app.yml fájlban."

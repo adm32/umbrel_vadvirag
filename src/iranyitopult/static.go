@@ -1,3 +1,4 @@
+// Vadvirág Irányítópult – a beépített web/ és authweb/ fájlok kiszolgálása (egyszer gzipelve, ETag-gel).
 package main
 
 import (

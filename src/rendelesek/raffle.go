@@ -5,7 +5,9 @@ package main
 
 import (
 	"crypto/rand"
+	_ "embed"
 	"encoding/json"
+	"log"
 	"math/big"
 	"net/http"
 	"os"
@@ -155,4 +157,44 @@ func (a *App) handleRaffleList(w http.ResponseWriter, r *http.Request) {
 		rs = []Raffle{}
 	}
 	writeJSON(w, 200, rs)
+}
+
+// Facebook-játék előre beírt résztvevőkkel (facebook_jatek.json): a sorsolóban egy kártya
+// egy gombnyomással betölti a neveket, a nyertesek számát és a nyeremény leírását.
+
+//go:embed facebook_jatek.json
+var fbGameJSON []byte
+
+type FBGame struct {
+	ID       string   `json:"id"`
+	Title    string   `json:"title"`
+	Prize    string   `json:"prize"`
+	Link     string   `json:"link"`
+	Winners  int      `json:"winners"`
+	Reserves int      `json:"reserves"`
+	Draw     string   `json:"draw"`
+	Names    []string `json:"names"`
+}
+
+var fbGame *FBGame
+
+func init() {
+	var g FBGame
+	if err := json.Unmarshal(fbGameJSON, &g); err != nil {
+		log.Printf("facebook_jatek.json hibás: %v", err)
+		return
+	}
+	if g.ID != "" && len(g.Names) > 0 {
+		g.Names = cleanNames(strings.Join(g.Names, "\n"))
+		fbGame = &g
+	}
+}
+
+// GET /api/raffle/preset – az előre beírt Facebook-játék (ha van).
+func (a *App) handleRafflePreset(w http.ResponseWriter, r *http.Request) {
+	if fbGame == nil {
+		writeJSON(w, 200, map[string]any{"active": false})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"active": true, "game": fbGame})
 }

@@ -410,6 +410,7 @@ func (a *App) routes() http.Handler {
 	mux.HandleFunc("GET /api/raffle", a.requireAuth(a.handleRaffleList))
 	mux.HandleFunc("POST /api/raffle", a.requireAuth(a.handleRaffleDraw))
 	mux.HandleFunc("POST /api/raffle/preview", a.requireAuth(a.handleRafflePreview))
+	mux.HandleFunc("GET /api/raffle/preset", a.requireAuth(a.handleRafflePreset))
 	mux.HandleFunc("GET /api/giveaway", a.requireAuth(a.handleGiveaway))
 	mux.HandleFunc("POST /api/giveaway/notify", a.requireAuth(a.handleGiveawayNotify))
 	mux.HandleFunc("GET /api/backup", a.requireAuth(a.handleBackup))

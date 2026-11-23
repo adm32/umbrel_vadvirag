@@ -34,6 +34,7 @@ How the three fit together:
 | Weekly promotion (gift drink) | `src/rendelesek/akcio.json` | Rendelések release |
 | Pre-order offer (e.g. Márton-nap) | `src/rendelesek/elorendeles.json` | Rendelések release |
 | Giveaway | `src/rendelesek/nyeremenyjatek.json` | Rendelések release |
+| Facebook giveaway with a fixed list of names | `src/rendelesek/facebook_jatek.json` (empty `id` turns it off) | Rendelések release |
 | Website texts (HU/DE/EN) | `src/weboldal/site/i18n.js` and `index.html` (`data-t="key"`) | website release |
 
 **Release** = run `sh src/<app>/build.sh`, raise the version in **two** places, add a Hungarian

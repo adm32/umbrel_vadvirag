@@ -285,7 +285,7 @@ function renderDisco() {
       <a class="dc-post" href="${esc(p.poster_full)}" target="_blank" rel="noopener" aria-label="${esc(T('dcPoster'))}: ${esc(p.star)}"><img src="${esc(p.poster)}" alt="${esc(p.star)} – ${esc(L10(p.title))}" width="720" height="900" loading="lazy" decoding="async"><span class="dc-zoom">${esc(T('dcPoster'))}</span></a>
       <div class="dc-meta"><p class="dc-k">${esc(T('dcStar', { n: p.n }))}<span>${esc(left)}</span></p>
         <h3>${esc(p.star)}</h3><p class="dc-t">${esc(L10(p.title))}</p><p class="dc-d">${esc(cap(evWhen(p)))}</p>
-        <div class="dc-cta"><a class="btn btn-gold" href="#kapcsolat" data-dcbook="${i}">${esc(T('evBook'))}</a><a class="btn btn-light" href="tel:+36203395099" aria-label="${esc(T('call'))}: 06 20 339 5099"><span>${esc(T('call'))}</span></a></div></div></article>`;
+        <div class="dc-cta"><a class="btn btn-light" href="tel:+36203395099"><span>${esc(T('dcInfo'))}: 06 20 339 5099</span></a></div></div></article>`;
   };
   el.innerHTML = `<div class="dc">
     <div class="dc-head"><img class="dc-logo" src="/img/disco/logo.webp" alt="${esc(L10(d.title))}" width="760" height="345" loading="lazy" decoding="async"><p class="dc-tag">${esc(L10(d.tagline))}</p></div>
@@ -295,16 +295,8 @@ function renderDisco() {
   if (location.hash === '#disco' && !renderDisco.done) { renderDisco.done = true; setTimeout(() => el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 250); }
 }
 $('disco').addEventListener('click', ev => {
-  const b = tgt(ev)?.closest('[data-dcbook]');
   if (tgt(ev)?.closest('video')) track('ev', { n: 'disco_video' });
   if (tgt(ev)?.closest('.dc-post')) track('ev', { n: 'disco_poster' });
-  if (!b) return;
-  const p = OFF.disco.parties[+b.dataset.dcbook]; if (!p) return;
-  setKind('asztal');
-  const f = form.elements; f.date.value = p.date;
-  if (!f.text.value.trim()) f.text.value = T('dcMsg', { star: p.star, title: L10(p.title), date: evWhen(p) });
-  track('ev', { n: 'disco_book', v: p.id });
-  setTimeout(() => f.namedItem('name').focus({ preventScroll: true }), 450);
 });
 $('heroDc').addEventListener('click', () => track('ev', { n: 'disco_hero' }));
 addEventListener('hashchange', () => { if (location.hash === '#disco' && !$('disco').hidden) $('disco').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });

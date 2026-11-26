@@ -1603,5 +1603,50 @@
     }
    }
   ]
+ },
+ "disco": {
+  "id": "vadvirag-disco-2026-12",
+  "show_from": "2026-11-26",
+  "until": "2026-12-31",
+  "title": {
+   "hu": "Vadvirág Disco",
+   "en": "Vadvirág Disco",
+   "de": "Vadvirág Disco"
+  },
+  "tagline": {
+   "hu": "Decemberre a bulizni vágyóknak – 2 buli, 2 sztárvendég",
+   "en": "Two parties, two star guests – December is for dancing",
+   "de": "Zwei Partys, zwei Stargäste – im Dezember wird getanzt"
+  },
+  "video": "/img/disco/disco-video.mp4",
+  "video_poster": "/img/disco/disco-video.webp",
+  "parties": [
+   {
+    "id": "rony",
+    "date": "2026-12-25",
+    "star": "Rony",
+    "n": 1,
+    "title": {
+     "hu": "Karácsonyi Disco-Party",
+     "en": "Christmas Disco Party",
+     "de": "Weihnachts-Disco-Party"
+    },
+    "poster": "/img/disco/rony-plakat.webp",
+    "poster_full": "/img/disco/rony-plakat-nagy.webp"
+   },
+   {
+    "id": "mr-rick",
+    "date": "2026-12-31",
+    "star": "Mr. Rick",
+    "n": 2,
+    "title": {
+     "hu": "Vadvirág Szilveszter · BÚEK 2027",
+     "en": "New Year’s Eve at Vadvirág · Happy 2027",
+     "de": "Silvester im Vadvirág · Prosit 2027"
+    },
+    "poster": "/img/disco/mr-rick-plakat.webp",
+    "poster_full": "/img/disco/mr-rick-plakat-nagy.webp"
+   }
+  ]
  }
 }

@@ -176,3 +176,24 @@ func TestHoliday(t *testing.T) {
 		t.Error("karácsony után el kell tűnnie")
 	}
 }
+
+func TestDisco(t *testing.T) {
+	at := func(s string) (discoOffer, bool) {
+		tm, _ := time.ParseInLocation("2006-01-02 15:04", s, budapestTZ)
+		d, ok := activeOffers(tm)["disco"].(discoOffer)
+		return d, ok
+	}
+	if _, ok := at("2026-11-25 23:00"); ok {
+		t.Error("disco shown too early")
+	}
+	d, ok := at("2026-11-27 12:00")
+	if !ok || len(d.Parties) != 2 || d.Parties[0].Star != "Rony" || d.Parties[1].Date != "2026-12-31" || d.Parties[0].DaysLeft != 28 {
+		t.Errorf("wrong disco: %+v", d)
+	}
+	if d, ok := at("2026-12-26 10:00"); !ok || len(d.Parties) != 1 || d.Parties[0].Star != "Mr. Rick" {
+		t.Errorf("after Christmas only Mr. Rick should stay: %+v", d)
+	}
+	if _, ok := at("2027-01-01 00:10"); ok {
+		t.Error("disco shown after New Year's Eve")
+	}
+}

@@ -136,8 +136,32 @@ type holidayOffer struct {
 	} `json:"preorder"`
 }
 
+// Vadvirág Disco: a "show_from" naptól az "until" napig látszik; minden buli a saját napja után eltűnik.
+type discoParty struct {
+	ID         string `json:"id"`
+	Date       string `json:"date"`
+	Star       string `json:"star"`
+	N          int    `json:"n"`
+	Title      L10n   `json:"title"`
+	Poster     string `json:"poster"`
+	PosterFull string `json:"poster_full"`
+	DaysLeft   int    `json:"days_left"`
+}
+
+type discoOffer struct {
+	ID          string       `json:"id"`
+	ShowFrom    string       `json:"show_from"`
+	Until       string       `json:"until"`
+	Title       L10n         `json:"title"`
+	Tagline     L10n         `json:"tagline"`
+	Video       string       `json:"video,omitempty"`
+	VideoPoster string       `json:"video_poster,omitempty"`
+	Parties     []discoParty `json:"parties"`
+}
+
 type offersFile struct {
 	Holiday *holidayOffer `json:"holiday,omitempty"`
+	Disco   *discoOffer   `json:"disco,omitempty"`
 	Weekend *weekendOffer `json:"weekend"`
 	Weeks   []weeklyMenu  `json:"weeks"`
 	Weekly  *weeklyMenu   `json:"weekly,omitempty"` // régi formátum (egy hét)
@@ -239,6 +263,23 @@ func activeOffers(now time.Time) map[string]any {
 		until, ok2 := day(h.Until)
 		if ok1 && ok2 && !today.Before(from) && !today.After(until) {
 			out["holiday"] = h
+		}
+	}
+	if dc := offers.Disco; dc != nil {
+		from, ok1 := day(dc.ShowFrom)
+		until, ok2 := day(dc.Until)
+		if ok1 && ok2 && !today.Before(from) && !today.After(until) {
+			cp := *dc
+			cp.Parties = nil
+			for _, p := range dc.Parties {
+				if d, ok := day(p.Date); ok && !today.After(d) {
+					p.DaysLeft = int(d.Sub(today).Hours()/24 + 0.5)
+					cp.Parties = append(cp.Parties, p)
+				}
+			}
+			if len(cp.Parties) > 0 {
+				out["disco"] = cp
+			}
 		}
 	}
 	if best != nil && sw.WeeklyHidden != best.From {

@@ -157,7 +157,7 @@ async function loadOffers() {
 let wkeMain = 0; // hétvégi ajánlat: melyik főételt választotta (ha több van)
 function renderOffers() {
   if (!OFF) return;
-  renderEvents(); renderHoliday();
+  renderEvents(); renderHoliday(); renderDisco();
   const w = OFF.weekend, el = $('offWeekend');
   if (w) {
     const tag = w.days_left <= 0 ? T('wkendToday') : w.days_left === 1 ? T('wkendTomorrow') : T('wkendSunday');
@@ -272,6 +272,42 @@ $('karacsony').addEventListener('click', e => {
   if (t.closest('.xm-tog')) { const o = !xmOpen; xmToggle(o); if (o) track('ev', { n: 'xmas_more' }); else $('karacsony').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' }); }
 });
 addEventListener('hashchange', () => { if (location.hash === '#karacsony' && !$('karacsony').hidden) xmToggle(true), $('karacsony').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });
+// ---- Vadvirág Disco: a két decemberi buli plakáttal, a reklámvideóval és asztalfoglalással.
+// A szerver a "show_from" naptól szilveszterig küldi, és minden bulit a napja után kivesz.
+function renderDisco() {
+  const d = OFF && OFF.disco, el = $('disco'), hp = $('heroDc');
+  el.hidden = hp.hidden = !d; if (!d) return;
+  const ps = d.parties || [];
+  hp.innerHTML = `<span class="gi"><img src="/img/disco/pipacs-xs.webp" alt="" width="44" height="44"></span><span><b>${esc(L10(d.title))}</b><small>${esc(ps.map(p => `${evDay(p.date, { month: 'short', day: 'numeric' })} ${p.star}`).join(' · '))}</small></span><span class="go">›</span>`;
+  const card = (p, i) => {
+    const left = p.days_left <= 0 ? T('evToday') : p.days_left === 1 ? T('evTomorrow') : T('evDays', { n: p.days_left });
+    return `<article class="dc-card" style="--i:${i}">
+      <a class="dc-post" href="${esc(p.poster_full)}" target="_blank" rel="noopener" aria-label="${esc(T('dcPoster'))}: ${esc(p.star)}"><img src="${esc(p.poster)}" alt="${esc(p.star)} – ${esc(L10(p.title))}" width="720" height="900" loading="lazy" decoding="async"><span class="dc-zoom">${esc(T('dcPoster'))}</span></a>
+      <div class="dc-meta"><p class="dc-k">${esc(T('dcStar', { n: p.n }))}<span>${esc(left)}</span></p>
+        <h3>${esc(p.star)}</h3><p class="dc-t">${esc(L10(p.title))}</p><p class="dc-d">${esc(cap(evWhen(p)))}</p>
+        <div class="dc-cta"><a class="btn btn-gold" href="#kapcsolat" data-dcbook="${i}">${esc(T('evBook'))}</a><a class="btn btn-light" href="tel:+36203395099" aria-label="${esc(T('call'))}: 06 20 339 5099"><span>${esc(T('call'))}</span></a></div></div></article>`;
+  };
+  el.innerHTML = `<div class="dc">
+    <div class="dc-head"><img class="dc-logo" src="/img/disco/logo.webp" alt="${esc(L10(d.title))}" width="760" height="345" loading="lazy" decoding="async"><p class="dc-tag">${esc(L10(d.tagline))}</p></div>
+    <div class="dc-grid${ps.length === 1 ? ' one' : ''}">${ps.map((p, i) => card(p, i)).join('')}
+      ${d.video ? `<figure class="dc-vid"><video controls playsinline preload="none" poster="${esc(d.video_poster || '')}" src="${esc(d.video)}"></video><figcaption>${esc(T('dcVideo'))}</figcaption></figure>` : ''}</div></div>`;
+  requestAnimationFrame(() => { if (!el.classList.contains('in')) seenIO ? seenIO.observe(el) : el.classList.add('in'); });
+  if (location.hash === '#disco' && !renderDisco.done) { renderDisco.done = true; setTimeout(() => el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 250); }
+}
+$('disco').addEventListener('click', ev => {
+  const b = tgt(ev)?.closest('[data-dcbook]');
+  if (tgt(ev)?.closest('video')) track('ev', { n: 'disco_video' });
+  if (tgt(ev)?.closest('.dc-post')) track('ev', { n: 'disco_poster' });
+  if (!b) return;
+  const p = OFF.disco.parties[+b.dataset.dcbook]; if (!p) return;
+  setKind('asztal');
+  const f = form.elements; f.date.value = p.date;
+  if (!f.text.value.trim()) f.text.value = T('dcMsg', { star: p.star, title: L10(p.title), date: evWhen(p) });
+  track('ev', { n: 'disco_book', v: p.id });
+  setTimeout(() => f.namedItem('name').focus({ preventScroll: true }), 450);
+});
+$('heroDc').addEventListener('click', () => track('ev', { n: 'disco_hero' }));
+addEventListener('hashchange', () => { if (location.hash === '#disco' && !$('disco').hidden) $('disco').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });
 function renderEvents() {
   const evs = (OFF && OFF.events) || [], box = $('esemenyek'), hp = $('heroEv');
   box.hidden = hp.hidden = !evs.length;
@@ -670,6 +706,8 @@ function newBanner(s) {
 }
 function renderHeroBurger() {
   const el = $('heroBg'), s = M && M.sections.find(x => x.id === 'burger-boxok');
+  // A főoldalon már nem hirdetjük az új burgereket (az étlapon továbbra is „Új” jelzéssel látszanak)
+  el.hidden = true; return;
   if (!s || !hasNew(s)) { el.hidden = true; return; }
   el.innerHTML = `<span class="gi gi-img"><img src="/img/burger-uj-xs.webp" alt="" width="64" height="48"></span><span><b>${esc(T('nbHero'))}</b><small>${esc(T('nbHeroSub', { p: huf(minPrice(s)) }))}</small></span><span class="go">${esc(T('nbGo'))} ›</span>`;
   el.hidden = false;

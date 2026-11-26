@@ -123,7 +123,8 @@ func TestEvents(t *testing.T) {
 		e, _ := activeOffers(tm)["events"].([]event)
 		return e
 	}
-	for s, want := range map[string]int{"2026-11-12 23:59": 0, "2026-11-13 00:00": 1, "2026-11-21 23:00": 1, "2026-11-22 00:00": 0} {
+	for s, want := range map[string]int{"2026-11-12 23:59": 0, "2026-11-13 00:00": 1, "2026-11-21 23:00": 1, "2026-11-22 00:00": 0,
+		"2026-11-25 23:59": 0, "2026-11-26 00:00": 1, "2026-12-05 23:00": 1, "2026-12-06 00:00": 0} {
 		if got := len(at(s)); got != want {
 			t.Errorf("%s: %d events", s, got)
 		}
@@ -134,6 +135,11 @@ func TestEvents(t *testing.T) {
 	}
 	if at("2026-11-21 10:00")[0].DaysLeft != 0 {
 		t.Error("days left on the day should be 0")
+	}
+	m := at("2026-11-26 15:00")[0]
+	if m.ID != "mikulas-2026" || m.DaysLeft != 9 || m.Time != "18:00" || len(m.Facts) != 6 || len(m.Entry) != 1 || m.Entry[0].Price != 0 ||
+		m.Book["hu"] != "Jelentkezem" || !m.NoWheel || m.ArtW != 480 || m.Msg["hu"] == "" || m.HeroSub["en"] == "" {
+		t.Errorf("wrong Mikulás event: %+v", m)
 	}
 }
 

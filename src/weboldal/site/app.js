@@ -212,8 +212,14 @@ function renderGw() {
 const EV_ICON = {
   dinner: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.2"/><path d="M3 3v6a2 2 0 0 0 2 2v10M5 3v5M7 3v6a2 2 0 0 1-2 2M21 21V3c-1.6.9-2.5 3-2.5 6.5H21"/></svg>',
   music: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>',
-  place: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'
+  place: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  gift: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="1.5"/><path d="M2.5 9h19M12 9v11.5M12 9C10 5 6.5 4.5 6.5 7c0 1.6 2.5 2 5.5 2M12 9c2-4 5.5-4.5 5.5-2 0 1.6-2.5 2-5.5 2"/></svg>',
+  clown: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="8" r="2.6"/><circle cx="12" cy="4.6" r="2.6"/><circle cx="18" cy="8" r="2.6"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/><circle cx="12" cy="16.5" r="1.6"/></svg>',
+  disco: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v3"/><circle cx="12" cy="11.5" r="6.5"/><path d="M5.5 11.5h13M12 5c-2 2-2 11 0 13M12 5c2 2 2 11 0 13M6.6 8h10.8M6.6 15h10.8"/><path d="M3 21l2-2M21 21l-2-2"/></svg>'
 };
+// rendezvényenként felülírható szövegek („Jelentkezem”, a nyitókép alsó sora, az üzenet), {date}/{title} helyettesítéssel
+const evTxt = (o, key, vars) => { const s = L10(o); return s ? s.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m) : T(key, vars); };
 const evDay = (iso, o) => isoDay(iso).toLocaleDateString(LOC(), o);
 const evWhen = e => evDay(e.date, { month: 'long', day: 'numeric', weekday: 'long' });
 // Katalin-kerék: népi rozetta a táncoló pár mögött (arany vonalrajz)
@@ -272,12 +278,12 @@ function renderEvents() {
   $$('a[href="#rendezvenyek"]').forEach(a => a.classList.toggle('has-ev', !!evs.length));
   if (!evs.length) return;
   const e0 = evs[0];
-  hp.innerHTML = `<span class="gi">${e0.icon ? `<img src="${esc(e0.icon)}" alt="" width="40" height="40">` : EV_ICON.music}</span><span><b>${esc(L10(e0.title))}</b><small>${esc(T('evHeroSub', { date: evWhen(e0) }))}</small></span><span class="go">›</span>`;
+  hp.innerHTML = `<span class="gi">${e0.icon ? `<img src="${esc(e0.icon)}" alt="" width="40" height="40">` : EV_ICON.music}</span><span><b>${esc(L10(e0.title))}</b><small>${esc(evTxt(e0.hero_sub, 'evHeroSub', { date: evWhen(e0) }))}</small></span><span class="go">›</span>`;
   evShown = evShown || !!box.querySelector('.ev-card.in');
   box.innerHTML = evs.map((e, i) => {
     const left = e.days_left <= 0 ? T('evToday') : e.days_left === 1 ? T('evTomorrow') : T('evDays', { n: e.days_left });
     return `<article class="ev-card${evShown ? ' in' : ''}">
-      <div class="ev-art" aria-hidden="true">${EV_WHEEL}${e.art ? `<img src="${esc(e.art)}" alt="" width="1000" height="620" loading="lazy" decoding="async">` : ''}
+      <div class="ev-art${e.art_h > e.art_w ? ' tall' : ''}" aria-hidden="true">${e.no_wheel ? '' : EV_WHEEL}${e.art ? `<img src="${esc(e.art)}" alt="" width="${e.art_w || 1000}" height="${e.art_h || 620}" loading="lazy" decoding="async">` : ''}
         <div class="ev-date"><b>${isoDay(e.date).getDate()}</b><span>${esc(evDay(e.date, { month: 'short' }))}</span><small>${esc(evDay(e.date, { weekday: 'long' }))}</small></div></div>
       <div class="ev-body">
         <p class="ev-tags"><span class="off-tag">${esc(T('evTag'))}</span><span class="ev-left">${esc(left)}</span></p>
@@ -285,9 +291,9 @@ function renderEvents() {
         <p class="ev-when">${esc(cap(evWhen(e)))}</p>
         ${L10(e.lead) ? `<p class="ev-lead">${esc(L10(e.lead))}</p>` : ''}
         ${(e.facts || []).length ? `<ul class="ev-facts">${e.facts.map(f => `<li><i>${EV_ICON[f.icon] || EV_ICON.music}</i><span>${esc(L10(f.text))}</span></li>`).join('')}</ul>` : ''}
-        ${(e.entry || []).length ? `<div class="ev-entry"><h4>${esc(L10(e.entry_title) || T('evEntry'))}</h4>${e.entry.map((x, k) => `${L10(x.head) ? `<p class="ev-grp">${esc(L10(x.head))}</p>${L10(x.note) ? `<p class="ev-gnote">${esc(L10(x.note))}</p>` : ''}` : ''}<div class="ev-tix" style="--i:${k}"><b>${esc(L10(x.label))}</b><span>${esc(L10(x.desc))}</span><strong>${huf(x.price)} Ft${L10(x.unit) ? ` <small>${esc(L10(x.unit))}</small>` : ''}</strong></div>`).join('')}</div>` : ''}
+        ${(e.entry || []).length ? `<div class="ev-entry"><h4>${esc(L10(e.entry_title) || T('evEntry'))}</h4>${e.entry.map((x, k) => `${L10(x.head) ? `<p class="ev-grp">${esc(L10(x.head))}</p>${L10(x.note) ? `<p class="ev-gnote">${esc(L10(x.note))}</p>` : ''}` : ''}<div class="ev-tix" style="--i:${k}"><b>${esc(L10(x.label))}</b><span>${esc(L10(x.desc))}</span><strong>${x.price ? `${huf(x.price)} Ft${L10(x.unit) ? ` <small>${esc(L10(x.unit))}</small>` : ''}` : esc(T('evFree'))}</strong></div>`).join('')}</div>` : ''}
         ${e.platter && (e.platter.groups || []).length ? `<details class="ev-platter"><summary><span>${esc(L10(e.platter.title))}${L10(e.platter.sub) ? `<small>${esc(L10(e.platter.sub))}</small>` : ''}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><dl>${e.platter.groups.map(g => `<div><dt>${esc(L10(g.name))}</dt><dd><ul>${g.items.map(i => `<li>${esc(L10(i))}</li>`).join('')}</ul></dd></div>`).join('')}</dl></details>` : ''}
-        <div class="ev-cta"><a class="btn btn-gold btn-lg" href="#kapcsolat" data-evbook="${i}">${esc(T('evBook'))}</a><a class="btn btn-light btn-lg" href="tel:+36203395099"><span>${esc(T('call'))}: 06 20 339 5099</span></a></div>
+        <div class="ev-cta"><a class="btn btn-gold btn-lg" href="#kapcsolat" data-evbook="${i}">${esc(evTxt(e.book, 'evBook', {}))}</a><a class="btn btn-light btn-lg" href="tel:+36203395099"><span>${esc(T('call'))}: 06 20 339 5099</span></a></div>
         ${e.poster ? `<a class="ev-poster" href="${esc(e.poster)}" target="_blank" rel="noopener">${esc(T('evPoster'))} ›</a>` : ''}
       </div></article>`;
   }).join('');
@@ -300,13 +306,13 @@ $('esemenyek').addEventListener('click', ev => {
   const e = OFF.events[+b.dataset.evbook]; if (!e) return;
   setKind('asztal');
   const f = form.elements; f.date.value = e.date; if (e.time) f.time.value = e.time;
-  if (!f.text.value.trim()) f.text.value = T('evMsg', { title: L10(e.title), date: evWhen(e) });
+  if (!f.text.value.trim()) f.text.value = evTxt(e.msg, 'evMsg', { title: L10(e.title), date: evWhen(e) });
   track('ev', { n: 'event_book', v: e.id });
   setTimeout(() => f.namedItem('name').focus({ preventScroll: true }), 450);
 });
 $('heroEv').addEventListener('click', () => track('ev', { n: 'event_hero' }));
 function evFromHash() {
-  if (/^#(esemenyek|bal|rendezveny)$/.test(location.hash) && !$('esemenyek').hidden && !evFromHash.done) {
+  if (/^#(esemenyek|bal|rendezveny|mikulas)$/.test(location.hash) && !$('esemenyek').hidden && !evFromHash.done) {
     evFromHash.done = true; $('esemenyek').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   }
 }

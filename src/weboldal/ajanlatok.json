@@ -1140,6 +1140,113 @@
    "art": "/img/bal/tancolok.webp",
    "icon": "/img/bal/poharak-xs.webp",
    "poster": "/img/bal/plakat.webp"
+  },
+  {
+   "id": "mikulas-2026",
+   "date": "2026-12-05",
+   "show_from": "2026-11-26",
+   "time": "18:00",
+   "title": {
+    "hu": "Mikulás a Vadvirágban",
+    "en": "St Nicholas at Vadvirág",
+    "de": "Nikolaus im Vadvirág"
+   },
+   "lead": {
+    "hu": "Hozzátok el a gyerekeket: a Mikulás mindenkinek hoz ajándékot, utána éneklés, bohócműsor és diszkó vár rátok!",
+    "en": "Bring the children: St Nicholas has a present for everyone, followed by singing, a clown show and a disco!",
+    "de": "Bringt die Kinder mit: Der Nikolaus hat für alle ein Geschenk dabei, danach gibt es Singen, eine Clownshow und Disco!"
+   },
+   "facts": [
+    {
+     "icon": "clock",
+     "text": {
+      "hu": "Kezdés 18 órakor",
+      "en": "Starts at 6 pm",
+      "de": "Beginn um 18 Uhr"
+     }
+    },
+    {
+     "icon": "gift",
+     "text": {
+      "hu": "Ajándék Mikulás-csomag minden gyereknek",
+      "en": "A St Nicholas gift bag for every child",
+      "de": "Ein Nikolaus-Päckchen für jedes Kind"
+     }
+    },
+    {
+     "icon": "music",
+     "text": {
+      "hu": "Közös éneklés Szolnoki Tibi bácsival",
+      "en": "Singing together with Uncle Tibi Szolnoki",
+      "de": "Gemeinsames Singen mit Onkel Tibi Szolnoki"
+     }
+    },
+    {
+     "icon": "clown",
+     "text": {
+      "hu": "Bohócműsor",
+      "en": "Clown show",
+      "de": "Clownshow"
+     }
+    },
+    {
+     "icon": "disco",
+     "text": {
+      "hu": "Gyerekdiszkó, buborék- és hóshow",
+      "en": "Kids’ disco with a bubble and snow show",
+      "de": "Kinderdisco mit Seifenblasen- und Schneeshow"
+     }
+    },
+    {
+     "icon": "place",
+     "text": {
+      "hu": "Vadvirág Étterem és Rendezvényhelyszín, Zalaudvarnok",
+      "en": "Vadvirág Restaurant & Event Venue, Zalaudvarnok",
+      "de": "Restaurant & Eventlocation Vadvirág, Zalaudvarnok"
+     }
+    }
+   ],
+   "entry_title": {
+    "hu": "Hogyan vehettek részt?",
+    "en": "How to join us",
+    "de": "So seid ihr dabei"
+   },
+   "entry": [
+    {
+     "label": {
+      "hu": "Belépés",
+      "en": "Entry",
+      "de": "Eintritt"
+     },
+     "desc": {
+      "hu": "kérjük, jelentkezz előre itt online vagy telefonon",
+      "en": "please sign up in advance here online or by phone",
+      "de": "bitte meldet euch vorher hier online oder telefonisch an"
+     },
+     "price": 0
+    }
+   ],
+   "book": {
+    "hu": "Jelentkezem",
+    "en": "Sign up",
+    "de": "Anmelden"
+   },
+   "hero_sub": {
+    "hu": "{date} · ingyenes, jelentkezz!",
+    "en": "{date} · free, sign up!",
+    "de": "{date} · kostenlos, jetzt anmelden!"
+   },
+   "msg": {
+    "hu": "Jelentkezés: {title} ({date}). Gyerekek száma: ",
+    "en": "Sign-up: {title} ({date}). Number of children: ",
+    "de": "Anmeldung: {title} ({date}). Anzahl der Kinder: "
+   },
+   "art": "/img/mikulas/mikulas.webp",
+   "art_w": 480,
+   "art_h": 782,
+   "icon": "/img/mikulas/csomag-xs.webp",
+   "poster": "/img/mikulas/plakat.webp",
+   "no_wheel": true
   }
  ],
  "holiday": {

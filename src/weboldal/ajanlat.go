@@ -89,9 +89,15 @@ type event struct {
 		} `json:"groups"`
 	} `json:"platter,omitempty"`
 	Art      string `json:"art,omitempty"`
+	ArtW     int    `json:"art_w,omitempty"` // a kép mérete (alapból 1000×620)
+	ArtH     int    `json:"art_h,omitempty"`
+	NoWheel  bool   `json:"no_wheel,omitempty"` // a bálos Katalin-kerék dísz nélkül
 	Icon     string `json:"icon,omitempty"`
 	Poster   string `json:"poster,omitempty"`
-	DaysLeft int    `json:"days_left"` // 0 = ma van
+	Book     L10n   `json:"book,omitempty"`     // a gomb felirata (alapból „Asztalt foglalok”)
+	HeroSub  L10n   `json:"hero_sub,omitempty"` // a nyitókép linkjének alsó sora, {date}
+	Msg      L10n   `json:"msg,omitempty"`      // az üzenet előre kitöltött szövege, {title} {date}
+	DaysLeft int    `json:"days_left"`          // 0 = ma van
 }
 
 // Ünnepi ajánlat (pl. karácsony): a "show_from" naptól az "until" napig látszik. Csak tájékoztat,

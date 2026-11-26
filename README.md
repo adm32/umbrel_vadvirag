@@ -27,7 +27,7 @@ How the three fit together:
 
 | Job | Edit | Then |
 |---|---|---|
-| Weekly menu, weekend offer, events (bál) | `src/weboldal/ajanlatok.json` (tests: `ajanlat_test.go`) | website release |
+| Weekly menu, weekend offer, events (bál), holiday offer (karácsony, phone orders only) | `src/weboldal/ajanlatok.json` (tests: `ajanlat_test.go`) | website release |
 | Menu items, prices, sizes | `src/rendelesek/menu.json` (translations: `src/weboldal/site/data/menu-i18n.json`) | Rendelések **and** website release (the website's fallback menu is built from it) |
 | Drinks list | `src/weboldal/site/data/drinks.json` | website release |
 | Delivery fees per village | `defaultFees()` in `src/rendelesek/fees.go` (calculator: `tools/szallitasi_dij.py`) | Rendelések + website release |

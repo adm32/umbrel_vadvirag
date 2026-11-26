@@ -144,3 +144,29 @@ func TestWeekFixes(t *testing.T) {
 		t.Errorf("menu fix missing: %q / %q", w.Days[1].Mains[0]["hu"], w.Days[4].Dessert["hu"])
 	}
 }
+
+func TestHoliday(t *testing.T) {
+	at := func(s string) map[string]any {
+		tm, _ := time.ParseInLocation("2006-01-02 15:04", s, budapestTZ)
+		return activeOffers(tm)
+	}
+	if _, ok := at("2026-11-25 20:00")["holiday"]; ok {
+		t.Error("a karácsonyi ajánlat nov. 26. előtt nem látszik")
+	}
+	o, ok := at("2026-12-10 12:00")["holiday"]
+	if !ok {
+		t.Fatal("a karácsonyi ajánlatnak decemberben látszania kell")
+	}
+	h := o.(*holidayOffer)
+	if len(h.Platters) != 4 || h.Platters[1].P4 != 23800 || len(h.Classics) != 2 || len(h.Preorder) != 5 || h.Special == nil || h.Special.Price != 5950 {
+		t.Errorf("hiányos adat: %+v", h)
+	}
+	for _, p := range h.Preorder {
+		if p.Name["en"] == "" || p.Name["de"] == "" || p.Price == 0 {
+			t.Errorf("fordítás vagy ár hiányzik: %v", p.Name)
+		}
+	}
+	if _, ok := at("2026-12-26 09:00")["holiday"]; ok {
+		t.Error("karácsony után el kell tűnnie")
+	}
+}

@@ -157,7 +157,7 @@ async function loadOffers() {
 let wkeMain = 0; // hétvégi ajánlat: melyik főételt választotta (ha több van)
 function renderOffers() {
   if (!OFF) return;
-  renderEvents();
+  renderEvents(); renderHoliday();
   const w = OFF.weekend, el = $('offWeekend');
   if (w) {
     const tag = w.days_left <= 0 ? T('wkendToday') : w.days_left === 1 ? T('wkendTomorrow') : T('wkendSunday');
@@ -221,6 +221,36 @@ const EV_WHEEL = (() => { let p = ''; for (let i = 0; i < 16; i++) p += `<path t
   for (let i = 0; i < 8; i++) p += `<path transform="rotate(${i * 45 + 11.25})" d="M0 -104 L0 -114"/>`;
   return `<svg class="ev-wheel" viewBox="-130 -130 260 260" aria-hidden="true"><circle r="124"/><circle r="118" stroke-dasharray="2 7"/><circle r="98"/>${p}<circle r="34"/><circle r="14"/></svg>`; })();
 let evShown = false;
+// Ünnepi (karácsonyi) ajánlat: csak tájékoztat, online nem rendelhető – telefonon vagy személyesen.
+const XM_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5l3.1 7 7.6.7-5.8 5 1.8 7.4L12 17.7l-6.7 3.9 1.8-7.4-5.8-5 7.6-.7z"/></svg>';
+const XM_PHONE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3h3l1.5 4.5-2 1.4a12 12 0 0 0 6 6l1.4-2 4.5 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.4 5.2 2 2 0 0 1 6.6 3Z"/></svg>';
+function xmPlatter(p, small) {
+  const open = matchMedia('(min-width:760px)').matches ? ' open' : '';
+  return `<details class="xm-pl${small ? ' sm' : ''}"${open}><summary><span class="xm-nm">${esc(L10(p.name))}</span>
+    <span class="xm-pp"><span><small>${esc(T('xmFor2'))}</small><b>${huf(p.p2)} Ft</b></span><span><small>${esc(T('xmFor4'))}</small><b>${huf(p.p4)} Ft</b></span></span>
+    <span class="xm-more">${esc(T('xmItems'))}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <ul>${p.items.map(i => `<li>${esc(L10(i))}</li>`).join('')}</ul><p class="xm-side"><b>${esc(L10(p.side_label))}:</b> ${esc(L10(p.side))}</p></details>`;
+}
+function renderHoliday() {
+  const h = OFF && OFF.holiday, el = $('karacsony'), hp = $('heroXm');
+  el.hidden = hp.hidden = !h; if (!h) return;
+  hp.innerHTML = `<span class="gi">${XM_STAR}</span><span><b>${esc(L10(h.title))}</b><small>${esc(T('xmHeroSub'))}</small></span><span class="go">›</span>`;
+  const call = `<div class="xm-cta"><a class="btn btn-gold btn-lg" href="tel:+36203395099" aria-label="${esc(T('xmCall'))}: 06 20 339 5099">${XM_PHONE}<span><span class="xm-cl">${esc(T('xmCall'))}: </span>06 20 339 5099</span></a><small>${esc(T('xmInPerson'))}</small></div>`;
+  const sp = h.special;
+  el.innerHTML = `<img class="xm-ag" src="/img/karacsony-ag.webp" alt="" width="360" height="552" loading="lazy" decoding="async">
+    <div class="xm-head"><span class="off-tag">${esc(T('xmTag'))}</span>
+      <h3>${esc(L10(h.title))}</h3><p class="xm-when">${XM_STAR}<span>${esc(L10(h.when))}</span>${XM_STAR}</p>
+      <p class="xm-note">${XM_PHONE}<span>${esc(L10(h.order_note))}</span></p>${call}</div>
+    <div class="xm-grid">${h.platters.map(p => xmPlatter(p)).join('')}</div>
+    ${sp ? `<div class="xm-sp"><div><span class="xm-k">${esc(L10(sp.tag))}</span><b>${esc(L10(sp.name))}</b><p>${esc(L10(sp.desc))}</p></div><strong>${huf(sp.price)} Ft<small>${esc(L10(sp.unit))}</small></strong></div>` : ''}
+    ${(h.classics || []).length ? `<h4 class="xm-h4">${esc(L10(h.classics_title))}</h4><div class="xm-grid">${h.classics.map(p => xmPlatter(p, true)).join('')}</div>` : ''}
+    ${(h.preorder || []).length ? `<div class="xm-pre"><h4>${esc(L10(h.preorder_title))}</h4><ul>${h.preorder.map(x => `<li><span>${esc(L10(x.name))}${L10(x.unit) ? ` <small>(${esc(L10(x.unit))})</small>` : ''}</span><i></i><b>${huf(x.price)} Ft</b></li>`).join('')}</ul></div>` : ''}
+    <div class="xm-foot">${call}<p>${esc(L10(h.order_note))}</p></div>`;
+  if (location.hash === '#karacsony' && !renderHoliday.done) { renderHoliday.done = true; setTimeout(() => el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 200); }
+}
+$('heroXm').addEventListener('click', () => track('ev', { n: 'xmas_hero' }));
+$('karacsony').addEventListener('click', e => { if (tgt(e)?.closest('a[href^="tel:"]')) track('ev', { n: 'xmas_call' }); });
+addEventListener('hashchange', () => { if (location.hash === '#karacsony' && !$('karacsony').hidden) $('karacsony').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });
 function renderEvents() {
   const evs = (OFF && OFF.events) || [], box = $('esemenyek'), hp = $('heroEv');
   box.hidden = hp.hidden = !evs.length;
@@ -1225,7 +1255,7 @@ document.addEventListener('click', e => {
 }, true);
 // ha egy ajánlat sincs (se napi, se hétvégi, se alkalmi), az Ajánlataink rész és a menüpontja eltűnik
 function syncOffers() {
-  const any = ['pizzaAkcio', 'offPre', 'nyeremeny', 'offWeekend', 'kocsonya', 'offWeekly'].some(id => !$(id).hidden);
+  const any = ['karacsony', 'pizzaAkcio', 'offPre', 'nyeremeny', 'offWeekend', 'kocsonya', 'offWeekly'].some(id => !$(id).hidden);
   if (!any && !offersSettled) return;
   $('ajanlat').hidden = !any; $$('a[href="#ajanlat"]:not(.hero-pre)').forEach(a => { a.hidden = !any; });
 }

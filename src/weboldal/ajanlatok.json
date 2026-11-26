@@ -1141,5 +1141,360 @@
    "icon": "/img/bal/poharak-xs.webp",
    "poster": "/img/bal/plakat.webp"
   }
- ]
+ ],
+ "holiday": {
+  "id": "karacsony-2026",
+  "show_from": "2026-11-26",
+  "until": "2026-12-25",
+  "title": {
+   "hu": "Karácsonyra a Vadvirágból!",
+   "en": "Christmas from Vadvirág!",
+   "de": "Weihnachten aus dem Vadvirág!"
+  },
+  "when": {
+   "hu": "december 24–25-re",
+   "en": "for December 24–25",
+   "de": "für den 24.–25. Dezember"
+  },
+  "order_note": {
+   "hu": "Rendelés csak személyesen az étteremben vagy telefonon – online nem rendelhető.",
+   "en": "Orders in person at the restaurant or by phone only – not available online.",
+   "de": "Bestellung nur persönlich im Restaurant oder telefonisch – nicht online."
+  },
+  "platters": [
+   {
+    "name": {
+     "hu": "Karácsonyi sültestál",
+     "en": "Christmas roast platter",
+     "de": "Weihnachtliche Bratenplatte"
+    },
+    "p2": 12500,
+    "p4": 23800,
+    "items": [
+     {
+      "hu": "Aszalt szilvával, gesztenyével töltött csirkemell rántva",
+      "en": "Breaded chicken breast stuffed with prunes and chestnut",
+      "de": "Panierte Hähnchenbrust mit Dörrpflaumen und Maronen gefüllt"
+     },
+     {
+      "hu": "Töltött dagadó tanyasi módra (csirkemájas töltelékkel)",
+      "en": "Farmhouse stuffed pork belly (with chicken liver stuffing)",
+      "de": "Gefüllter Schweinebauch nach Bauernart (mit Hühnerleberfüllung)"
+     },
+     {
+      "hu": "Csirkemellszalagok ropogós, sokmagvas bundában",
+      "en": "Chicken breast strips in a crispy multigrain crust",
+      "de": "Hähnchenbruststreifen in knuspriger Mehrkornpanade"
+     },
+     {
+      "hu": "Kemencében besütött karaj barackkal és sajttal",
+      "en": "Oven-baked pork loin with peach and cheese",
+      "de": "Im Holzofen überbackenes Schweinekotelett mit Pfirsich und Käse"
+     },
+     {
+      "hu": "Stefánia vagdalt",
+      "en": "Stefánia meatloaf (with egg)",
+      "de": "Stefánia-Hackbraten (mit Ei)"
+     }
+    ],
+    "side_label": {
+     "hu": "Köret",
+     "en": "Sides",
+     "de": "Beilagen"
+    },
+    "side": {
+     "hu": "hagymás törtburgonya (vagy petrezselymes burgonya), rizi-bizi",
+     "en": "crushed potatoes with onion (or parsley potatoes), rice with peas",
+     "de": "Kartoffelstampf mit Zwiebeln (oder Petersilienkartoffeln), Reis mit Erbsen"
+    }
+   },
+   {
+    "name": {
+     "hu": "Ünnepi haltál",
+     "en": "Festive fish platter",
+     "de": "Festliche Fischplatte"
+    },
+    "p2": 12500,
+    "p4": 23800,
+    "items": [
+     {
+      "hu": "Rántott harcsafilé szezámos bundában",
+      "en": "Breaded catfish fillet in sesame crust",
+      "de": "Panierte Welsfilets in Sesampanade"
+     },
+     {
+      "hu": "Fogasfilé roston sütve",
+      "en": "Grilled pike-perch fillet",
+      "de": "Gegrilltes Zanderfilet"
+     },
+     {
+      "hu": "Rántott pontypatkó",
+      "en": "Breaded carp",
+      "de": "Panierter Karpfen"
+     },
+     {
+      "hu": "Harcsa chips remulade mártással",
+      "en": "Catfish chips with remoulade",
+      "de": "Welschips mit Remoulade"
+     }
+    ],
+    "side_label": {
+     "hu": "Köret",
+     "en": "Sides",
+     "de": "Beilagen"
+    },
+    "side": {
+     "hu": "petrezselymes burgonya, rizi-bizi",
+     "en": "parsley potatoes, rice with peas",
+     "de": "Petersilienkartoffeln, Reis mit Erbsen"
+    }
+   },
+   {
+    "name": {
+     "hu": "Ünnepi csülöktál",
+     "en": "Festive pork knuckle platter",
+     "de": "Festliche Schweinshaxenplatte"
+    },
+    "p2": 12500,
+    "p4": 23800,
+    "items": [
+     {
+      "hu": "Csülök pékné módra",
+      "en": "Baker's style pork knuckle",
+      "de": "Schweinshaxe nach Bäckerinart"
+     },
+     {
+      "hu": "Pirított csülökszeletek (főtt és füstölt-főtt vegyesen)",
+      "en": "Pan-fried pork knuckle slices (boiled and smoked)",
+      "de": "Gebratene Haxenscheiben (gekocht und geräuchert)"
+     },
+     {
+      "hu": "Pikáns csülökszeletek (enyhén csípős, tejföllel, sajttal kemencében besütve)",
+      "en": "Spicy pork knuckle slices baked with sour cream and cheese",
+      "de": "Pikante Haxenscheiben, mit Sauerrahm und Käse im Ofen überbacken"
+     }
+    ],
+    "side_label": {
+     "hu": "Köret",
+     "en": "Sides",
+     "de": "Beilagen"
+    },
+    "side": {
+     "hu": "parasztos burgonya (steakburgonya baconös-hagymás-kolbászos raguval keverve)",
+     "en": "farmer's potatoes (potato wedges with bacon, onion and sausage ragout)",
+     "de": "Bauernkartoffeln (Kartoffelspalten mit Speck-Zwiebel-Wurst-Ragout)"
+    }
+   },
+   {
+    "name": {
+     "hu": "Retro ünnepi hidegtál",
+     "en": "Retro festive cold platter",
+     "de": "Retro festliche kalte Platte"
+    },
+    "p2": 11900,
+    "p4": 23200,
+    "items": [
+     {
+      "hu": "Kaszinótojás",
+      "en": "Casino eggs (stuffed eggs)",
+      "de": "Kasino-Eier (gefüllte Eier)"
+     },
+     {
+      "hu": "Tormás sonkatekercs",
+      "en": "Ham rolls with horseradish",
+      "de": "Schinkenröllchen mit Meerrettich"
+     },
+     {
+      "hu": "Kolbásszal töltött karaj",
+      "en": "Pork loin stuffed with sausage",
+      "de": "Mit Wurst gefülltes Schweinekotelett"
+     },
+     {
+      "hu": "Zöldfűszeres sajtkrémmel töltött fasírozott rolád",
+      "en": "Meat roulade filled with herb cream cheese",
+      "de": "Hackfleischroulade mit Kräuterfrischkäse"
+     }
+    ],
+    "side_label": {
+     "hu": "Mellé",
+     "en": "Served with",
+     "de": "Dazu"
+    },
+    "side": {
+     "hu": "franciasaláta, lilahagymás-majonézes burgonyasaláta",
+     "en": "Olivier salad, potato salad with red onion and mayonnaise",
+     "de": "Französischer Salat, Kartoffelsalat mit roten Zwiebeln und Mayonnaise"
+    }
+   }
+  ],
+  "special": {
+   "tag": {
+    "hu": "Ünnepi fogás",
+    "en": "Festive dish",
+    "de": "Festgericht"
+   },
+   "name": {
+    "hu": "Rozé libamell",
+    "en": "Rosé goose breast",
+    "de": "Rosa Gänsebrust"
+   },
+   "desc": {
+    "hu": "vörösboros párolt lilakáposztával, burgonyakrokettel vagy hagymás törtburgonyával",
+    "en": "with red-wine braised red cabbage, potato croquettes or crushed potatoes with onion",
+    "de": "mit Rotwein-Rotkraut, Kartoffelkroketten oder Kartoffelstampf mit Zwiebeln"
+   },
+   "price": 5950,
+   "unit": {
+    "hu": "adagonként",
+    "en": "per portion",
+    "de": "pro Portion"
+   }
+  },
+  "classics_title": {
+   "hu": "Klasszikus tálaink is rendelhetők",
+   "en": "Our classic platters are also available",
+   "de": "Auch unsere klassischen Platten sind erhältlich"
+  },
+  "classics": [
+   {
+    "name": {
+     "hu": "Udvarnok tál",
+     "en": "Udvarnok platter",
+     "de": "Udvarnok-Platte"
+    },
+    "p2": 11900,
+    "p4": 23200,
+    "items": [
+     {
+      "hu": "Rántott sertéskaraj",
+      "en": "Breaded pork chop",
+      "de": "Paniertes Schweinekotelett"
+     },
+     {
+      "hu": "Cordon bleu",
+      "en": "Cordon bleu",
+      "de": "Cordon bleu"
+     },
+     {
+      "hu": "Cigánypecsenye",
+      "en": "Gypsy-style roast pork",
+      "de": "Zigeunerbraten"
+     },
+     {
+      "hu": "Rántott trappista sajt",
+      "en": "Breaded trappist cheese",
+      "de": "Panierter Trappistenkäse"
+     }
+    ],
+    "side_label": {
+     "hu": "Köret",
+     "en": "Sides",
+     "de": "Beilagen"
+    },
+    "side": {
+     "hu": "párolt rizs, hasábburgonya",
+     "en": "steamed rice, fries",
+     "de": "Reis, Pommes frites"
+    }
+   },
+   {
+    "name": {
+     "hu": "Vadvirág tál",
+     "en": "Vadvirág platter",
+     "de": "Vadvirág-Platte"
+    },
+    "p2": 12500,
+    "p4": 23800,
+    "items": [
+     {
+      "hu": "Rántott csirkemellszalagok ropogós szezámos bundában",
+      "en": "Chicken breast strips in crispy sesame crust",
+      "de": "Hähnchenbruststreifen in knuspriger Sesampanade"
+     },
+     {
+      "hu": "Vadvirág specialitás rántva (bacon, sajt, lilahagyma)",
+      "en": "Vadvirág speciality, breaded (bacon, cheese, red onion)",
+      "de": "Vadvirág-Spezialität, paniert (Speck, Käse, rote Zwiebel)"
+     },
+     {
+      "hu": "Baconbe tekert füstölt sajtos csirkemell roston",
+      "en": "Grilled chicken breast wrapped in bacon with smoked cheese",
+      "de": "Gegrillte Hähnchenbrust im Speckmantel mit Räucherkäse"
+     },
+     {
+      "hu": "Rántott gombafejek",
+      "en": "Breaded mushrooms",
+      "de": "Panierte Champignons"
+     }
+    ],
+    "side_label": {
+     "hu": "Köret",
+     "en": "Sides",
+     "de": "Beilagen"
+    },
+    "side": {
+     "hu": "párolt rizs, fűszeres steakburgonya",
+     "en": "steamed rice, seasoned potato wedges",
+     "de": "Reis, gewürzte Kartoffelspalten"
+    }
+   }
+  ],
+  "preorder_title": {
+   "hu": "Előrendelhető",
+   "en": "Pre-order",
+   "de": "Vorbestellung"
+  },
+  "preorder": [
+   {
+    "name": {
+     "hu": "Halászlé harcsafilével",
+     "en": "Fish soup with catfish fillet",
+     "de": "Fischsuppe mit Welsfilet"
+    },
+    "price": 2750
+   },
+   {
+    "name": {
+     "hu": "Halászlé pontypatkóval",
+     "en": "Fish soup with carp",
+     "de": "Fischsuppe mit Karpfen"
+    },
+    "price": 2750
+   },
+   {
+    "name": {
+     "hu": "Halászlé halbelsőséggel gazdagon (harcsával vagy pontyal)",
+     "en": "Rich fish soup with fish roe and milt (catfish or carp)",
+     "de": "Reichhaltige Fischsuppe mit Rogen und Milch (Wels oder Karpfen)"
+    },
+    "price": 3250
+   },
+   {
+    "name": {
+     "hu": "Házi mákos bejgli",
+     "en": "Homemade poppy seed roll",
+     "de": "Hausgemachter Mohnstrudel (Bejgli)"
+    },
+    "price": 3250,
+    "unit": {
+     "hu": "egész rúd",
+     "en": "whole roll",
+     "de": "ganze Rolle"
+    }
+   },
+   {
+    "name": {
+     "hu": "Házi diós bejgli",
+     "en": "Homemade walnut roll",
+     "de": "Hausgemachter Nussstrudel (Bejgli)"
+    },
+    "price": 3250,
+    "unit": {
+     "hu": "egész rúd",
+     "en": "whole roll",
+     "de": "ganze Rolle"
+    }
+   }
+  ]
+ }
 }

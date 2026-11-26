@@ -94,7 +94,44 @@ type event struct {
 	DaysLeft int    `json:"days_left"` // 0 = ma van
 }
 
+// Ünnepi ajánlat (pl. karácsony): a "show_from" naptól az "until" napig látszik. Csak tájékoztat,
+// online nem rendelhető (telefonon vagy személyesen).
+type holidayPlatter struct {
+	Name      L10n   `json:"name"`
+	P2        int    `json:"p2"`
+	P4        int    `json:"p4"`
+	Items     []L10n `json:"items"`
+	SideLabel L10n   `json:"side_label"`
+	Side      L10n   `json:"side"`
+}
+
+type holidayOffer struct {
+	ID        string           `json:"id"`
+	ShowFrom  string           `json:"show_from"`
+	Until     string           `json:"until"`
+	Title     L10n             `json:"title"`
+	When      L10n             `json:"when"`
+	OrderNote L10n             `json:"order_note"`
+	Platters  []holidayPlatter `json:"platters"`
+	Special   *struct {
+		Tag   L10n `json:"tag"`
+		Name  L10n `json:"name"`
+		Desc  L10n `json:"desc"`
+		Price int  `json:"price"`
+		Unit  L10n `json:"unit"`
+	} `json:"special,omitempty"`
+	ClassicsTitle L10n             `json:"classics_title"`
+	Classics      []holidayPlatter `json:"classics"`
+	PreorderTitle L10n             `json:"preorder_title"`
+	Preorder      []struct {
+		Name  L10n `json:"name"`
+		Price int  `json:"price"`
+		Unit  L10n `json:"unit,omitempty"`
+	} `json:"preorder"`
+}
+
 type offersFile struct {
+	Holiday *holidayOffer `json:"holiday,omitempty"`
 	Weekend *weekendOffer `json:"weekend"`
 	Weeks   []weeklyMenu  `json:"weeks"`
 	Weekly  *weeklyMenu   `json:"weekly,omitempty"` // régi formátum (egy hét)
@@ -190,6 +227,13 @@ func activeOffers(now time.Time) map[string]any {
 	sort.SliceStable(evs, func(i, j int) bool { return evs[i].Date < evs[j].Date })
 	if len(evs) > 0 {
 		out["events"] = evs
+	}
+	if h := offers.Holiday; h != nil {
+		from, ok1 := day(h.ShowFrom)
+		until, ok2 := day(h.Until)
+		if ok1 && ok2 && !today.Before(from) && !today.After(until) {
+			out["holiday"] = h
+		}
 	}
 	if best != nil && sw.WeeklyHidden != best.From {
 		from, _ := day(best.From)

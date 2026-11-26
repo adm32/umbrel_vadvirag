@@ -237,20 +237,35 @@ function renderHoliday() {
   hp.innerHTML = `<span class="gi">${XM_STAR}</span><span><b>${esc(L10(h.title))}</b><small>${esc(T('xmHeroSub'))}</small></span><span class="go">›</span>`;
   const call = `<div class="xm-cta"><a class="btn btn-gold btn-lg" href="tel:+36203395099" aria-label="${esc(T('xmCall'))}: 06 20 339 5099">${XM_PHONE}<span><span class="xm-cl">${esc(T('xmCall'))}: </span>06 20 339 5099</span></a><small>${esc(T('xmInPerson'))}</small></div>`;
   const sp = h.special;
+  const from = Math.min(...h.platters.map(p => p.p2));
   el.innerHTML = `<img class="xm-ag" src="/img/karacsony-ag.webp" alt="" width="360" height="552" loading="lazy" decoding="async">
     <div class="xm-head"><span class="off-tag">${esc(T('xmTag'))}</span>
       <h3>${esc(L10(h.title))}</h3><p class="xm-when">${XM_STAR}<span>${esc(L10(h.when))}</span>${XM_STAR}</p>
-      <p class="xm-note">${XM_PHONE}<span>${esc(L10(h.order_note))}</span></p>${call}</div>
+      <p class="xm-sum">${esc(T('xmSum', { n: h.platters.length, p: huf(from) }))}</p>
+      <p class="xm-note">${XM_PHONE}<span>${esc(L10(h.order_note))}</span></p>${call}
+      <button type="button" class="xm-tog" aria-expanded="${xmOpen}" aria-controls="xmBody"><span>${esc(T(xmOpen ? 'xmLess' : 'xmMore'))}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <div class="xm-body${xmOpen ? ' open' : ''}" id="xmBody"><div class="xm-in"${xmOpen ? '' : ' inert'}>
     <div class="xm-grid">${h.platters.map(p => xmPlatter(p)).join('')}</div>
     ${sp ? `<div class="xm-sp"><div><span class="xm-k">${esc(L10(sp.tag))}</span><b>${esc(L10(sp.name))}</b><p>${esc(L10(sp.desc))}</p></div><strong>${huf(sp.price)} Ft<small>${esc(L10(sp.unit))}</small></strong></div>` : ''}
     ${(h.classics || []).length ? `<h4 class="xm-h4">${esc(L10(h.classics_title))}</h4><div class="xm-grid">${h.classics.map(p => xmPlatter(p, true)).join('')}</div>` : ''}
     ${(h.preorder || []).length ? `<div class="xm-pre"><h4>${esc(L10(h.preorder_title))}</h4><ul>${h.preorder.map(x => `<li><span>${esc(L10(x.name))}${L10(x.unit) ? ` <small>(${esc(L10(x.unit))})</small>` : ''}</span><i></i><b>${huf(x.price)} Ft</b></li>`).join('')}</ul></div>` : ''}
-    <div class="xm-foot">${call}<p>${esc(L10(h.order_note))}</p></div>`;
-  if (location.hash === '#karacsony' && !renderHoliday.done) { renderHoliday.done = true; setTimeout(() => el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 200); }
+    <div class="xm-foot">${call}<p>${esc(L10(h.order_note))}</p></div></div></div>`;
+  if (location.hash === '#karacsony' && !renderHoliday.done) { renderHoliday.done = true; xmToggle(true); setTimeout(() => el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 200); }
 }
-$('heroXm').addEventListener('click', () => track('ev', { n: 'xmas_hero' }));
-$('karacsony').addEventListener('click', e => { if (tgt(e)?.closest('a[href^="tel:"]')) track('ev', { n: 'xmas_call' }); });
-addEventListener('hashchange', () => { if (location.hash === '#karacsony' && !$('karacsony').hidden) $('karacsony').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });
+// „Bővebben”: a tálak és árak lenyitható részben vannak, hogy az ajánlat ne foglaljon sok helyet
+let xmOpen = false;
+function xmToggle(open) {
+  xmOpen = open; const el = $('karacsony'), body = $('xmBody'), btn = el.querySelector('.xm-tog'); if (!body) return;
+  body.classList.toggle('open', open); body.firstElementChild.inert = !open;
+  btn.setAttribute('aria-expanded', String(open)); btn.firstElementChild.textContent = T(open ? 'xmLess' : 'xmMore');
+}
+$('heroXm').addEventListener('click', () => { track('ev', { n: 'xmas_hero' }); xmToggle(true); });
+$('karacsony').addEventListener('click', e => {
+  const t = tgt(e); if (!t) return;
+  if (t.closest('a[href^="tel:"]')) track('ev', { n: 'xmas_call' });
+  if (t.closest('.xm-tog')) { const o = !xmOpen; xmToggle(o); if (o) track('ev', { n: 'xmas_more' }); else $('karacsony').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' }); }
+});
+addEventListener('hashchange', () => { if (location.hash === '#karacsony' && !$('karacsony').hidden) xmToggle(true), $('karacsony').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); });
 function renderEvents() {
   const evs = (OFF && OFF.events) || [], box = $('esemenyek'), hp = $('heroEv');
   box.hidden = hp.hidden = !evs.length;

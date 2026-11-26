@@ -1103,3 +1103,17 @@ p a[href^="tel:"]{padding-block:11px}
   .xm-pre li span small{display:block;white-space:normal}
 }
 @media (max-width:420px){.xm-cl{display:none}.xm-cta .btn{font-size:19px;letter-spacing:.02em}}
+
+/* karácsonyi ajánlat: lenyitható rész */
+.xm-sum{margin:14px auto 0;max-width:560px;font-size:17px;line-height:1.45;color:#f1e4c8}
+.xm-tog{display:inline-flex;align-items:center;gap:8px;margin-top:16px;min-height:48px;padding:0 22px;border-radius:999px;background:#fff9ee;color:#2f5424;font-weight:700;font-size:16px;box-shadow:0 10px 24px -12px #000a;transition:transform var(--t-move,.2s) var(--e-out,ease),background var(--t-hover,.2s) var(--e-out,ease)}
+.xm-tog svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;transition:transform .25s var(--e-out,ease)}
+.xm-tog[aria-expanded="true"] svg{transform:rotate(180deg)}
+.xm-tog:active{transform:scale(.96)}
+@media (hover:hover){.xm-tog:hover{background:#fff}}
+.xm-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s var(--e-out,ease)}
+.xm-body.open{grid-template-rows:1fr}
+.xm-in{min-height:0;overflow:hidden}
+.xm-body:not(.open) .xm-in{visibility:hidden;transition:visibility 0s .28s}
+@media (prefers-reduced-motion:reduce){.xm-body,.xm-tog svg{transition:none}}
+.xm-head .xm-cta{margin-top:16px}
